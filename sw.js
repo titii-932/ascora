@@ -33,6 +33,32 @@ self.addEventListener('activate', function(e) {
   self.clients.claim();
 });
 
+// Push notifications
+self.addEventListener('push', function(e) {
+  var data = e.data ? e.data.json() : {};
+  var title = data.title || 'Ascora';
+  var options = {
+    body: data.body || '',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    data: { url: data.url || '/' }
+  };
+  e.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', function(e) {
+  e.notification.close();
+  var target = (e.notification.data && e.notification.data.url) || '/';
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(list) {
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].url.includes(target) && 'focus' in list[i]) return list[i].focus();
+      }
+      if (clients.openWindow) return clients.openWindow(target);
+    })
+  );
+});
+
 // Fetch: network-first pour Supabase/CDN, cache-first pour assets locaux
 self.addEventListener('fetch', function(e) {
   var url = e.request.url;

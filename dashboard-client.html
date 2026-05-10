@@ -969,6 +969,44 @@
     loadSoloSessions();
     loadUnreadCount();
     subscribeToClientMessages();
+    registerPush(session.user.id);
+  }
+
+  // ── PUSH NOTIFICATIONS ────────────────────────────────────────────────
+  async function registerPush(userId) {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return;
+
+      const reg = await navigator.serviceWorker.ready;
+      const VAPID_PUBLIC = 'BBieE0Qe_pVV1cPH6ojLRDTFlgy5IUImkEq8xarnfhIc1DC417At1td8ssY_QBMw1YBosEkjBjxKVUuZWxjJ8vA';
+
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
+      });
+
+      const key = sub.getKey('p256dh');
+      const auth = sub.getKey('auth');
+      await db.from('push_subscriptions').upsert({
+        client_id: userId,
+        endpoint: sub.endpoint,
+        p256dh: key ? btoa(String.fromCharCode(...new Uint8Array(key))) : null,
+        auth: auth ? btoa(String.fromCharCode(...new Uint8Array(auth))) : null
+      }, { onConflict: 'client_id' });
+    } catch (err) {
+      console.warn('Push registration failed:', err);
+    }
+  }
+
+  function urlBase64ToUint8Array(base64String) {
+    var padding = '='.repeat((4 - base64String.length % 4) % 4);
+    var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    var raw = atob(base64);
+    var output = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) output[i] = raw.charCodeAt(i);
+    return output;
   }
 
   // ── NAVIGATION ────────────────────────────────────────────────────────
