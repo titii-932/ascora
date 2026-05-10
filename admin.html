@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ascora — Admin</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, 'Segoe UI', sans-serif; background: #0a0a0a; color: #f0f0f0; min-height: 100vh; }
+
+    /* ── GATE ── */
+    #gate { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .gate-box {
+      background: #161616; border: 1px solid #242424; border-radius: 14px;
+      padding: 2.5rem 2rem; width: 100%; max-width: 340px; text-align: center;
+    }
+    .gate-logo { font-size: 1.6rem; font-weight: 800; color: #10b981; letter-spacing: -.02em; margin-bottom: .3rem; }
+    .gate-sub { font-size: .8rem; color: #525252; margin-bottom: 2rem; text-transform: uppercase; letter-spacing: .08em; }
+    .gate-input {
+      width: 100%; background: #111; border: 1px solid #333; border-radius: 9px;
+      padding: .75rem 1rem; color: #f0f0f0; font-size: .95rem; outline: none;
+      margin-bottom: .85rem; text-align: center; letter-spacing: .2em;
+      font-family: inherit;
+    }
+    .gate-input:focus { border-color: #10b981; }
+    .gate-btn {
+      width: 100%; background: #10b981; color: #fff; border: none; border-radius: 9px;
+      padding: .75rem; font-size: .9rem; font-weight: 600; cursor: pointer;
+      transition: background .15s; font-family: inherit;
+    }
+    .gate-btn:hover { background: #059669; }
+    .gate-error { color: #ef4444; font-size: .8rem; margin-top: .75rem; min-height: 1.1em; }
+
+    /* ── PANEL ── */
+    #panel { display: none; max-width: 920px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    .admin-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 1.25rem; border-bottom: 1px solid #242424; margin-bottom: 2rem;
+    }
+    .admin-logo { font-size: 1.2rem; font-weight: 800; color: #10b981; letter-spacing: -.02em; }
+    .admin-logo span { color: #a3a3a3; font-weight: 400; font-size: .9rem; }
+    .admin-badge {
+      background: rgba(239,68,68,.1); color: #ef4444;
+      border: 1px solid rgba(239,68,68,.3); border-radius: 6px;
+      padding: .2rem .7rem; font-size: .68rem; font-weight: 700; letter-spacing: .08em;
+    }
+
+    /* ── SECTION ── */
+    .section { margin-bottom: 2.5rem; }
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.1rem;
+    }
+    .section-title {
+      font-size: .95rem; font-weight: 600; color: #f0f0f0;
+      padding-bottom: .6rem; border-bottom: 1px solid #242424; flex: 1;
+    }
+
+    /* ── FORM ── */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: .75rem; align-items: end; }
+    .temp-pw-box {
+      display: none; margin-top: .85rem; padding: .9rem 1.1rem;
+      background: rgba(16,185,129,.07); border: 1px solid rgba(16,185,129,.25);
+      border-radius: 10px;
+    }
+    .temp-pw-label { font-size: .68rem; font-weight: 600; color: #a3a3a3; text-transform: uppercase; letter-spacing: .07em; margin-bottom: .35rem; }
+    .temp-pw-value { font-size: 1.05rem; font-weight: 700; color: #34d399; letter-spacing: .12em; font-family: monospace; }
+    .temp-pw-hint  { font-size: .73rem; color: #525252; margin-top: .35rem; }
+    .field label {
+      display: block; font-size: .68rem; font-weight: 600; color: #a3a3a3;
+      text-transform: uppercase; letter-spacing: .07em; margin-bottom: .35rem;
+    }
+    .field input, .field-inp {
+      width: 100%; background: #161616; border: 1px solid #2a2a2a; border-radius: 8px;
+      padding: .65rem .85rem; color: #f0f0f0; font-size: .875rem; outline: none;
+      font-family: inherit; transition: border-color .15s; box-sizing: border-box;
+    }
+    .field input:focus, .field-inp:focus { border-color: #10b981; }
+    .textarea-inp { resize: vertical; min-height: 60px; line-height: 1.55; }
+    .btn-create {
+      background: #10b981; color: #fff; border: none; border-radius: 8px;
+      padding: .65rem 1.2rem; font-size: .875rem; font-weight: 600; cursor: pointer;
+      white-space: nowrap; transition: background .15s; font-family: inherit;
+      height: 40px; align-self: end;
+    }
+    .btn-create:hover { background: #059669; }
+    .btn-create:disabled { opacity: .45; cursor: not-allowed; }
+
+    .status-msg {
+      display: none; margin-top: .85rem; padding: .6rem .9rem;
+      border-radius: 8px; font-size: .82rem; font-weight: 500;
+    }
+    .status-msg.success { background: rgba(16,185,129,.08); color: #34d399; border: 1px solid rgba(16,185,129,.2); }
+    .status-msg.error   { background: rgba(239,68,68,.08);  color: #f87171; border: 1px solid rgba(239,68,68,.2); }
+
+    .note { font-size: .75rem; color: #525252; margin-top: .6rem; }
+
+    /* ── TABLE ── */
+    .table-wrap { background: #111; border: 1px solid #242424; border-radius: 10px; overflow: hidden; }
+    .coaches-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    .coaches-table th {
+      text-align: left; font-size: .65rem; font-weight: 600; color: #525252;
+      text-transform: uppercase; letter-spacing: .07em;
+      padding: .55rem .85rem; border-bottom: 1px solid #242424; background: #0d0d0d;
+    }
+    .coaches-table td {
+      padding: .75rem .85rem; border-bottom: 1px solid #1a1a1a; color: #a3a3a3;
+      vertical-align: middle;
+    }
+    .coaches-table td:first-child { color: #f0f0f0; font-weight: 500; }
+    .coaches-table tr:last-child td { border-bottom: none; }
+    .coaches-table tbody tr:hover td { background: rgba(255,255,255,.02); }
+    .status-ok  { color: #10b981; font-weight: 500; }
+    .status-bad { color: #f59e0b; }
+    .table-empty { padding: 2.5rem; text-align: center; color: #525252; font-size: .85rem; }
+    .btn-del {
+      background: rgba(239,68,68,.08); color: #ef4444;
+      border: 1px solid rgba(239,68,68,.2); border-radius: 6px;
+      padding: .25rem .65rem; font-size: .75rem; font-weight: 500;
+      cursor: pointer; transition: all .15s; font-family: inherit;
+    }
+    .btn-del:hover { background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.4); }
+
+    .btn-refresh {
+      background: none; border: 1px solid #2a2a2a; color: #a3a3a3; border-radius: 7px;
+      padding: .28rem .75rem; font-size: .75rem; cursor: pointer;
+      transition: all .15s; font-family: inherit; margin-left: 1rem; flex-shrink: 0;
+    }
+    .btn-refresh:hover { border-color: #10b981; color: #10b981; }
+
+    .coach-count { font-size: .75rem; color: #525252; margin-left: .5rem; }
+
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr; }
+      .btn-create { width: 100%; }
+      .btn-create { width: 100%; }
+      .coaches-table th:nth-child(3),
+      .coaches-table td:nth-child(3) { display: none; }
+    }
+
+    /* ── GLOBAL EXERCISES ── */
+    .ex-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: 1rem; }
+    .ex-form-grid .field-full { grid-column: 1 / -1; }
+    .ex-table-wrap { background: #111; border: 1px solid #242424; border-radius: 10px; overflow: hidden; margin-top: 1rem; }
+    .ex-glob-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    .ex-glob-table th { text-align: left; font-size: .65rem; font-weight: 600; color: #525252; text-transform: uppercase; letter-spacing: .07em; padding: .55rem .85rem; border-bottom: 1px solid #242424; background: #0d0d0d; }
+    .ex-glob-table td { padding: .7rem .85rem; border-bottom: 1px solid #1a1a1a; color: #a3a3a3; vertical-align: middle; }
+    .ex-glob-table td:first-child { color: #f0f0f0; font-weight: 500; }
+    .ex-glob-table tr:last-child td { border-bottom: none; }
+    .ex-glob-table tbody tr:hover td { background: rgba(255,255,255,.02); }
+    .video-badge { display: inline-flex; align-items: center; gap: .3rem; background: rgba(16,185,129,.1); color: #34d399; border: 1px solid rgba(16,185,129,.25); border-radius: 5px; padding: .15rem .55rem; font-size: .7rem; font-weight: 600; }
+    .no-video { color: #525252; font-size: .75rem; }
+    .btn-edit { background: rgba(59,130,246,.08); color: #60a5fa; border: 1px solid rgba(59,130,246,.2); border-radius: 6px; padding: .25rem .65rem; font-size: .75rem; font-weight: 500; cursor: pointer; transition: all .15s; font-family: inherit; margin-right: .35rem; }
+    .btn-edit:hover { background: rgba(59,130,246,.18); }
+    textarea.field-inp { resize: vertical; min-height: 60px; line-height: 1.5; }
+    .upload-row { display: flex; align-items: center; gap: .65rem; flex-wrap: wrap; }
+    .upload-row input[type=file] { font-size: .8rem; color: #a3a3a3; }
+    .upload-status { font-size: .75rem; margin-top: .3rem; }
+    .upload-status.ok  { color: #34d399; }
+    .upload-status.err { color: #f87171; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ GATE ═══════════════════════════ -->
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-logo">Ascora</div>
+    <div class="gate-sub">Administration</div>
+    <input class="gate-input" type="password" id="pw-input"
+           placeholder="Mot de passe admin"
+           onkeydown="if(event.key==='Enter')checkPw()">
+    <button class="gate-btn" onclick="checkPw()">Accéder</button>
+    <div class="gate-error" id="pw-error"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ PANEL ══════════════════════════ -->
+<div id="panel">
+
+  <div class="admin-header">
+    <div class="admin-logo">Ascora <span>/ Administration</span></div>
+    <div class="admin-badge">ACCÈS RESTREINT</div>
+  </div>
+
+  <!-- Créer un coach -->
+  <div class="section">
+    <div class="section-title">Créer un compte coach</div>
+    <div class="form-row" style="margin-top:1rem">
+      <div class="field">
+        <label>Nom complet</label>
+        <input type="text" id="new-name" placeholder="Marie Dupont" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Adresse email</label>
+        <input type="email" id="new-email" placeholder="marie@exemple.com" autocomplete="off">
+      </div>
+      <button class="btn-create" id="btn-create" onclick="createCoach()">Créer</button>
+    </div>
+    <div class="temp-pw-box" id="temp-pw-box">
+      <div class="temp-pw-label">Mot de passe temporaire généré</div>
+      <div class="temp-pw-value" id="temp-pw-value"></div>
+      <div class="temp-pw-hint">Communiquez ce mot de passe au coach. Il devra le changer à sa première connexion.</div>
+    </div>
+    <div class="status-msg" id="create-status"></div>
+    <div class="note">Le mot de passe temporaire est généré automatiquement. Le compte est créé avec role=coach, status=approved, first_login=true.</div>
+  </div>
+
+  <!-- Liste des coachs -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title" style="border:none;padding:0">
+        Coachs enregistrés <span class="coach-count" id="coach-count"></span>
+      </div>
+      <button class="btn-refresh" onclick="loadCoaches()">↺ Actualiser</button>
+    </div>
+    <div class="table-wrap">
+      <table class="coaches-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Statut</th>
+            <th>Créé le</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="coach-tbody">
+          <tr><td colspan="5" class="table-empty">Chargement…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note" style="margin-top:.5rem">
+      La suppression retire le profil de la base. Le compte Supabase Auth reste et peut être supprimé depuis le dashboard Supabase si nécessaire.
+    </div>
+  </div>
+
+  <!-- Bibliothèque d'exercices globale -->
+  <div class="section">
+    <div class="section-title">Bibliothèque d'exercices Ascora</div>
+
+    <!-- Formulaire ajout / modification -->
+    <div id="ex-form-wrap">
+      <div class="ex-form-grid">
+        <div class="field">
+          <label>Nom de l'exercice *</label>
+          <input class="field-inp" type="text" id="ex-name" placeholder="Squat arrière" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Muscles ciblés</label>
+          <input class="field-inp" type="text" id="ex-muscles" placeholder="Quadriceps, fessiers...">
+        </div>
+        <div class="field field-full">
+          <label>Description / Notes</label>
+          <textarea class="field-inp textarea-inp" id="ex-desc" placeholder="Conseils techniques, points d'attention..."></textarea>
+        </div>
+        <div class="field field-full">
+          <label>Vidéo de démonstration (max 10s)</label>
+          <div class="upload-row">
+            <input type="file" id="ex-video-file" accept="video/*">
+            <button class="btn-create" id="ex-video-upload-btn" onclick="uploadExVideo()" style="height:36px;font-size:.8rem">Uploader</button>
+          </div>
+          <div class="upload-status" id="ex-upload-status"></div>
+          <input type="hidden" id="ex-video-url">
+          <div id="ex-video-preview" style="margin-top:.5rem;display:none">
+            <video id="ex-video-el" src="" controls style="max-height:80px;border-radius:6px"></video>
+          </div>
+        </div>
+      </div>
+      <input type="hidden" id="ex-editing-id">
+      <div style="display:flex;gap:.75rem;margin-top:.85rem">
+        <button class="btn-create" id="ex-save-btn" onclick="saveGlobalExercise()">Enregistrer l'exercice</button>
+        <button class="btn-refresh" id="ex-cancel-btn" onclick="cancelExEdit()" style="display:none">Annuler</button>
+      </div>
+      <div class="status-msg" id="ex-status"></div>
+    </div>
+
+    <!-- Table liste -->
+    <div class="section-header" style="margin-top:1.5rem">
+      <div class="section-title" style="border:none;padding:0">
+        Exercices enregistrés <span class="coach-count" id="ex-count"></span>
+      </div>
+      <button class="btn-refresh" onclick="loadGlobalExercises()">↺ Actualiser</button>
+    </div>
+    <div class="ex-table-wrap">
+      <table class="ex-glob-table">
+        <thead>
+          <tr><th>Nom</th><th>Muscles</th><th>Vidéo</th><th></th></tr>
+        </thead>
+        <tbody id="ex-tbody">
+          <tr><td colspan="4" class="table-empty">Chargement…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note" style="margin-top:.5rem">
+      Bucket Supabase Storage requis : <strong>exercise-videos</strong> (public). Voir le commentaire dans schema-patch13.sql.
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const ADMIN_PW = 'Ascora2026!';
+  const SUPA_URL = 'https://dxrkutyaamvhtshzanwu.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4cmt1dHlhYW12aHRzaHphbnd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNjExNzgsImV4cCI6MjA5MzgzNzE3OH0.RE2A9EBCLhNXqn2aBUcPTYmmlvOUhN-2HMn6xFuv9Y8';
+
+  const { createClient } = supabase;
+  const db = createClient(SUPA_URL, SUPA_KEY);
+
+  // ── GATE ──────────────────────────────────────────────────────
+  function checkPw() {
+    const val = document.getElementById('pw-input').value;
+    if (val === ADMIN_PW) {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('panel').style.display = 'block';
+      loadCoaches();
+      loadGlobalExercises();
+    } else {
+      const err = document.getElementById('pw-error');
+      err.textContent = 'Mot de passe incorrect.';
+      document.getElementById('pw-input').value = '';
+      document.getElementById('pw-input').focus();
+      setTimeout(function() { err.textContent = ''; }, 3000);
+    }
+  }
+
+  // ── GÉNÉRER MOT DE PASSE TEMPORAIRE ──────────────────────────
+  function generateTempPassword() {
+    var chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789@#$!';
+    var pw = '';
+    for (var i = 0; i < 12; i++) {
+      pw += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pw;
+  }
+
+  // ── CRÉER UN COACH ────────────────────────────────────────────
+  async function createCoach() {
+    const name  = document.getElementById('new-name').value.trim();
+    const email = document.getElementById('new-email').value.trim();
+
+    if (!name)  { showStatus('Remplissez le nom complet.', 'error'); return; }
+    if (!email) { showStatus('Remplissez l\'adresse email.', 'error'); return; }
+
+    const pw = generateTempPassword();
+
+    const btn = document.getElementById('btn-create');
+    btn.disabled = true;
+    btn.textContent = 'Création…';
+
+    document.getElementById('temp-pw-box').style.display = 'none';
+
+    // 1 — créer le compte Supabase Auth
+    const { data: auth, error: authErr } = await db.auth.signUp({ email: email, password: pw });
+    if (authErr) {
+      showStatus('Erreur Auth : ' + authErr.message, 'error');
+      btn.disabled = false; btn.textContent = 'Créer';
+      return;
+    }
+
+    // 2 — insérer le profil avec first_login = true
+    const { error: profErr } = await db.from('profiles').insert({
+      id:          auth.user.id,
+      full_name:   name,
+      email:       email,
+      role:        'coach',
+      status:      'approved',
+      first_login: true
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'Créer';
+
+    if (profErr) {
+      showStatus('Compte Auth créé mais erreur profil : ' + profErr.message, 'error');
+      return;
+    }
+
+    document.getElementById('temp-pw-value').textContent = pw;
+    document.getElementById('temp-pw-box').style.display = 'block';
+    showStatus('Coach "' + name + '" créé avec succès.', 'success');
+    document.getElementById('new-name').value  = '';
+    document.getElementById('new-email').value = '';
+    document.getElementById('new-name').focus();
+    loadCoaches();
+  }
+
+  // ── CHARGER LES COACHS ────────────────────────────────────────
+  async function loadCoaches() {
+    const tbody = document.getElementById('coach-tbody');
+    tbody.innerHTML = '<tr><td colspan="5" class="table-empty">Chargement…</td></tr>';
+    document.getElementById('coach-count').textContent = '';
+
+    const { data, error } = await db
+      .from('profiles')
+      .select('id, full_name, email, status, created_at')
+      .eq('role', 'coach')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      tbody.innerHTML = '<tr><td colspan="5" class="table-empty" style="color:#f87171">Erreur : ' + esc(error.message) + '</td></tr>';
+      return;
+    }
+
+    if (!data || !data.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="table-empty">Aucun coach enregistré.</td></tr>';
+      return;
+    }
+
+    document.getElementById('coach-count').textContent = '(' + data.length + ')';
+
+    tbody.innerHTML = data.map(function(c) {
+      var d = c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : '—';
+      var statusHtml = c.status === 'approved'
+        ? '<span class="status-ok">Approuvé</span>'
+        : '<span class="status-bad">' + esc(c.status || '—') + '</span>';
+      return '<tr>' +
+        '<td>' + esc(c.full_name || '—') + '</td>' +
+        '<td>' + esc(c.email || '—') + '</td>' +
+        '<td>' + statusHtml + '</td>' +
+        '<td>' + d + '</td>' +
+        '<td><button class="btn-del" onclick="deleteCoach(\'' + c.id + '\',\'' + esc(c.full_name || '') + '\')">Supprimer</button></td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  // ── SUPPRIMER UN COACH ────────────────────────────────────────
+  async function deleteCoach(id, name) {
+    if (!confirm('Supprimer le coach "' + name + '" ?\n\nSon profil sera supprimé définitivement.')) return;
+
+    const { error } = await db.from('profiles').delete().eq('id', id).eq('role', 'coach');
+
+    if (error) {
+      alert('Erreur lors de la suppression : ' + error.message);
+    } else {
+      loadCoaches();
+    }
+  }
+
+  // ── BIBLIOTHÈQUE D'EXERCICES ──────────────────────────────────
+  async function loadGlobalExercises() {
+    var tbody = document.getElementById('ex-tbody');
+    tbody.innerHTML = '<tr><td colspan="4" class="table-empty">Chargement…</td></tr>';
+    document.getElementById('ex-count').textContent = '';
+    var { data, error } = await db.from('global_exercises').select('*').order('name');
+    if (error) {
+      tbody.innerHTML = '<tr><td colspan="4" class="table-empty" style="color:#f87171">Erreur : ' + esc(error.message) + '</td></tr>';
+      return;
+    }
+    var list = data || [];
+    document.getElementById('ex-count').textContent = list.length ? '(' + list.length + ')' : '';
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="table-empty">Aucun exercice enregistré.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(function(ex) {
+      var videoHtml = ex.video_url
+        ? '<span class="video-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Vidéo</span>'
+        : '<span class="no-video">Aucune</span>';
+      return '<tr>' +
+        '<td>' + esc(ex.name) + (ex.description ? '<div style="font-size:.72rem;color:#525252;margin-top:2px">' + esc(ex.description.slice(0,60)) + (ex.description.length > 60 ? '…' : '') + '</div>' : '') + '</td>' +
+        '<td>' + esc(ex.muscles || '—') + '</td>' +
+        '<td>' + videoHtml + '</td>' +
+        '<td style="white-space:nowrap">' +
+          '<button class="btn-edit" onclick="editGlobalExercise(\'' + ex.id + '\')">Modifier</button>' +
+          '<button class="btn-del" onclick="deleteGlobalExercise(\'' + ex.id + '\',\'' + esc(ex.name) + '\')">Supprimer</button>' +
+        '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  var _globalExCache = {};
+
+  async function editGlobalExercise(id) {
+    var { data } = await db.from('global_exercises').select('*').eq('id', id).maybeSingle();
+    if (!data) return;
+    document.getElementById('ex-editing-id').value = id;
+    document.getElementById('ex-name').value    = data.name || '';
+    document.getElementById('ex-muscles').value = data.muscles || '';
+    document.getElementById('ex-desc').value    = data.description || '';
+    document.getElementById('ex-video-url').value = data.video_url || '';
+    var preview = document.getElementById('ex-video-preview');
+    if (data.video_url) {
+      document.getElementById('ex-video-el').src = data.video_url;
+      preview.style.display = 'block';
+    } else {
+      preview.style.display = 'none';
+    }
+    document.getElementById('ex-save-btn').textContent = 'Mettre à jour';
+    document.getElementById('ex-cancel-btn').style.display = 'inline-block';
+    document.getElementById('ex-name').focus();
+    document.getElementById('ex-form-wrap').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function cancelExEdit() {
+    document.getElementById('ex-editing-id').value = '';
+    document.getElementById('ex-name').value = '';
+    document.getElementById('ex-muscles').value = '';
+    document.getElementById('ex-desc').value = '';
+    document.getElementById('ex-video-url').value = '';
+    document.getElementById('ex-video-file').value = '';
+    document.getElementById('ex-video-preview').style.display = 'none';
+    document.getElementById('ex-save-btn').textContent = 'Enregistrer l\'exercice';
+    document.getElementById('ex-cancel-btn').style.display = 'none';
+    document.getElementById('ex-status').style.display = 'none';
+    document.getElementById('ex-upload-status').textContent = '';
+  }
+
+  async function uploadExVideo() {
+    var fileInput = document.getElementById('ex-video-file');
+    var file = fileInput.files[0];
+    if (!file) { showExStatus('Sélectionnez un fichier vidéo.', 'error'); return; }
+    var statusEl = document.getElementById('ex-upload-status');
+    var btn = document.getElementById('ex-video-upload-btn');
+    btn.disabled = true; btn.textContent = 'Upload…';
+    statusEl.textContent = 'Upload en cours…'; statusEl.className = 'upload-status';
+    var ext = file.name.split('.').pop();
+    var fname = 'ex_' + Date.now() + '.' + ext;
+    var { data, error } = await db.storage.from('exercise-videos').upload(fname, file, { upsert: true });
+    btn.disabled = false; btn.textContent = 'Uploader';
+    if (error) {
+      statusEl.textContent = 'Erreur : ' + error.message;
+      statusEl.className = 'upload-status err';
+      return;
+    }
+    var { data: urlData } = db.storage.from('exercise-videos').getPublicUrl(fname);
+    var url = urlData.publicUrl;
+    document.getElementById('ex-video-url').value = url;
+    document.getElementById('ex-video-el').src = url;
+    document.getElementById('ex-video-preview').style.display = 'block';
+    statusEl.textContent = 'Vidéo uploadée ✓';
+    statusEl.className = 'upload-status ok';
+  }
+
+  async function saveGlobalExercise() {
+    var name = document.getElementById('ex-name').value.trim();
+    if (!name) { showExStatus('Le nom est requis.', 'error'); return; }
+    var payload = {
+      name:        name,
+      muscles:     document.getElementById('ex-muscles').value.trim(),
+      description: document.getElementById('ex-desc').value.trim(),
+      video_url:   document.getElementById('ex-video-url').value.trim()
+    };
+    var btn = document.getElementById('ex-save-btn');
+    btn.disabled = true;
+    var editId = document.getElementById('ex-editing-id').value;
+    var error;
+    if (editId) {
+      ({ error } = await db.from('global_exercises').update(payload).eq('id', editId));
+    } else {
+      ({ error } = await db.from('global_exercises').insert(payload));
+    }
+    btn.disabled = false;
+    if (error) { showExStatus('Erreur : ' + error.message, 'error'); return; }
+    showExStatus(editId ? 'Exercice mis à jour ✓' : 'Exercice ajouté ✓', 'success');
+    cancelExEdit();
+    loadGlobalExercises();
+  }
+
+  async function deleteGlobalExercise(id, name) {
+    if (!confirm('Supprimer l\'exercice "' + name + '" de la bibliothèque Ascora ?')) return;
+    var { error } = await db.from('global_exercises').delete().eq('id', id);
+    if (error) { alert('Erreur : ' + error.message); return; }
+    loadGlobalExercises();
+  }
+
+  function showExStatus(msg, type) {
+    var el = document.getElementById('ex-status');
+    el.textContent = msg; el.className = 'status-msg ' + type; el.style.display = 'block';
+    clearTimeout(el._t);
+    el._t = setTimeout(function() { el.style.display = 'none'; }, 5000);
+  }
+
+  // ── UTILS ─────────────────────────────────────────────────────
+  function showStatus(msg, type) {
+    var el = document.getElementById('create-status');
+    el.textContent = msg;
+    el.className = 'status-msg ' + type;
+    el.style.display = 'block';
+    clearTimeout(el._t);
+    el._t = setTimeout(function() { el.style.display = 'none'; }, 6000);
+  }
+
+  function esc(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // Focus auto sur le champ mot de passe
+  document.getElementById('pw-input').focus();
+</script>
+</body>
+</html>

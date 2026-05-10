@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ascora — Connexion</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#10b981">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Ascora">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(function(){});</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg:     #0a0a0a;
+      --card:   #141414;
+      --card2:  #1c1c1c;
+      --border: #242424;
+      --em:     #10b981;
+      --em-dk:  #059669;
+      --em-lt:  #34d399;
+      --em-sub: rgba(16,185,129,.08);
+      --em-bdr: rgba(16,185,129,.22);
+      --text:   #f0f0f0;
+      --muted:  #737373;
+      --danger: #ef4444;
+      --warn:   #f59e0b;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16,185,129,.12) 0%, transparent 60%);
+    }
+    .wrapper { width: 100%; max-width: 440px; padding: 1.5rem; }
+    .brand { text-align: center; margin-bottom: 2.5rem; }
+    .brand-name { line-height: 0; display: flex; justify-content: center; }
+    .brand-name svg { max-width: 100%; height: auto; }
+    .brand-sub { color: var(--muted); font-size: .8rem; margin-top: .4rem; letter-spacing: .05em; text-transform: uppercase; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 2rem;
+      box-shadow: 0 25px 50px rgba(0,0,0,.5);
+    }
+    .tabs {
+      display: flex; gap: 4px;
+      background: var(--card2); padding: 4px; border-radius: 12px;
+      margin-bottom: 1.75rem;
+    }
+    .tab-btn {
+      flex: 1; padding: .6rem; border: none;
+      background: transparent; color: var(--muted);
+      border-radius: 9px; cursor: pointer;
+      font-size: .85rem; font-weight: 500;
+      font-family: 'Inter', sans-serif; transition: all .2s;
+    }
+    .tab-btn.active { background: var(--em); color: #000; font-weight: 600; }
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+    .form-group { margin-bottom: 1.1rem; }
+    label {
+      display: block; font-size: .73rem; color: var(--muted);
+      margin-bottom: .45rem; font-weight: 500;
+      letter-spacing: .06em; text-transform: uppercase;
+    }
+    input {
+      width: 100%; padding: .75rem 1rem;
+      background: var(--card2); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text);
+      font-size: .9rem; font-family: 'Inter', sans-serif;
+      transition: border-color .2s, box-shadow .2s; outline: none;
+    }
+    input::placeholder { color: var(--muted); }
+    input:focus { border-color: var(--em); box-shadow: 0 0 0 3px var(--em-sub); }
+
+    .hint-box {
+      background: var(--em-sub); border: 1px solid var(--em-bdr);
+      border-radius: 8px; padding: .65rem .85rem;
+      font-size: .78rem; color: var(--em-lt); margin-top: .5rem;
+    }
+    .btn-primary {
+      width: 100%; padding: .875rem;
+      background: var(--em); color: #000; border: none;
+      border-radius: 10px; font-size: .9rem; font-weight: 600;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      transition: all .2s; margin-top: .5rem; letter-spacing: .02em;
+    }
+    .btn-primary:hover  { background: var(--em-lt); }
+    .btn-primary:active { transform: scale(.98); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── FORGOT PASSWORD ── */
+    .forgot-wrap { text-align: right; margin-top: .6rem; }
+    .forgot-link { font-size: .78rem; color: var(--muted); cursor: pointer; transition: color .15s; }
+    .forgot-link:hover { color: var(--em-lt); }
+    .forgot-section { display: none; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid #242424; }
+    .forgot-section.show { display: block; }
+    .forgot-msg { margin-top: .75rem; font-size: .8rem; text-align: center; min-height: 1.2em; }
+    .btn-secondary {
+      width: 100%; padding: .75rem;
+      background: rgba(107,33,168,.15); color: #c084fc;
+      border: 1px solid rgba(107,33,168,.3); border-radius: 10px;
+      font-size: .875rem; font-weight: 600; cursor: pointer;
+      font-family: 'Inter', sans-serif; transition: all .2s; margin-top: .5rem;
+    }
+    .btn-secondary:hover { background: rgba(107,33,168,.25); color: #d8b4fe; border-color: rgba(107,33,168,.5); }
+
+    /* ── SKELETON ── */
+    @keyframes sk-pulse { 0%,100% { opacity: .3 } 50% { opacity: .65 } }
+    .sk { background: #1c1c1c; border-radius: 6px; animation: sk-pulse 1.6s ease-in-out infinite; }
+
+    /* ── STATUS SCREENS ── */
+    .status-screen {
+      display: none;
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+    .status-screen.show { display: block; }
+    .status-icon {
+      width: 60px; height: 60px; border-radius: 50%;
+      margin: 0 auto 1.25rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .status-icon.pending  { background: rgba(245,158,11,.12); }
+    .status-icon.rejected { background: rgba(239,68,68,.12); }
+    .status-title { font-size: 1.15rem; font-weight: 700; margin-bottom: .6rem; }
+    .status-msg   { font-size: .85rem; color: var(--muted); line-height: 1.7; margin-bottom: 1.5rem; }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .65rem 1.25rem;
+      background: transparent; border: 1px solid var(--border);
+      border-radius: 9px; color: var(--muted);
+      font-size: .85rem; font-weight: 500;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      transition: all .15s;
+    }
+    .btn-ghost:hover { border-color: var(--em-bdr); color: var(--em-lt); }
+
+    /* ── CHANGE PASSWORD SCREEN ── */
+    #screen-change-pw { display: none; padding: .5rem 0; }
+    #screen-change-pw.show { display: block; }
+    .change-pw-title { font-size: 1rem; font-weight: 700; color: var(--em-lt); margin-bottom: .35rem; }
+    .change-pw-sub   { font-size: .8rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6; }
+    .pw-strength { height: 3px; border-radius: 2px; margin-top: .4rem; background: #2a2a2a; overflow: hidden; }
+    .pw-strength-bar { height: 100%; border-radius: 2px; transition: width .3s, background .3s; width: 0; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%;
+      transform: translateX(-50%) translateY(80px); opacity: 0;
+      padding: .85rem 1.5rem; border-radius: 10px;
+      font-size: .85rem; font-weight: 500; white-space: nowrap;
+      transition: all .3s cubic-bezier(.34,1.56,.64,1);
+      z-index: 999; pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.success { background: rgba(16,185,129,.15); border: 1px solid var(--em);    color: var(--em-lt); }
+    .toast.error   { background: rgba(239,68,68,.15);  border: 1px solid var(--danger); color: #fca5a5; }
+    .toast.warn    { background: rgba(245,158,11,.15); border: 1px solid var(--warn);   color: #fcd34d; }
+
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(0,0,0,.3); border-top-color: #000;
+      border-radius: 50%; animation: spin .6s linear infinite;
+      vertical-align: middle; margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 480px) {
+      .wrapper { padding: 1rem; }
+      .card { padding: 1.5rem; border-radius: 14px; }
+      .brand { margin-bottom: 1.75rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="brand">
+      <div class="brand-name">
+        <svg width="160" height="45" viewBox="0 0 160 45" xmlns="http://www.w3.org/2000/svg">
+          <line x1="28" y1="0" x2="28" y2="45" stroke="#6B21A8" stroke-width="1.5"/>
+          <line x1="0" y1="34" x2="160" y2="34" stroke="#6B21A8" stroke-width="1"/>
+          <text x="34" y="30" font-family="Georgia, serif" font-size="22" font-weight="400"
+                fill="#10b981" letter-spacing="4">ASCORA</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="card">
+      <!-- Tabs (hidden when status screen is shown) -->
+      <div class="tabs" id="tabs-bar">
+        <button class="tab-btn active" onclick="switchTab('login')">Connexion</button>
+        <button class="tab-btn"        onclick="switchTab('register')">Inscription</button>
+      </div>
+
+      <!-- ── LOGIN ── -->
+      <div class="form-section active" id="login-form">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="l-email" placeholder="votre@email.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <input type="password" id="l-password" placeholder="••••••••" autocomplete="current-password"
+                 onkeydown="if(event.key==='Enter') handleLogin()">
+        </div>
+        <button class="btn-primary" id="btn-login" onclick="handleLogin()">Se connecter</button>
+        <div class="forgot-wrap">
+          <span class="forgot-link" onclick="toggleForgot()">Mot de passe oublié ?</span>
+        </div>
+        <div class="forgot-section" id="forgot-section">
+          <div class="form-group">
+            <label>Votre adresse email</label>
+            <input type="email" id="forgot-email" placeholder="votre@email.com"
+                   onkeydown="if(event.key==='Enter') handleForgotPassword()">
+          </div>
+          <button class="btn-secondary" onclick="handleForgotPassword()">Envoyer le lien de réinitialisation</button>
+          <div class="forgot-msg" id="forgot-msg"></div>
+        </div>
+      </div>
+
+      <!-- ── REGISTER (clients uniquement) ── -->
+      <div class="form-section" id="register-form">
+        <div class="form-group">
+          <label>Nom complet</label>
+          <input type="text" id="r-name" placeholder="Jean Dupont" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="r-email" placeholder="votre@email.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <input type="password" id="r-password" placeholder="Min. 6 caractères" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label>Email de votre coach</label>
+          <input type="email" id="r-coach-email" placeholder="coach@email.com">
+          <div class="hint-box">Votre coach doit vous fournir son adresse email. Votre compte sera activé après sa validation.</div>
+        </div>
+        <button class="btn-primary" id="btn-register" onclick="handleRegister()">Envoyer ma demande</button>
+      </div>
+
+      <!-- ── EN ATTENTE ── -->
+      <div class="status-screen" id="screen-pending">
+        <div class="status-icon pending">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <div class="status-title" style="color:#fcd34d">Demande envoyée</div>
+        <div class="status-msg" id="pending-msg">
+          Votre demande d'inscription a été transmise à votre coach.<br>
+          Vous recevrez accès à votre espace dès qu'il l'aura validée.
+        </div>
+        <button class="btn-ghost" onclick="resetToLogin()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Retour à la connexion
+        </button>
+      </div>
+
+      <!-- ── CHANGEMENT MOT DE PASSE ── -->
+      <div id="screen-change-pw">
+        <div class="change-pw-title">Bienvenue sur Ascora</div>
+        <div class="change-pw-sub">C'est votre première connexion. Choisissez un mot de passe personnel pour sécuriser votre compte.</div>
+        <div class="form-group">
+          <label>Nouveau mot de passe</label>
+          <input type="password" id="cp-password" placeholder="Min. 8 caractères" autocomplete="new-password"
+                 oninput="updatePwStrength(this.value)">
+          <div class="pw-strength"><div class="pw-strength-bar" id="pw-strength-bar"></div></div>
+        </div>
+        <div class="form-group">
+          <label>Confirmer le mot de passe</label>
+          <input type="password" id="cp-confirm" placeholder="Répétez le mot de passe" autocomplete="new-password"
+                 onkeydown="if(event.key==='Enter') handleChangePassword()">
+        </div>
+        <button class="btn-primary" id="btn-change-pw" onclick="handleChangePassword()">Définir mon mot de passe</button>
+      </div>
+
+      <!-- ── REFUSÉ ── -->
+      <div class="status-screen" id="screen-rejected">
+        <div class="status-icon rejected">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+        </div>
+        <div class="status-title" style="color:#f87171">Demande refusée</div>
+        <div class="status-msg">
+          Votre demande d'inscription a été refusée par votre coach.<br>
+          Contactez-le directement pour plus d'informations.
+        </div>
+        <button class="btn-ghost" onclick="resetToLogin()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Retour à la connexion
+        </button>
+      </div>
+
+    </div><!-- .card -->
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://dxrkutyaamvhtshzanwu.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4cmt1dHlhYW12aHRzaHphbnd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNjExNzgsImV4cCI6MjA5MzgzNzE3OH0.RE2A9EBCLhNXqn2aBUcPTYmmlvOUhN-2HMn6xFuv9Y8';
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ── AUTO-REDIRECT si déjà connecté ──────────────────────
+    db.auth.getSession().then(({ data: { session } }) => {
+      if (session) redirectUser(session.user.id);
+    });
+
+    // ── UI HELPERS ───────────────────────────────────────────
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach((b, i) =>
+        b.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1))
+      );
+      hideAllScreens();
+      document.getElementById('login-form').classList.toggle('active', tab === 'login');
+      document.getElementById('register-form').classList.toggle('active', tab === 'register');
+    }
+
+    function hideAllScreens() {
+      ['login-form','register-form','screen-pending','screen-rejected','screen-change-pw'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('active','show');
+      });
+    }
+
+    function showStatusScreen(screenId) {
+      hideAllScreens();
+      document.getElementById('tabs-bar').style.display = 'none';
+      document.getElementById(screenId).classList.add('show');
+    }
+
+    function resetToLogin() {
+      document.getElementById('tabs-bar').style.display = 'flex';
+      hideAllScreens();
+      document.getElementById('login-form').classList.add('active');
+      document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+      _changePwUid = null;
+    }
+
+    // ── CONNEXION ────────────────────────────────────────────
+    async function handleLogin() {
+      const email    = document.getElementById('l-email').value.trim();
+      const password = document.getElementById('l-password').value;
+      if (!email || !password) { toast('Veuillez remplir tous les champs.', 'error'); return; }
+
+      const btn = document.getElementById('btn-login');
+      setLoading(btn, true, 'Connexion...');
+
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
+      if (error) {
+        toast(error.message.includes('Invalid') ? 'Email ou mot de passe incorrect.' : error.message, 'error');
+        setLoading(btn, false, 'Se connecter');
+        return;
+      }
+
+      await redirectUser(data.user.id, btn);
+    }
+
+    // ── INSCRIPTION (clients uniquement) ─────────────────────
+    async function handleRegister() {
+      const name       = document.getElementById('r-name').value.trim();
+      const email      = document.getElementById('r-email').value.trim();
+      const password   = document.getElementById('r-password').value;
+      const coachEmail = document.getElementById('r-coach-email').value.trim();
+
+      if (!name || !email || !password || !coachEmail) {
+        toast('Tous les champs sont obligatoires.', 'error'); return;
+      }
+      if (password.length < 6) {
+        toast('Mot de passe : 6 caractères minimum.', 'error'); return;
+      }
+
+      const btn = document.getElementById('btn-register');
+      setLoading(btn, true, 'Envoi...');
+
+      // 1. Recherche du coach par email
+      const { data: coach } = await db.from('profiles')
+        .select('id').eq('email', coachEmail).eq('role', 'coach').maybeSingle();
+
+      if (!coach) {
+        toast('Aucun coach trouvé avec cet email.', 'error');
+        setLoading(btn, false, 'Envoyer ma demande');
+        return;
+      }
+
+      // 2. Création du compte auth
+      const { data, error } = await db.auth.signUp({ email, password });
+      if (error) {
+        toast(error.message, 'error');
+        setLoading(btn, false, 'Envoyer ma demande');
+        return;
+      }
+
+      if (!data.user) {
+        toast('Erreur inattendue. Réessayez.', 'error');
+        setLoading(btn, false, 'Envoyer ma demande');
+        return;
+      }
+
+      // 3. Vérifier si un profil existe déjà (ex: compte refusé ou en attente)
+      const { data: existing } = await db.from('profiles')
+        .select('status').eq('id', data.user.id).maybeSingle();
+
+      if (existing) {
+        await db.auth.signOut();
+        if (existing.status === 'pending') {
+          document.getElementById('pending-msg').innerHTML =
+            'Votre demande est déjà en attente de validation.<br>Patientez, votre coach va bientôt l\'examiner.';
+          showStatusScreen('screen-pending');
+        } else if (existing.status === 'rejected') {
+          showStatusScreen('screen-rejected');
+        } else {
+          toast('Un compte existe déjà avec cet email. Connectez-vous.', 'warn');
+          resetToLogin();
+        }
+        setLoading(btn, false, 'Envoyer ma demande');
+        return;
+      }
+
+      // 4. Créer le profil avec statut "pending"
+      const { error: pe } = await db.from('profiles').insert({
+        id:       data.user.id,
+        full_name: name,
+        email,
+        role:     'client',
+        coach_id: coach.id,
+        status:   'pending'
+      });
+
+      // 5. Déconnecter immédiatement (attente approbation)
+      await db.auth.signOut();
+
+      if (pe) {
+        toast('Erreur création profil : ' + pe.message, 'error');
+        setLoading(btn, false, 'Envoyer ma demande');
+        return;
+      }
+
+      setLoading(btn, false, 'Envoyer ma demande');
+      showStatusScreen('screen-pending');
+    }
+
+    // ── REDIRECTION selon rôle et statut ─────────────────────
+    var _changePwUid = null;
+
+    async function redirectUser(uid, btn = null) {
+      const { data: profile } = await db.from('profiles')
+        .select('role,status,first_login').eq('id', uid).maybeSingle();
+
+      if (!profile) {
+        await db.auth.signOut();
+        toast('Profil introuvable. Contactez votre coach.', 'error');
+        if (btn) setLoading(btn, false, 'Se connecter');
+        return;
+      }
+
+      if (profile.status === 'pending') {
+        await db.auth.signOut();
+        if (btn) setLoading(btn, false, 'Se connecter');
+        document.getElementById('pending-msg').innerHTML =
+          'Votre compte est en cours de validation par votre coach.<br>Revenez une fois qu\'il aura approuvé votre accès.';
+        showStatusScreen('screen-pending');
+        return;
+      }
+
+      if (profile.status === 'rejected') {
+        await db.auth.signOut();
+        if (btn) setLoading(btn, false, 'Se connecter');
+        showStatusScreen('screen-rejected');
+        return;
+      }
+
+      // Coach première connexion — forcer le changement de mot de passe
+      if (profile.role === 'coach' && profile.first_login) {
+        if (btn) setLoading(btn, false, 'Se connecter');
+        _changePwUid = uid;
+        showStatusScreen('screen-change-pw');
+        setTimeout(function() { var el = document.getElementById('cp-password'); if (el) el.focus(); }, 50);
+        return;
+      }
+
+      // Accès normal
+      window.location.href = profile.role === 'coach' ? 'dashboard-coach.html' : 'dashboard-client.html';
+    }
+
+    // ── CHANGEMENT MOT DE PASSE PREMIÈRE CONNEXION ──────────
+    function updatePwStrength(val) {
+      var bar = document.getElementById('pw-strength-bar');
+      if (!bar) return;
+      var score = 0;
+      if (val.length >= 8)  score++;
+      if (val.length >= 12) score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+      var pct = (score / 5) * 100;
+      var color = score <= 1 ? '#ef4444' : score <= 3 ? '#f59e0b' : '#10b981';
+      bar.style.width = pct + '%';
+      bar.style.background = color;
+    }
+
+    async function handleChangePassword() {
+      var pw      = document.getElementById('cp-password').value;
+      var confirm = document.getElementById('cp-confirm').value;
+
+      if (!pw || pw.length < 8) {
+        toast('Le mot de passe doit contenir au moins 8 caractères.', 'error'); return;
+      }
+      if (pw !== confirm) {
+        toast('Les mots de passe ne correspondent pas.', 'error'); return;
+      }
+
+      var btn = document.getElementById('btn-change-pw');
+      setLoading(btn, true, 'Enregistrement...');
+
+      const { error: pwErr } = await db.auth.updateUser({ password: pw });
+      if (pwErr) {
+        toast('Erreur : ' + pwErr.message, 'error');
+        setLoading(btn, false, 'Définir mon mot de passe');
+        return;
+      }
+
+      if (_changePwUid) {
+        await db.from('profiles').update({ first_login: false }).eq('id', _changePwUid);
+      }
+
+      setLoading(btn, false, 'Définir mon mot de passe');
+      toast('Mot de passe mis à jour. Redirection...', 'success');
+      setTimeout(function() { window.location.href = 'dashboard-coach.html'; }, 1200);
+    }
+
+    // ── MOT DE PASSE OUBLIÉ ─────────────────────────────────
+    function toggleForgot() {
+      const s = document.getElementById('forgot-section');
+      s.classList.toggle('show');
+      document.getElementById('forgot-msg').textContent = '';
+    }
+
+    async function handleForgotPassword() {
+      const email = document.getElementById('forgot-email').value.trim();
+      if (!email) { toast('Entrez votre adresse email.', 'error'); return; }
+      const { error } = await db.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + window.location.pathname
+      });
+      const msg = document.getElementById('forgot-msg');
+      if (error) {
+        msg.style.color = '#f87171';
+        msg.textContent = 'Erreur : ' + error.message;
+      } else {
+        msg.style.color = '#34d399';
+        msg.textContent = 'Email envoyé ! Vérifiez votre boîte mail.';
+      }
+    }
+
+    // ── LIEN D'INVITATION (pré-remplissage depuis coach) ────
+    (function() {
+      const p = new URLSearchParams(window.location.search);
+      const coach = p.get('coach');
+      if (coach) {
+        document.getElementById('r-coach-email').value = decodeURIComponent(coach);
+        if (p.get('tab') === 'register') switchTab('register');
+      }
+    })();
+
+    // ── UTILS ────────────────────────────────────────────────
+    function setLoading(btn, loading, text) {
+      btn.disabled = loading;
+      btn.innerHTML = loading ? `<span class="spinner"></span>${text}` : text;
+    }
+
+    function toast(msg, type = 'success') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = `toast ${type} show`;
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.className = 'toast', 3500);
+    }
+  </script>
+</body>
+</html>
