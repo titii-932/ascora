@@ -1041,35 +1041,30 @@
         resetBtn();
         return;
       }
-      showStatus('Permission accordée ✓ — connexion au service worker...', 'info');
+      document.getElementById('notif-banner').style.display = 'none';
+      document.getElementById('notif-status').style.display = 'none';
 
-      const reg = await navigator.serviceWorker.ready;
-      showStatus('Permission accordée ✓ — création de l\'abonnement...', 'info');
-
-      const VAPID_PUBLIC = 'BBieE0Qe_pVV1cPH6ojLRDTFlgy5IUImkEq8xarnfhIc1DC417At1td8ssY_QBMw1YBosEkjBjxKVUuZWxjJ8vA';
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
-      });
-      showStatus('Abonnement créé ✓ — sauvegarde en cours...', 'info');
-
-      const key = sub.getKey('p256dh');
-      const auth = sub.getKey('auth');
-      const { error } = await db.from('push_subscriptions').upsert({
-        client_id: profile.id,
-        endpoint: sub.endpoint,
-        p256dh: key ? btoa(String.fromCharCode(...new Uint8Array(key))) : null,
-        auth: auth ? btoa(String.fromCharCode(...new Uint8Array(auth))) : null
-      }, { onConflict: 'client_id' });
-
-      if (error) {
-        showStatus('Erreur Supabase : ' + error.message, 'error');
-        resetBtn();
-        return;
-      }
-
-      showStatus('Notifications activées ! ✓', 'info');
-      setTimeout(function() { document.getElementById('notif-banner').style.display = 'none'; }, 2000);
+      // enregistrement en arrière-plan
+      (async function() {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          const VAPID_PUBLIC = 'BBieE0Qe_pVV1cPH6ojLRDTFlgy5IUImkEq8xarnfhIc1DC417At1td8ssY_QBMw1YBosEkjBjxKVUuZWxjJ8vA';
+          const sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
+          });
+          const key = sub.getKey('p256dh');
+          const auth = sub.getKey('auth');
+          await db.from('push_subscriptions').upsert({
+            client_id: profile.id,
+            endpoint: sub.endpoint,
+            p256dh: key ? btoa(String.fromCharCode(...new Uint8Array(key))) : null,
+            auth: auth ? btoa(String.fromCharCode(...new Uint8Array(auth))) : null
+          }, { onConflict: 'client_id' });
+        } catch (err) {
+          console.warn('Push background registration failed:', err);
+        }
+      })();
     } catch (err) {
       showStatus('Erreur : ' + (err.message || String(err)), 'error');
       resetBtn();
