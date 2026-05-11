@@ -355,6 +355,13 @@
     }
     #notif-banner-text { font-size: .85rem; color: var(--text2); line-height: 1.5; }
     #notif-banner-text strong { color: var(--text); display: block; margin-bottom: .2rem; }
+    #notif-status {
+      display: none; margin-top: .75rem; padding: .6rem .9rem;
+      border-radius: 9px; font-size: .82rem; font-weight: 500; line-height: 1.5;
+      border: 1px solid transparent;
+    }
+    #notif-status.info  { background: rgba(16,185,129,.08); border-color: rgba(16,185,129,.22); color: var(--em-lt); }
+    #notif-status.error { background: rgba(239,68,68,.08);  border-color: rgba(239,68,68,.22);  color: #fca5a5; }
     .btn-notif {
       display: flex; align-items: center; gap: .4rem; white-space: nowrap;
       padding: .55rem 1.1rem; background: var(--em); color: #000;
@@ -701,6 +708,7 @@
           Activer les notifications
         </button>
       </div>
+      <div id="notif-status"></div>
       <div class="upcoming-card" id="upcoming-sessions-card" style="display:none">
         <div class="upcoming-title">Mes prochaines séances</div>
         <div class="upcoming-list" id="upcoming-sessions-list"></div>
@@ -1000,43 +1008,71 @@
 
   // ── PUSH NOTIFICATIONS ────────────────────────────────────────────────
   async function registerPush() {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      document.getElementById('notif-banner').style.display = 'none';
+    const btn = document.getElementById('btn-notif');
+    const status = document.getElementById('notif-status');
+
+    function showStatus(msg, type) {
+      status.textContent = msg;
+      status.className = type;
+      status.style.display = 'block';
+    }
+    function resetBtn() {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg> Activer les notifications';
+    }
+
+    if (!('serviceWorker' in navigator)) {
+      showStatus('Erreur : serviceWorker non supporté sur ce navigateur.', 'error');
       return;
     }
-    const btn = document.getElementById('btn-notif');
+    if (!('PushManager' in window)) {
+      showStatus('Erreur : notifications push non supportées sur ce navigateur/appareil.', 'error');
+      return;
+    }
+
     btn.disabled = true;
     btn.textContent = 'Activation...';
+    showStatus('Demande de permission en cours...', 'info');
+
     try {
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
-        btn.disabled = false;
-        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg> Activer les notifications';
+        showStatus('Permission refusée (statut : ' + permission + '). Activez les notifications dans les réglages.', 'error');
+        resetBtn();
         return;
       }
+      showStatus('Permission accordée ✓ — connexion au service worker...', 'info');
 
       const reg = await navigator.serviceWorker.ready;
-      const VAPID_PUBLIC = 'BBieE0Qe_pVV1cPH6ojLRDTFlgy5IUImkEq8xarnfhIc1DC417At1td8ssY_QBMw1YBosEkjBjxKVUuZWxjJ8vA';
+      showStatus('Permission accordée ✓ — création de l\'abonnement...', 'info');
 
+      const VAPID_PUBLIC = 'BBieE0Qe_pVV1cPH6ojLRDTFlgy5IUImkEq8xarnfhIc1DC417At1td8ssY_QBMw1YBosEkjBjxKVUuZWxjJ8vA';
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
       });
+      showStatus('Abonnement créé ✓ — sauvegarde en cours...', 'info');
 
       const key = sub.getKey('p256dh');
       const auth = sub.getKey('auth');
-      await db.from('push_subscriptions').upsert({
+      const { error } = await db.from('push_subscriptions').upsert({
         client_id: profile.id,
         endpoint: sub.endpoint,
         p256dh: key ? btoa(String.fromCharCode(...new Uint8Array(key))) : null,
         auth: auth ? btoa(String.fromCharCode(...new Uint8Array(auth))) : null
       }, { onConflict: 'client_id' });
 
-      document.getElementById('notif-banner').style.display = 'none';
+      if (error) {
+        showStatus('Erreur Supabase : ' + error.message, 'error');
+        resetBtn();
+        return;
+      }
+
+      showStatus('Notifications activées ! ✓', 'info');
+      setTimeout(function() { document.getElementById('notif-banner').style.display = 'none'; }, 2000);
     } catch (err) {
-      console.warn('Push registration failed:', err);
-      btn.disabled = false;
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg> Activer les notifications';
+      showStatus('Erreur : ' + (err.message || String(err)), 'error');
+      resetBtn();
     }
   }
 
