@@ -1394,6 +1394,28 @@
       y += 10;
     }
 
+    // ── Filigrane sur toutes les pages ─────────────────────────
+    var wmL1 = clientName + (clientEmail ? ' · ' + clientEmail : '');
+    var wmL2 = 'Ascora — ' + coachName;
+    var totalPages = doc.getNumberOfPages();
+
+    for (var pg = 1; pg <= totalPages; pg++) {
+      doc.setPage(pg);
+      doc.saveGraphicsState();
+      doc.setGState(new doc.GState({ opacity: 0.06 }));
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(0, 0, 0);
+      for (var wy = 20; wy < 295; wy += 48) {
+        for (var wx = -20; wx < 215; wx += 95) {
+          doc.text(wmL1, wx, wy, { angle: 35 });
+          doc.text(wmL2, wx + 4, wy + 13, { angle: 35 });
+        }
+      }
+      doc.restoreGraphicsState();
+    }
+    // ────────────────────────────────────────────────────────────
+
     doc.save('plan-alimentaire-' + clientName.replace(/\s+/g, '-') + '.pdf');
     toast('PDF telecharge !', 'success');
   }
