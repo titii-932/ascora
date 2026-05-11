@@ -966,10 +966,13 @@
   let trackerCharts = {};
   let nutritionLoaded = false;
 
+  function hasCookie(n) { return document.cookie.split(';').some(c => c.trim().startsWith(n + '=')); }
+
   // ── INIT ──────────────────────────────────────────────────────────────
   async function init() {
     const { data: { session } } = await db.auth.getSession();
     if (!session) { window.location.href = 'index.html'; return; }
+    if (!hasCookie('ascora_remember')) { await db.auth.signOut(); window.location.href = 'index.html'; return; }
 
     const { data: p } = await db.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
     if (!p || p.role !== 'client' || p.status !== 'approved') {

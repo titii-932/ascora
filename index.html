@@ -100,6 +100,17 @@
     .btn-primary:hover  { background: var(--em-lt); }
     .btn-primary:active { transform: scale(.98); }
     .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+    .remember-row {
+      display: flex; align-items: center; gap: .5rem;
+      margin: .75rem 0 .25rem;
+    }
+    .remember-row input[type=checkbox] {
+      accent-color: var(--em); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0;
+    }
+    .remember-row label {
+      font-size: .8rem; color: var(--muted); cursor: pointer; user-select: none;
+      text-transform: none; letter-spacing: 0; font-weight: 400; margin-bottom: 0;
+    }
 
     /* ── FORGOT PASSWORD ── */
     .forgot-wrap { text-align: right; margin-top: .6rem; }
@@ -216,6 +227,10 @@
           <input type="password" id="l-password" placeholder="••••••••" autocomplete="current-password"
                  onkeydown="if(event.key==='Enter') handleLogin()">
         </div>
+        <div class="remember-row">
+          <input type="checkbox" id="l-remember" checked>
+          <label for="l-remember">Rester connecté</label>
+        </div>
         <button class="btn-primary" id="btn-login" onclick="handleLogin()">Se connecter</button>
         <div class="forgot-wrap">
           <span class="forgot-link" onclick="toggleForgot()">Mot de passe oublié ?</span>
@@ -323,8 +338,12 @@
     const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // ── AUTO-REDIRECT si déjà connecté ──────────────────────
+    function hasCookie(n) { return document.cookie.split(';').some(c => c.trim().startsWith(n + '=')); }
+
     db.auth.getSession().then(({ data: { session } }) => {
-      if (session) redirectUser(session.user.id);
+      if (!session) return;
+      if (!hasCookie('ascora_remember')) { db.auth.signOut(); return; }
+      redirectUser(session.user.id);
     });
 
     // ── UI HELPERS ───────────────────────────────────────────
@@ -373,6 +392,11 @@
         setLoading(btn, false, 'Se connecter');
         return;
       }
+
+      const remember = document.getElementById('l-remember').checked;
+      document.cookie = remember
+        ? 'ascora_remember=1; path=/; max-age=31536000; SameSite=Lax'
+        : 'ascora_remember=1; path=/; SameSite=Lax';
 
       await redirectUser(data.user.id, btn);
     }
