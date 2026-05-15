@@ -312,6 +312,104 @@
     .empty-state h3 { font-size: 1rem; color: var(--text); margin-bottom: .5rem; }
     .empty-state p { font-size: .85rem; line-height: 1.6; }
 
+    /* ── STATUS BADGES ── */
+    .client-status-badge {
+      display: inline-flex; align-items: center;
+      font-size: .66rem; font-weight: 700; padding: .18rem .52rem;
+      border-radius: 20px; white-space: nowrap; letter-spacing: .02em;
+    }
+    .status-en_cours { background: rgba(249,115,22,.15); color: #f97316; border: 1px solid rgba(249,115,22,.3); }
+    .status-actif    { background: rgba(34,197,94,.15);  color: #22c55e; border: 1px solid rgba(34,197,94,.3);  }
+    .status-termine  { background: rgba(156,163,175,.1); color: #9ca3af; border: 1px solid rgba(156,163,175,.25); }
+
+    /* ── STATUS FILTER TABS (liste clients) ── */
+    .status-filter-tabs { display: flex; gap: .5rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .status-filter-tab {
+      padding: .42rem .95rem; font-size: .78rem; font-weight: 600;
+      border-radius: 20px; border: 1px solid var(--border); cursor: pointer;
+      background: transparent; color: var(--text2); font-family: 'Inter', sans-serif;
+      transition: all .15s;
+    }
+    .status-filter-tab:hover { border-color: var(--em-bdr); color: var(--em-lt); }
+    .status-filter-tab[data-status="en_cours"].active { background: rgba(249,115,22,.18); color: #f97316; border-color: rgba(249,115,22,.45); }
+    .status-filter-tab[data-status="actif"].active    { background: rgba(34,197,94,.18);  color: #22c55e; border-color: rgba(34,197,94,.45);  }
+    .status-filter-tab[data-status="termine"].active  { background: rgba(156,163,175,.15); color: #9ca3af; border-color: rgba(156,163,175,.4); }
+
+    /* ── DUO ── */
+    .duo-badge {
+      display: inline-flex; align-items: center;
+      font-size: .58rem; font-weight: 800; padding: .12rem .42rem;
+      border-radius: 20px; letter-spacing: .08em;
+      background: rgba(249,115,22,.15); color: #f97316; border: 1px solid rgba(249,115,22,.35);
+      vertical-align: middle; flex-shrink: 0;
+    }
+    /* ── DUO CARD STACK ── */
+    .duo-stack { position: relative; }
+    /* Carte arrière : vraie carte avec contenu du partenaire */
+    .duo-card-back {
+      position: absolute; inset: 0; z-index: 0;
+      transform: translateX(14px) translateY(8px);
+      transition: transform .3s ease, opacity .3s ease, box-shadow .3s ease, border-color .3s ease;
+      opacity: .75;
+      border-color: rgba(249,115,22,.4);
+      pointer-events: none;
+      cursor: pointer;
+    }
+    /* Carte avant */
+    .duo-card-front {
+      position: relative; z-index: 2;
+      transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+      will-change: transform;
+    }
+    /* Neutralise le hover générique quand le stack n'est pas activé */
+    .duo-stack .duo-card-front.client-card:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: var(--border);
+    }
+    /* Activation JS (.hovered) : même spécificité que le reset, déclarée après → gagne */
+    .duo-stack.hovered .duo-card-front.client-card {
+      transform: translateX(-65px);
+      box-shadow: 0 20px 40px rgba(0,0,0,.6);
+      border-color: rgba(249,115,22,.5);
+    }
+    /* Carte arrière activée */
+    .duo-stack.hovered .duo-card-back.client-card {
+      transform: translateX(65px);
+      opacity: 1;
+      pointer-events: all;
+      z-index: 3;
+      box-shadow: 0 16px 32px rgba(0,0,0,.45);
+      border-color: rgba(249,115,22,.5);
+    }
+    /* Stabilise la carte arrière quand la souris est dessus */
+    .duo-stack.hovered .duo-card-back.client-card:hover {
+      transform: translateX(65px);
+      border-color: rgba(249,115,22,.6);
+      box-shadow: 0 20px 40px rgba(0,0,0,.5);
+    }
+    .duo-partner-chip {
+      display: flex; align-items: center; gap: .35rem;
+      font-size: .72rem; color: #f97316; font-weight: 500;
+      margin-top: .65rem; padding-top: .6rem;
+      border-top: 1px solid rgba(249,115,22,.15);
+    }
+
+    /* ── STATUS CONTROLS (fiche client) ── */
+    .det-status-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: .45rem; flex-shrink: 0; }
+    .det-status-btns { display: flex; gap: .3rem; flex-wrap: wrap; justify-content: flex-end; }
+    .det-status-btn {
+      padding: .28rem .65rem; font-size: .72rem; font-weight: 600;
+      border-radius: 20px; border: 1px solid var(--border); cursor: pointer;
+      background: transparent; color: var(--text2); font-family: 'Inter', sans-serif;
+      transition: all .15s;
+    }
+    .det-status-btn:hover:not(:disabled) { border-color: var(--em-bdr); color: var(--em-lt); }
+    .det-status-btn:disabled { cursor: default; }
+    .det-status-btn.active.status-en_cours { background: rgba(249,115,22,.15); color: #f97316; border-color: rgba(249,115,22,.4); }
+    .det-status-btn.active.status-actif    { background: rgba(34,197,94,.15);  color: #22c55e; border-color: rgba(34,197,94,.4);  }
+    .det-status-btn.active.status-termine  { background: rgba(156,163,175,.1); color: #9ca3af; border-color: rgba(156,163,175,.3); }
+
     /* ── CLIENT DETAIL ── */
     .client-detail { display: none; }
     .client-detail.active { display: block; }
@@ -327,7 +425,7 @@
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 1.25rem 1.5rem;
-      display: flex; align-items: center; gap: 1rem;
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
       margin-bottom: 1.25rem;
     }
     .detail-avatar {
@@ -1331,6 +1429,11 @@
         <div class="section-header">
           <h2>Mes clients</h2>
         </div>
+        <div class="status-filter-tabs">
+          <button class="status-filter-tab active" data-status="en_cours" onclick="filterClientStatus('en_cours')">🟠 En cours</button>
+          <button class="status-filter-tab" data-status="actif"    onclick="filterClientStatus('actif')">🟢 Actif</button>
+          <button class="status-filter-tab" data-status="termine"  onclick="filterClientStatus('termine')">⚫ Terminé</button>
+        </div>
         <div class="loading" id="clients-loading">
           <div class="spinner"></div><br>Chargement...
         </div>
@@ -1345,10 +1448,11 @@
         </button>
         <div class="detail-header">
           <div class="detail-avatar" id="det-avatar">?</div>
-          <div>
+          <div style="flex:1;min-width:0">
             <div class="detail-name" id="det-name">—</div>
             <div class="detail-sub" id="det-sub">—</div>
           </div>
+          <div class="det-status-wrap" id="det-status-wrap"></div>
         </div>
         <div class="detail-tabs-wrap" id="detail-tabs-wrap">
         <div class="detail-tabs" id="detail-tabs">
@@ -1551,6 +1655,13 @@
                 placeholder="Opérations, maladies chroniques, hospitalisations..."></textarea>
             </div>
 
+            <!-- ── DUO ── -->
+            <div class="info-section-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+              Duo
+            </div>
+            <div id="ci-duo-content" style="margin-bottom:.75rem"></div>
+
             <!-- ── FACTURATION ── -->
             <div class="info-section-title">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
@@ -1580,15 +1691,20 @@
 
         <!-- Tab: Sport -->
         <div class="detail-tab-content" id="tab-sport">
-          <div class="ws-section-hd" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+          <div class="ws-section-hd" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem">
             <div style="font-size:.9rem;font-weight:600;display:flex;align-items:center;gap:.5rem">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               Programme Sportif
             </div>
-            <button class="btn-sm primary" onclick="addWSession()">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Ajouter une séance
-            </button>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+              <button class="btn-sm" id="btn-duo-sport-sync" style="display:none;background:rgba(249,115,22,.1);color:#f97316;border:1px solid rgba(249,115,22,.3)" onclick="showDuoReplaceModal()">
+                🔄 Synchroniser avec le duo
+              </button>
+              <button class="btn-sm primary" onclick="addWSession()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Ajouter une séance
+              </button>
+            </div>
           </div>
           <div id="wsessions-list">
             <div class="loading"><div class="spinner"></div><br>Chargement...</div>
@@ -1602,7 +1718,10 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
               Plan Alimentaire
             </div>
-            <div style="display:flex;gap:.5rem">
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+              <button class="btn-sm" id="btn-duo-nut-sync" style="display:none;background:rgba(249,115,22,.1);color:#f97316;border:1px solid rgba(249,115,22,.3)" onclick="showDuoNutReplaceModal()">
+                🔄 Synchroniser avec le duo
+              </button>
               <button class="btn-sm" style="background:rgba(107,33,168,.15);color:#c084fc;border:1px solid rgba(107,33,168,.3)" onclick="generateNutPDF()">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                 Générer PDF
@@ -1947,6 +2066,12 @@
   let profile = null;
   let clients = [];
   let selectedClient = null;
+  let activeClientStatus = 'en_cours';
+  let unreadByClient = {};
+  let duoPartner = null;
+  let _pendingDuoSessionId = null;
+  let _duoModalMode = 'session'; // 'session' | 'initial'
+  let _pendingInitialSessions = [];
   let calYear  = new Date().getFullYear();
   let calMonth = new Date().getMonth();
   let calSessions   = [];
@@ -2076,13 +2201,28 @@
     document.getElementById('clients-loading').style.display = 'block';
     document.getElementById('client-grid').innerHTML = '';
 
-    const { data, error } = await db.from('profiles').select('*').eq('coach_id', profile.id).eq('status', 'approved');
+    const { data } = await db.from('profiles').select('*').eq('coach_id', profile.id).eq('status', 'approved');
     document.getElementById('clients-loading').style.display = 'none';
 
     clients = data || [];
 
+    unreadByClient = {};
+    if (clients.length) {
+      const clientIds = clients.map(c => c.id);
+      const { data: unread } = await db.from('messages')
+        .select('sender_id').in('sender_id', clientIds)
+        .eq('receiver_id', profile.id).eq('is_read', false);
+      (unread || []).forEach(m => { unreadByClient[m.sender_id] = (unreadByClient[m.sender_id] || 0) + 1; });
+    }
+
+    renderClientGrid();
+  }
+
+  function renderClientGrid() {
+    const grid = document.getElementById('client-grid');
+
     if (!clients.length) {
-      document.getElementById('client-grid').innerHTML = `
+      grid.innerHTML = `
         <div class="empty-state" style="grid-column:1/-1">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
           <h3>Aucun client encore</h3>
@@ -2091,36 +2231,134 @@
       return;
     }
 
-    // Unread messages count per client
-    const clientIds = clients.map(c => c.id);
-    const unreadByClient = {};
-    const { data: unread } = await db.from('messages')
-      .select('sender_id').in('sender_id', clientIds)
-      .eq('receiver_id', profile.id).eq('is_read', false);
-    (unread || []).forEach(m => { unreadByClient[m.sender_id] = (unreadByClient[m.sender_id] || 0) + 1; });
+    const filtered = clients
+      .filter(c => (c.client_status || 'en_cours') === activeClientStatus)
+      .sort((a, b) => a.full_name.localeCompare(b.full_name, 'fr', { sensitivity: 'base' }));
 
-    document.getElementById('client-grid').innerHTML = clients.map(c => {
+    if (!filtered.length) {
+      const msgs = { en_cours: 'en cours', actif: 'actif', termine: 'terminé' };
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3>Aucun client ${msgs[activeClientStatus]}</h3></div>`;
+      return;
+    }
+
+    // Group duo pairs within the filtered list
+    const ST_LABEL = { en_cours: 'En cours', actif: 'Actif', termine: 'Terminé' };
+    const SVG_EDIT = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+    const SVG_PAIR = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>`;
+
+    function cardHTML(c, wrapClass) {
       const nb = unreadByClient[c.id] || 0;
-      const badge = nb > 0 ? `<div class="card-unread-badge" title="${nb} message(s) non lu(s)">${nb > 9 ? '9+' : nb}</div>` : '';
+      const msgBadge = nb > 0 ? `<div class="card-unread-badge" title="${nb} message(s) non lu(s)">${nb > 9 ? '9+' : nb}</div>` : '';
+      const st = c.client_status || 'en_cours';
+      const hasDuo = !!c.duo_partner_id;
       return `
-      <div class="client-card" onclick="openClientDetail('${c.id}')">
+      <div class="${wrapClass || 'client-card'}" onclick="openClientDetail('${c.id}')">
         <div class="client-card-header">
           <div class="client-avatar">${c.full_name.charAt(0).toUpperCase()}</div>
           <div style="flex:1;min-width:0">
-            <div class="client-name">${esc(c.full_name)}</div>
+            <div class="client-name" style="display:flex;align-items:center;gap:.35rem">
+              ${esc(c.full_name)}${hasDuo ? '<span class="duo-badge">DUO</span>' : ''}
+            </div>
             <div class="client-email">${esc(c.email)}</div>
           </div>
-          ${badge}
+          ${msgBadge}
         </div>
-        <div class="client-meta">Tél : <span>${esc(c.phone || 'Non renseigné')}</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <div class="client-meta" style="margin-bottom:0">Tél : <span>${esc(c.phone || 'Non renseigné')}</span></div>
+          <span class="client-status-badge status-${st}">${ST_LABEL[st]}</span>
+        </div>
         <div class="client-actions">
-          <button class="btn-sm primary" onclick="event.stopPropagation();openClientDetail('${c.id}')">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Gérer
-          </button>
+          <button class="btn-sm primary" onclick="event.stopPropagation();openClientDetail('${c.id}')">${SVG_EDIT} Gérer</button>
+        </div>
+      </div>`;
+    }
+
+    const seen = new Set();
+    const items = [];
+    for (const c of filtered) {
+      if (seen.has(c.id)) continue;
+      seen.add(c.id);
+      const partner = c.duo_partner_id ? filtered.find(p => p.id === c.duo_partner_id) : null;
+      if (partner && !seen.has(partner.id)) {
+        seen.add(partner.id);
+        const [front, back] = c.full_name.localeCompare(partner.full_name, 'fr', { sensitivity: 'base' }) <= 0
+          ? [c, partner] : [partner, c];
+        items.push({ type: 'duo', front, back });
+      } else {
+        items.push({ type: 'solo', client: c });
+      }
+    }
+
+    grid.innerHTML = items.map(item => {
+      if (item.type === 'solo') return cardHTML(item.client);
+      const { front, back } = item;
+      const backNb = unreadByClient[back.id] || 0;
+      const backBadge = backNb > 0 ? `<div class="card-unread-badge" title="${backNb} message(s)">${backNb > 9 ? '9+' : backNb}</div>` : '';
+      const frontNb = unreadByClient[front.id] || 0;
+      const frontBadge = frontNb > 0 ? `<div class="card-unread-badge" title="${frontNb} message(s)">${frontNb > 9 ? '9+' : frontNb}</div>` : '';
+      return `
+      <div class="duo-stack">
+        <!-- Carte arrière : partenaire -->
+        <div class="client-card duo-card-back" onclick="event.stopPropagation();openClientDetail('${back.id}')">
+          <div class="client-card-header">
+            <div class="client-avatar">${back.full_name.charAt(0).toUpperCase()}</div>
+            <div style="flex:1;min-width:0">
+              <div class="client-name" style="display:flex;align-items:center;gap:.35rem">
+                ${esc(back.full_name)}<span class="duo-badge">DUO</span>
+              </div>
+              <div class="client-email">${esc(back.email)}</div>
+            </div>
+            ${backBadge}
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <div class="client-meta" style="margin-bottom:0">Tél : <span>${esc(back.phone || 'Non renseigné')}</span></div>
+            <span class="client-status-badge status-${back.client_status || 'en_cours'}">${ST_LABEL[back.client_status || 'en_cours']}</span>
+          </div>
+          <div class="client-actions">
+            <button class="btn-sm primary" onclick="event.stopPropagation();openClientDetail('${back.id}')">${SVG_EDIT} Gérer</button>
+          </div>
+        </div>
+        <!-- Carte avant : premier alphabétiquement -->
+        <div class="client-card duo-card-front" onclick="openClientDetail('${front.id}')">
+          <div class="client-card-header">
+            <div class="client-avatar">${front.full_name.charAt(0).toUpperCase()}</div>
+            <div style="flex:1;min-width:0">
+              <div class="client-name" style="display:flex;align-items:center;gap:.35rem">
+                ${esc(front.full_name)}<span class="duo-badge">DUO</span>
+              </div>
+              <div class="client-email">${esc(front.email)}</div>
+            </div>
+            ${frontBadge}
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <div class="client-meta" style="margin-bottom:0">Tél : <span>${esc(front.phone || 'Non renseigné')}</span></div>
+            <span class="client-status-badge status-${front.client_status || 'en_cours'}">${ST_LABEL[front.client_status || 'en_cours']}</span>
+          </div>
+          <div class="client-actions">
+            <button class="btn-sm primary" onclick="event.stopPropagation();openClientDetail('${front.id}')">${SVG_EDIT} Gérer</button>
+          </div>
+          <div class="duo-partner-chip">${SVG_PAIR} En duo avec ${esc(back.full_name)}</div>
         </div>
       </div>`;
     }).join('');
+
+    // Hover JS : séparation des cartes via classe .hovered
+    grid.querySelectorAll('.duo-stack').forEach(stack => {
+      stack.addEventListener('mouseenter', () => stack.classList.add('hovered'));
+      stack.addEventListener('mouseleave', e => {
+        // Ignore si la souris va vers un enfant du stack (carte arrière étendue)
+        if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.duo-stack') === stack) return;
+        stack.classList.remove('hovered');
+      });
+    });
+  }
+
+  function filterClientStatus(status) {
+    activeClientStatus = status;
+    document.querySelectorAll('.status-filter-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.status === status);
+    });
+    renderClientGrid();
   }
 
   function showClientsListView() {
@@ -2131,6 +2369,157 @@
   function backToClients() {
     selectedClient = null;
     showClientsListView();
+  }
+
+  function renderStatusControls(st) {
+    const statuses = [
+      { value: 'en_cours', label: '🟠 En cours' },
+      { value: 'actif',    label: '🟢 Actif'    },
+      { value: 'termine',  label: '⚫ Terminé'  },
+    ];
+    const btns = statuses.map(s => `
+      <button class="det-status-btn status-${s.value}${st === s.value ? ' active' : ''}"
+              onclick="changeClientStatus('${s.value}')"
+              ${st === s.value ? 'disabled' : ''}>${s.label}</button>
+    `).join('');
+    const delBtn = st === 'termine' ? `
+      <button class="btn-sm danger" style="margin-top:.15rem;font-size:.72rem;padding:.3rem .7rem" onclick="deleteClientPermanently()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        Supprimer définitivement
+      </button>` : '';
+    return `<div class="det-status-btns">${btns}</div>${delBtn}`;
+  }
+
+  async function changeClientStatus(newStatus) {
+    if (!selectedClient || selectedClient.client_status === newStatus) return;
+    const { error } = await db.from('profiles').update({ client_status: newStatus }).eq('id', selectedClient.id);
+    if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+    selectedClient.client_status = newStatus;
+    const idx = clients.findIndex(c => c.id === selectedClient.id);
+    if (idx !== -1) clients[idx].client_status = newStatus;
+    document.getElementById('det-status-wrap').innerHTML = renderStatusControls(newStatus);
+    const ST_LABEL = { en_cours: 'En cours', actif: 'Actif', termine: 'Terminé' };
+    toast('Statut mis à jour : ' + ST_LABEL[newStatus], 'success');
+  }
+
+  // ── DUO ─────────────────────────────────────────
+  function renderDuoSection() {
+    const el = document.getElementById('ci-duo-content');
+    if (!el) return;
+
+    if (duoPartner) {
+      el.innerHTML = `
+        <div style="display:flex;align-items:center;gap:.75rem;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.22);border-radius:10px;padding:.85rem 1rem;margin-bottom:.75rem">
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:#f97316;flex-shrink:0">${duoPartner.full_name.charAt(0).toUpperCase()}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.85rem;font-weight:600">${esc(duoPartner.full_name)}</div>
+            <div style="font-size:.72rem;color:var(--text2)">Partenaire d'entraînement</div>
+          </div>
+          <span class="duo-badge">DUO</span>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn-sm ghost" onclick="openClientDetail('${duoPartner.id}')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Ouvrir la fiche
+          </button>
+          <button class="btn-sm danger" onclick="unlinkDuo()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Délier le duo
+          </button>
+        </div>`;
+    } else {
+      const others = clients.filter(c => c.id !== selectedClient.id && !c.duo_partner_id);
+      const options = others.length
+        ? others.map(c => `<option value="${c.id}">${esc(c.full_name)}</option>`).join('')
+        : '<option value="" disabled>Aucun client disponible</option>';
+      el.innerHTML = `
+        <p style="font-size:.82rem;color:var(--text2);margin-bottom:.75rem;line-height:1.55">
+          Lier ce client à un partenaire pour synchroniser les programmes sportifs. Le programme alimentaire reste individuel.
+        </p>
+        <div style="display:flex;gap:.5rem;align-items:flex-end">
+          <div class="form-group" style="flex:1;margin-bottom:0">
+            <select class="form-input" id="duo-select">
+              <option value="">— Sélectionner un partenaire —</option>
+              ${options}
+            </select>
+          </div>
+          <button class="btn-sm primary" onclick="linkDuo()" style="flex-shrink:0">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            Lier
+          </button>
+        </div>`;
+    }
+  }
+
+  async function linkDuo() {
+    if (!selectedClient) return;
+    const partnerId = document.getElementById('duo-select')?.value;
+    if (!partnerId) { toast('Sélectionnez un partenaire.', 'error'); return; }
+
+    const { error: e1 } = await db.from('profiles').update({ duo_partner_id: partnerId }).eq('id', selectedClient.id);
+    const { error: e2 } = await db.from('profiles').update({ duo_partner_id: selectedClient.id }).eq('id', partnerId);
+    if (e1 || e2) { toast('Erreur lors du lien duo.', 'error'); return; }
+
+    selectedClient.duo_partner_id = partnerId;
+    const idx = clients.findIndex(c => c.id === selectedClient.id);
+    if (idx !== -1) clients[idx].duo_partner_id = partnerId;
+    const pIdx = clients.findIndex(c => c.id === partnerId);
+    if (pIdx !== -1) clients[pIdx].duo_partner_id = selectedClient.id;
+
+    duoPartner = clients.find(c => c.id === partnerId) || null;
+    renderDuoSection();
+    toast('Duo lié : ' + esc(duoPartner?.full_name || ''), 'success');
+
+    // Proposer via modal de copier les séances existantes
+    const { data: existingSessions } = await db.from('workout_sessions')
+      .select('name, warmup, instructions, end_notes, exercises, position')
+      .eq('client_id', selectedClient.id)
+      .eq('coach_id', profile.id)
+      .order('position');
+
+    if (existingSessions && existingSessions.length > 0) {
+      _pendingInitialSessions = existingSessions;
+      _duoModalMode = 'initial';
+      const n = existingSessions.length;
+      const partnerName = esc(duoPartner?.full_name || 'le partenaire');
+      document.getElementById('duo-modal-body').innerHTML =
+        `<strong style="color:var(--text)">${esc(selectedClient.full_name)}</strong> a ` +
+        `<strong style="color:var(--text)">${n}</strong> séance${n > 1 ? 's' : ''} sportive${n > 1 ? 's' : ''}. ` +
+        `Copier vers <strong style="color:var(--text)">${partnerName}</strong> ?`;
+      document.getElementById('duo-sport-modal').classList.add('show');
+    }
+  }
+
+  async function unlinkDuo() {
+    if (!selectedClient || !selectedClient.duo_partner_id) return;
+    const partnerId = selectedClient.duo_partner_id;
+
+    const { error: e1 } = await db.from('profiles').update({ duo_partner_id: null }).eq('id', selectedClient.id);
+    const { error: e2 } = await db.from('profiles').update({ duo_partner_id: null }).eq('id', partnerId);
+    if (e1 || e2) { toast('Erreur lors du délien.', 'error'); return; }
+
+    selectedClient.duo_partner_id = null;
+    const idx = clients.findIndex(c => c.id === selectedClient.id);
+    if (idx !== -1) clients[idx].duo_partner_id = null;
+    const pIdx = clients.findIndex(c => c.id === partnerId);
+    if (pIdx !== -1) clients[pIdx].duo_partner_id = null;
+
+    duoPartner = null;
+    renderDuoSection();
+    toast('Duo délié.', 'success');
+  }
+
+  async function deleteClientPermanently() {
+    if (!selectedClient) return;
+    const name = selectedClient.full_name;
+    if (!confirm(`Supprimer définitivement ${name} ? Cette action est irréversible : toutes ses données (séances, messages, programme…) seront effacées.`)) return;
+    const { error } = await db.from('profiles').delete().eq('id', selectedClient.id);
+    if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+    clients = clients.filter(c => c.id !== selectedClient.id);
+    selectedClient = null;
+    showClientsListView();
+    renderClientGrid();
+    toast(`${name} a été supprimé(e) définitivement.`, 'success');
   }
 
   async function openClientDetail(clientId) {
@@ -2145,6 +2534,7 @@
     document.getElementById('det-avatar').textContent = initials;
     document.getElementById('det-name').textContent = selectedClient.full_name;
     document.getElementById('det-sub').textContent  = selectedClient.email;
+    document.getElementById('det-status-wrap').innerHTML = renderStatusControls(selectedClient.client_status || 'en_cours');
 
     // ── Carnet de santé : remplissage des champs ──
     const parts = (selectedClient.full_name || '').split(' ');
@@ -2181,7 +2571,17 @@
     document.getElementById('add-billing-form-wrap').innerHTML = '';
     document.getElementById('billing-history-wrap').innerHTML  = '';
 
+    duoPartner = selectedClient.duo_partner_id
+      ? (clients.find(c => c.id === selectedClient.duo_partner_id) || null)
+      : null;
+
+    const duoSyncBtn = document.getElementById('btn-duo-sport-sync');
+    if (duoSyncBtn) duoSyncBtn.style.display = selectedClient.duo_partner_id ? '' : 'none';
+    const duoNutBtn = document.getElementById('btn-duo-nut-sync');
+    if (duoNutBtn) duoNutBtn.style.display = selectedClient.duo_partner_id ? '' : 'none';
+
     switchDetailTab('info');
+    renderDuoSection();
     loadBillingHistory();
   }
 
@@ -2710,11 +3110,126 @@
     s.name = name; s.warmup = warmup; s.instructions = instructions; s.end_notes = end_notes;
     toast('Séance sauvegardée !', 'success');
     sendAutoNotif(selectedClient.id, '📋 Votre programme sportif a été mis à jour par votre coach.');
+    if (selectedClient.duo_partner_id && duoPartner) {
+      _pendingDuoSessionId = sessionId;
+      _duoModalMode = 'session';
+      document.getElementById('duo-modal-body').innerHTML =
+        `Voulez-vous appliquer cette séance à <strong style="color:var(--text)">${esc(duoPartner.full_name)}</strong> également ?`;
+      document.getElementById('duo-sport-modal').classList.add('show');
+    }
     var card = document.getElementById('wsc-' + sessionId);
     if (card) {
       var titleEl = card.querySelector('.ws-card-title');
       if (titleEl) titleEl.textContent = name;
       card.classList.remove('open');
+    }
+  }
+
+  function showDuoReplaceModal() {
+    if (!selectedClient?.duo_partner_id || !duoPartner) return;
+    _duoModalMode = 'replace';
+    document.getElementById('duo-modal-body').innerHTML =
+      `Copier <strong style="color:var(--text)">toutes les séances</strong> de ` +
+      `<strong style="color:var(--text)">${esc(selectedClient.full_name)}</strong> vers ` +
+      `<strong style="color:var(--text)">${esc(duoPartner.full_name)}</strong> ?` +
+      `<br><small style="color:var(--danger);display:block;margin-top:.5rem">⚠ Les séances existantes de ${esc(duoPartner.full_name)} seront supprimées et remplacées.</small>`;
+    document.getElementById('duo-sport-modal').classList.add('show');
+  }
+
+  function showDuoNutReplaceModal() {
+    if (!selectedClient?.duo_partner_id || !duoPartner) return;
+    _duoModalMode = 'nutrition';
+    document.getElementById('duo-modal-body').innerHTML =
+      `Copier le <strong style="color:var(--text)">plan alimentaire complet</strong> de ` +
+      `<strong style="color:var(--text)">${esc(selectedClient.full_name)}</strong> vers ` +
+      `<strong style="color:var(--text)">${esc(duoPartner.full_name)}</strong> ?` +
+      `<br><small style="color:var(--danger);display:block;margin-top:.5rem">⚠ Le plan alimentaire existant de ${esc(duoPartner.full_name)} sera remplacé.</small>`;
+    document.getElementById('duo-sport-modal').classList.add('show');
+  }
+
+  async function confirmDuoSportSync() {
+    closeModal('duo-sport-modal');
+    const partnerId = selectedClient?.duo_partner_id;
+    if (!partnerId) return;
+
+    if (_duoModalMode === 'replace') {
+      // Supprime toutes les séances du partenaire puis copie celles du client courant
+      const { error: delErr } = await db.from('workout_sessions')
+        .delete().eq('client_id', partnerId).eq('coach_id', profile.id);
+      if (delErr) { toast('Erreur suppression : ' + delErr.message, 'error'); return; }
+      let hasError = false;
+      for (const s of workoutSessions) {
+        const { error } = await db.from('workout_sessions').insert({
+          client_id: partnerId, coach_id: profile.id,
+          name: s.name, warmup: s.warmup || '',
+          instructions: s.instructions || '', end_notes: s.end_notes || '',
+          exercises: Array.isArray(s.exercises) ? s.exercises : [],
+          position: s.position
+        });
+        if (error) hasError = true;
+      }
+      if (hasError) { toast('Certaines séances n\'ont pas pu être copiées.', 'error'); return; }
+      if (duoPartner) sendAutoNotif(duoPartner.id, '📋 Votre programme sportif a été mis à jour par votre coach.');
+      toast(`Toutes les séances de ${selectedClient.full_name} ont été copiées vers ${duoPartner?.full_name || 'le partenaire'} !`, 'success');
+
+    } else if (_duoModalMode === 'initial') {
+      // Copie de toutes les séances existantes lors de la liaison
+      const sessions = _pendingInitialSessions;
+      _pendingInitialSessions = [];
+      if (!sessions.length) return;
+      let hasError = false;
+      for (const s of sessions) {
+        const { error } = await db.from('workout_sessions').insert({
+          client_id: partnerId,
+          coach_id: profile.id,
+          name: s.name,
+          warmup: s.warmup || '',
+          instructions: s.instructions || '',
+          end_notes: s.end_notes || '',
+          exercises: Array.isArray(s.exercises) ? s.exercises : [],
+          position: s.position
+        });
+        if (error) { hasError = true; }
+      }
+      if (hasError) { toast('Certaines séances n\'ont pas pu être copiées.', 'error'); return; }
+      if (duoPartner) sendAutoNotif(duoPartner.id, '📋 Votre programme sportif a été mis à jour par votre coach.');
+      const n = sessions.length;
+      toast(`${n} séance${n > 1 ? 's' : ''} copiée${n > 1 ? 's' : ''} chez ${duoPartner?.full_name || 'le partenaire'} !`, 'success');
+
+    } else if (_duoModalMode === 'nutrition') {
+      if (!nutPlanData) { toast('Aucun plan alimentaire à copier.', 'error'); return; }
+      const { data: existingPlan } = await db.from('nutrition_plans').select('id').eq('client_id', partnerId).maybeSingle();
+      var nutErr;
+      if (existingPlan) {
+        var rn = await db.from('nutrition_plans').update({ plan_data: nutPlanData, updated_at: new Date().toISOString() }).eq('id', existingPlan.id);
+        nutErr = rn.error;
+      } else {
+        var rn2 = await db.from('nutrition_plans').insert({ client_id: partnerId, coach_id: profile.id, plan_data: nutPlanData });
+        nutErr = rn2.error;
+      }
+      if (nutErr) { toast('Erreur sync nutrition : ' + nutErr.message, 'error'); return; }
+      if (duoPartner) sendAutoNotif(duoPartner.id, '🥗 Votre plan alimentaire a été mis à jour par votre coach.');
+      toast(`Plan alimentaire copié chez ${duoPartner?.full_name || 'le partenaire'} !`, 'success');
+
+    } else {
+      // Copie d'une séance unique lors d'une sauvegarde
+      if (!_pendingDuoSessionId) return;
+      const s = workoutSessions.find(function(x) { return x.id === _pendingDuoSessionId; });
+      _pendingDuoSessionId = null;
+      if (!s) return;
+      const { error } = await db.from('workout_sessions').insert({
+        client_id: partnerId,
+        coach_id: profile.id,
+        name: s.name,
+        warmup: s.warmup || '',
+        instructions: s.instructions || '',
+        end_notes: s.end_notes || '',
+        exercises: Array.isArray(s.exercises) ? s.exercises : [],
+        position: 9999
+      });
+      if (error) { toast('Erreur sync duo : ' + error.message, 'error'); return; }
+      if (duoPartner) sendAutoNotif(duoPartner.id, '📋 Votre programme sportif a été mis à jour par votre coach.');
+      toast('Séance copiée chez ' + (duoPartner ? duoPartner.full_name : 'le partenaire') + ' !', 'success');
     }
   }
 
@@ -4251,6 +4766,25 @@
         Supprimer
       </button>
       <button class="btn-sm ghost" onclick="closeSessionModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+<!-- Duo sport sync modal -->
+<div class="modal-overlay" id="duo-sport-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title" style="display:flex;align-items:center;gap:.5rem">
+        <span class="duo-badge" style="font-size:.7rem">DUO</span>
+        Synchroniser le programme
+      </div>
+      <button class="modal-close" onclick="closeModal('duo-sport-modal')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p id="duo-modal-body" style="font-size:.875rem;color:var(--text2);line-height:1.6;margin-bottom:1.25rem">—</p>
+    <div class="modal-actions">
+      <button class="btn-modal cancel" onclick="closeModal('duo-sport-modal')">Non, garder individuel</button>
+      <button class="btn-modal confirm" onclick="confirmDuoSportSync()">Oui, synchroniser</button>
     </div>
   </div>
 </div>
