@@ -297,7 +297,9 @@
       background: var(--em-sub); border: 1px solid var(--em-bdr);
       display: flex; align-items: center; justify-content: center;
       font-size: 1rem; font-weight: 600; color: var(--em-lt);
+      overflow: hidden; flex-shrink: 0;
     }
+    .client-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
     .client-name { font-size: .9rem; font-weight: 600; color: var(--text); }
     .client-email { font-size: .75rem; color: var(--text2); margin-top: 1px; }
     .client-meta { font-size: .78rem; color: var(--text2); margin-bottom: 1rem; }
@@ -433,7 +435,9 @@
       background: var(--em-sub); border: 2px solid var(--em-bdr);
       display: flex; align-items: center; justify-content: center;
       font-size: 1.2rem; font-weight: 700; color: var(--em-lt);
+      overflow: hidden; flex-shrink: 0;
     }
+    .detail-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
     .detail-name { font-size: 1.1rem; font-weight: 600; }
     .detail-sub { font-size: .8rem; color: var(--text2); }
 
@@ -2196,6 +2200,32 @@
     document.getElementById('home-loading').style.display = 'none';
   }
 
+  // ── HELPERS AVATAR ────────────────────────────────
+  function clientAvatarInner(c) {
+    var initials = (c && c.full_name) ? c.full_name.charAt(0).toUpperCase() : '?';
+    if (c && c.avatar_url) {
+      return `<img src="${esc(c.avatar_url)}" alt="${esc(initials)}" onerror="this.style.display='none';this.parentElement.textContent='${initials}'">`;
+    }
+    return initials;
+  }
+
+  function setDetailAvatar(client) {
+    var avEl = document.getElementById('det-avatar');
+    if (!avEl) return;
+    var initials = (client && client.full_name) ? client.full_name.charAt(0).toUpperCase() : '?';
+    if (client && client.avatar_url) {
+      avEl.textContent = '';
+      var img = document.createElement('img');
+      img.src = client.avatar_url;
+      img.alt = initials;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block';
+      img.onerror = function() { avEl.textContent = initials; };
+      avEl.appendChild(img);
+    } else {
+      avEl.textContent = initials;
+    }
+  }
+
   // ── CLIENTS ─────────────────────────────────────
   async function loadClients() {
     document.getElementById('clients-loading').style.display = 'block';
@@ -2254,7 +2284,7 @@
       return `
       <div class="${wrapClass || 'client-card'}" onclick="openClientDetail('${c.id}')">
         <div class="client-card-header">
-          <div class="client-avatar">${c.full_name.charAt(0).toUpperCase()}</div>
+          <div class="client-avatar">${clientAvatarInner(c)}</div>
           <div style="flex:1;min-width:0">
             <div class="client-name" style="display:flex;align-items:center;gap:.35rem">
               ${esc(c.full_name)}${hasDuo ? '<span class="duo-badge">DUO</span>' : ''}
@@ -2301,7 +2331,7 @@
         <!-- Carte arrière : partenaire -->
         <div class="client-card duo-card-back" onclick="event.stopPropagation();openClientDetail('${back.id}')">
           <div class="client-card-header">
-            <div class="client-avatar">${back.full_name.charAt(0).toUpperCase()}</div>
+            <div class="client-avatar">${clientAvatarInner(back)}</div>
             <div style="flex:1;min-width:0">
               <div class="client-name" style="display:flex;align-items:center;gap:.35rem">
                 ${esc(back.full_name)}<span class="duo-badge">DUO</span>
@@ -2321,7 +2351,7 @@
         <!-- Carte avant : premier alphabétiquement -->
         <div class="client-card duo-card-front" onclick="openClientDetail('${front.id}')">
           <div class="client-card-header">
-            <div class="client-avatar">${front.full_name.charAt(0).toUpperCase()}</div>
+            <div class="client-avatar">${clientAvatarInner(front)}</div>
             <div style="flex:1;min-width:0">
               <div class="client-name" style="display:flex;align-items:center;gap:.35rem">
                 ${esc(front.full_name)}<span class="duo-badge">DUO</span>
@@ -2530,8 +2560,7 @@
     document.getElementById('client-detail-view').classList.add('active');
     initTabsFade();
 
-    const initials = selectedClient.full_name.charAt(0).toUpperCase();
-    document.getElementById('det-avatar').textContent = initials;
+    setDetailAvatar(selectedClient);
     document.getElementById('det-name').textContent = selectedClient.full_name;
     document.getElementById('det-sub').textContent  = selectedClient.email;
     document.getElementById('det-status-wrap').innerHTML = renderStatusControls(selectedClient.client_status || 'en_cours');
@@ -2669,8 +2698,8 @@
     if (error) { toast('Erreur : ' + error.message, 'error'); return; }
 
     Object.assign(selectedClient, updates);
-    document.getElementById('det-name').textContent   = fullName;
-    document.getElementById('det-avatar').textContent = fullName.charAt(0).toUpperCase();
+    document.getElementById('det-name').textContent = fullName;
+    setDetailAvatar(selectedClient);
     toast('Carnet de santé sauvegardé.', 'success');
     loadBillingHistory();
   }

@@ -627,6 +627,35 @@
     .vid-close:hover { color: var(--text); }
     .vid-video { width: 100%; border-radius: 10px; max-height: 220px; background: #000; display: block; }
     .vid-notes { font-size: .83rem; color: var(--text2); line-height: 1.6; margin-top: .85rem; white-space: pre-wrap; }
+
+    /* ── AVATAR PROFIL ── */
+    .user-avatar {
+      position: relative; overflow: hidden; cursor: pointer;
+    }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+    .user-avatar-hint {
+      position: absolute; inset: 0; border-radius: 50%;
+      background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity .2s; pointer-events: none;
+    }
+    .user-avatar:hover .user-avatar-hint { opacity: 1; }
+
+    /* ── POPUP AVATAR PREMIER LOGIN ── */
+    .avatar-popup-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.75);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; padding: 1.5rem;
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    }
+    .avatar-popup {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2rem 1.75rem; max-width: 360px; width: 100%;
+      text-align: center;
+    }
+    .avatar-popup-emoji { font-size: 2.5rem; margin-bottom: .75rem; line-height: 1; }
+    .avatar-popup-title { font-size: 1.1rem; font-weight: 700; margin-bottom: .85rem; }
+    .avatar-popup-desc { font-size: .85rem; color: var(--text2); line-height: 1.65; margin-bottom: 1.5rem; }
+    .avatar-popup-actions { display: flex; flex-direction: column; gap: .65rem; }
   </style>
 </head>
 <body>
@@ -668,7 +697,11 @@
 
   <div class="user-block">
     <div class="user-info">
-      <div class="user-avatar" id="sidebar-avatar">?</div>
+      <input type="file" id="avatar-change-input" accept="image/*" capture="user" style="display:none" onchange="changeProfilePhoto(this)">
+      <div class="user-avatar" id="sidebar-avatar" onclick="document.getElementById('avatar-change-input').click()" title="Changer la photo de profil">
+        ?
+        <div class="user-avatar-hint"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+      </div>
       <div>
         <div class="user-name" id="sidebar-name">Chargement...</div>
         <div class="user-role">Client</div>
@@ -968,6 +1001,57 @@
 
   function hasCookie(n) { return document.cookie.split(';').some(c => c.trim().startsWith(n + '=')); }
 
+  // ── AVATAR PROFIL ─────────────────────────────────────────────────────
+  var _HINT_HTML = '<div class="user-avatar-hint"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>';
+
+  function refreshSidebarAvatar() {
+    var avEl = document.getElementById('sidebar-avatar');
+    var initials = ((profile && profile.full_name) || 'C').charAt(0).toUpperCase();
+    if (profile && profile.avatar_url) {
+      avEl.innerHTML = '<img src="' + esc(profile.avatar_url) + '" alt="' + esc(initials) + '" onerror="this.remove()">' + _HINT_HTML;
+    } else {
+      avEl.innerHTML = initials + _HINT_HTML;
+    }
+  }
+
+  function checkAvatarPrompt() {
+    if (profile.avatar_url) return;
+    if (localStorage.getItem('avatar_prompted')) return;
+    document.getElementById('avatar-popup-overlay').style.display = 'flex';
+  }
+
+  function dismissAvatarPrompt() {
+    localStorage.setItem('avatar_prompted', '1');
+    document.getElementById('avatar-popup-overlay').style.display = 'none';
+  }
+
+  async function handleAvatarPromptUpload(input) {
+    var file = input.files[0];
+    if (!file) return;
+    dismissAvatarPrompt();
+    await uploadAvatarPhoto(file);
+  }
+
+  async function changeProfilePhoto(input) {
+    var file = input.files[0];
+    if (!file) return;
+    await uploadAvatarPhoto(file);
+    input.value = '';
+  }
+
+  async function uploadAvatarPhoto(file) {
+    var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    var path = profile.id + '.' + ext;
+    var { error: upErr } = await db.storage.from('avatars').upload(path, file, { upsert: true });
+    if (upErr) { toast('Erreur upload : ' + upErr.message, 'error'); return; }
+    var publicUrl = db.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+    var { error: dbErr } = await db.from('profiles').update({ avatar_url: publicUrl }).eq('id', profile.id);
+    if (dbErr) { toast('Erreur sauvegarde : ' + dbErr.message, 'error'); return; }
+    profile.avatar_url = publicUrl;
+    refreshSidebarAvatar();
+    toast('Photo de profil mise à jour !', 'success');
+  }
+
   // ── INIT ──────────────────────────────────────────────────────────────
   async function init() {
     const { data: { session } } = await db.auth.getSession();
@@ -983,8 +1067,7 @@
 
     profile = p;
     clientEmail = session.user.email || '';
-    const initials = (p.full_name || 'C').charAt(0).toUpperCase();
-    document.getElementById('sidebar-avatar').textContent = initials;
+    refreshSidebarAvatar();
     document.getElementById('sidebar-name').textContent = p.full_name || 'Client';
 
     if (p.coach_id) {
@@ -1008,6 +1091,7 @@
     loadUnreadCount();
     subscribeToClientMessages();
     checkNotifBanner();
+    checkAvatarPrompt();
   }
 
   // ── PUSH NOTIFICATIONS ────────────────────────────────────────────────
@@ -1808,6 +1892,23 @@
 </script>
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 <div id="wm-overlay"></div>
+
+<!-- ── AVATAR PROMPT POPUP ── -->
+<div id="avatar-popup-overlay" class="avatar-popup-overlay" style="display:none">
+  <div class="avatar-popup">
+    <div class="avatar-popup-emoji">📸</div>
+    <div class="avatar-popup-title">Bienvenue sur Ascora !</div>
+    <div class="avatar-popup-desc">Ajoutez une photo de profil pour suivre votre progression au fil du temps. Voir votre visage évoluer au fil des semaines, c'est l'une des meilleures motivations !</div>
+    <div class="avatar-popup-actions">
+      <input type="file" id="avatar-prompt-input" accept="image/*" capture="user" style="display:none" onchange="handleAvatarPromptUpload(this)">
+      <button class="btn-save" onclick="document.getElementById('avatar-prompt-input').click()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Ajouter une photo
+      </button>
+      <button class="btn-logout" onclick="dismissAvatarPrompt()">Plus tard</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── VIDEO POPUP ── -->
 <div class="vid-overlay" id="vid-overlay" onclick="if(event.target===this)closeVideoPopup()">
