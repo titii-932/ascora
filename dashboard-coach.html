@@ -2136,7 +2136,7 @@
     document.getElementById('sidebar-avatar').textContent = p.full_name.charAt(0).toUpperCase();
 
     const hashSection = window.location.hash.replace('#','');
-    const validSections = ['home','clients','calendar','finance','revenus','exercises','demandes'];
+    const validSections = ['home','clients','calendar','finance','revenus','exercises','pending'];
     showSection(validSections.includes(hashSection) ? hashSection : 'home');
     loadPendingCount();
     subscribeToNewRequests();
