@@ -2135,7 +2135,9 @@
     document.getElementById('sidebar-name').textContent = p.full_name;
     document.getElementById('sidebar-avatar').textContent = p.full_name.charAt(0).toUpperCase();
 
-    loadHomeStats();
+    const hashSection = window.location.hash.replace('#','');
+    const validSections = ['home','clients','calendar','finance','revenus','exercises','demandes'];
+    showSection(validSections.includes(hashSection) ? hashSection : 'home');
     loadPendingCount();
     subscribeToNewRequests();
     subscribeToCoachMessages();
@@ -2151,6 +2153,7 @@
   };
 
   function showSection(name) {
+    window.location.hash = name;
     document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
     document.getElementById(`section-${name}`).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(i => i.classList.toggle('active', i.dataset.section === name));
