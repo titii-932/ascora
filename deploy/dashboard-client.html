@@ -1,0 +1,1928 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Ascora — Mon Espace</title>
+  <link rel="manifest" href="/ascora/manifest.json">
+  <meta name="theme-color" content="#10b981">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Ascora">
+  <link rel="apple-touch-icon" href="/ascora/icons/icon-192.png">
+  <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/ascora/sw.js').catch(function(){});</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg:      #0a0a0a;
+      --bg2:     #111111;
+      --card:    #161616;
+      --card2:   #1d1d1d;
+      --border:  #242424;
+      --em:      #10b981;
+      --em-lt:   #34d399;
+      --em-sub:  rgba(16,185,129,.08);
+      --em-bdr:  rgba(16,185,129,.22);
+      --text:    #f0f0f0;
+      --text2:   #a3a3a3;
+      --text3:   #525252;
+      --danger:  #ef4444;
+      --warn:    #f59e0b;
+      --sidebar: 220px;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar); min-width: var(--sidebar);
+      background: var(--bg2); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 1.5rem 1rem; padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); gap: 0;
+    }
+    .logo {
+      padding: 0 .5rem 1.5rem;
+      border-bottom: 1px solid var(--border); margin-bottom: 1.25rem;
+      line-height: 0;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .65rem .75rem; border-radius: 9px; cursor: pointer;
+      color: var(--text2); font-size: .875rem; font-weight: 500;
+      transition: all .15s; border: 1px solid transparent; margin-bottom: 2px;
+    }
+    .nav-item:hover { background: var(--card); color: var(--text); }
+    .nav-item.active { background: var(--em-sub); color: var(--em-lt); border-color: var(--em-bdr); }
+    .nav-item svg { flex-shrink: 0; }
+    .nav-spacer { flex: 1; }
+    .user-block { border-top: 1px solid var(--border); padding-top: 1rem; margin-top: .5rem; }
+    .user-info { display: flex; align-items: center; gap: .75rem; padding: .5rem; margin-bottom: .5rem; }
+    .user-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--em-sub); border: 1px solid var(--em-bdr);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .85rem; font-weight: 600; color: var(--em-lt); flex-shrink: 0;
+    }
+    .user-name { font-size: .8rem; font-weight: 600; color: var(--text); }
+    .user-role { font-size: .7rem; color: var(--em); }
+    .btn-logout {
+      width: 100%; padding: .6rem; background: transparent;
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text2); font-size: .8rem; cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      display: flex; align-items: center; justify-content: center; gap: .5rem; transition: all .15s;
+    }
+    .btn-logout:hover { border-color: var(--danger); color: #fca5a5; background: rgba(239,68,68,.06); }
+
+    /* MAIN */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      height: 60px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1.75rem; flex-shrink: 0;
+    }
+    .section-title { font-size: 1.05rem; font-weight: 600; color: var(--text); }
+    .coach-badge {
+      display: flex; align-items: center; gap: .5rem;
+      font-size: .75rem; color: var(--em); background: var(--em-sub);
+      border: 1px solid var(--em-bdr); border-radius: 8px; padding: .35rem .75rem;
+    }
+    .content-area { flex: 1; overflow-y: auto; padding: 1.75rem; }
+    .content-section { display: none; }
+    .content-section.active { display: block; }
+
+    /* ── UPCOMING SESSIONS ── */
+    .upcoming-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.25rem; margin-bottom: 1.25rem;
+    }
+    .upcoming-title {
+      font-size: .8rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--text2); margin-bottom: .85rem;
+    }
+    .upcoming-list { display: flex; flex-direction: column; gap: .55rem; }
+    .upcoming-item {
+      display: flex; align-items: center; gap: .75rem;
+      background: var(--card2); border: 1px solid var(--border);
+      border-radius: 10px; padding: .65rem .9rem;
+    }
+    .upcoming-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--em); flex-shrink: 0; }
+    .upcoming-info { flex: 1; min-width: 0; }
+    .upcoming-date { font-size: .82rem; font-weight: 600; color: var(--text); }
+    .upcoming-time { font-size: .74rem; color: var(--text2); margin-top: 2px; }
+    .upcoming-badge {
+      font-size: .65rem; font-weight: 600; letter-spacing: .04em;
+      border-radius: 5px; padding: 2px 7px; flex-shrink: 0;
+    }
+    .upcoming-badge.pres { background: rgba(16,185,129,.15); color: var(--em-lt); }
+    .upcoming-badge.dist { background: rgba(245,158,11,.15); color: #fbbf24; }
+
+    /* SESSION CARDS (expandable) */
+    .session-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; margin-bottom: .75rem; overflow: hidden;
+      transition: border-color .2s;
+    }
+    .session-card:hover { border-color: var(--em-bdr); }
+    .session-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.1rem 1.25rem; cursor: pointer; user-select: none;
+    }
+    .session-card-header-left { display: flex; align-items: center; gap: .75rem; }
+    .session-card-name { font-size: .9rem; font-weight: 600; }
+    .session-meta-badge {
+      font-size: .72rem; color: var(--text2); background: var(--card2);
+      border: 1px solid var(--border); border-radius: 6px; padding: .2rem .55rem;
+    }
+    .session-chevron { color: var(--text3); transition: transform .2s; }
+    .session-card.open .session-chevron { transform: rotate(90deg); }
+    .session-card-body { display: none; padding: 0 1.25rem 1.25rem; border-top: 1px solid var(--border); }
+    .session-card.open .session-card-body { display: block; }
+    .warmup-text {
+      font-size: .82rem; color: var(--text2); padding: .85rem 0;
+      border-bottom: 1px solid var(--border); margin-bottom: .85rem; line-height: 1.6;
+    }
+    .instructions-text {
+      font-size: .82rem; color: var(--text); background: var(--card2);
+      border: 1px solid var(--border); border-left: 3px solid #6B21A8;
+      border-radius: 8px; padding: .85rem 1rem;
+      margin-bottom: .85rem; line-height: 1.7; white-space: pre-wrap;
+    }
+    .instructions-label {
+      font-size: .68rem; font-weight: 600; letter-spacing: .06em;
+      text-transform: uppercase; color: #c084fc; margin-bottom: .45rem;
+    }
+
+    /* EXERCISE TABLE */
+    .ex-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    .ex-table th {
+      text-align: left; font-size: .68rem; font-weight: 600; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--text3); padding: .5rem .75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .ex-table td { padding: .6rem .75rem; border-bottom: 1px solid var(--border); color: var(--text2); white-space: normal; word-break: break-word; vertical-align: top; }
+    .ex-table tr:last-child td { border-bottom: none; }
+    .ex-table td:first-child { color: var(--text); font-weight: 500; }
+    .ex-table td:nth-child(5) { max-width: 250px; width: 250px; }
+
+    /* EXERCISE ACCORDION CARDS (mobile) */
+    .ex-cards {
+      display: none;
+      border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; margin-top: .75rem;
+    }
+    .ex-acc { border-bottom: 1px solid var(--border); }
+    .ex-acc:last-child { border-bottom: none; }
+    .ex-acc-hd {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: .8rem .9rem; gap: .75rem;
+    }
+    .ex-acc-hd.clickable { cursor: pointer; user-select: none; }
+    .ex-acc-name { font-size: 1rem; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .ex-acc-meta { font-size: .82rem; color: var(--em); font-weight: 600; margin-top: .25rem; }
+    .ex-acc-chevron { color: var(--text3); flex-shrink: 0; margin-top: .2rem; transition: transform .2s; }
+    .ex-acc.open .ex-acc-chevron { transform: rotate(90deg); }
+    .ex-acc-body {
+      display: none; font-size: .84rem; color: var(--text2);
+      padding: .6rem .9rem .85rem; line-height: 1.7;
+      border-top: 1px solid rgba(255,255,255,.06);
+      white-space: pre-wrap;
+    }
+    .ex-acc.open .ex-acc-body { display: block; }
+
+    @media (max-width: 767px) {
+      .ex-table { display: none !important; }
+      .ex-cards { display: block !important; }
+    }
+    .end-notes-text {
+      font-size: .82rem; color: var(--text2); background: var(--card2);
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: .85rem 1rem; margin-top: .85rem; line-height: 1.7; white-space: pre-wrap;
+    }
+    .end-notes-label {
+      font-size: .68rem; font-weight: 600; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--text3); margin-bottom: .45rem;
+    }
+    /* ── FILIGRANE ── */
+    #wm-overlay {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; z-index: 500; overflow: hidden;
+      opacity: 0.06;
+    }
+    #wm-inner {
+      position: absolute; top: 50%; left: 50%;
+      width: 320%; height: 320%;
+      transform: translate(-50%, -50%) rotate(-35deg);
+      display: flex; flex-direction: column; justify-content: space-around;
+      color: #ffffff;
+    }
+    .wm-row { display: flex; justify-content: space-around; white-space: nowrap; }
+    .wm-block {
+      display: flex; flex-direction: column; gap: 5px;
+      font-size: 11px; font-weight: 500; letter-spacing: .05em;
+      line-height: 1; font-family: 'Inter', sans-serif;
+    }
+    .rest-badge {
+      display: inline-flex; align-items: center; gap: .25rem;
+      background: var(--em-sub); color: var(--em); border-radius: 5px;
+      padding: .1rem .4rem; font-size: .75rem; font-weight: 500;
+    }
+
+    /* NUTRITION */
+    .section-top-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .section-top-bar h2 { font-size: 1rem; font-weight: 600; }
+    .btn-primary {
+      display: flex; align-items: center; gap: .4rem;
+      padding: .55rem 1.1rem; background: var(--em); color: #000;
+      border: none; border-radius: 9px; font-size: .82rem; font-weight: 600;
+      cursor: pointer; font-family: 'Inter', sans-serif; transition: all .15s;
+    }
+    .btn-primary:hover { background: var(--em-lt); }
+
+    .day-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .day-tab {
+      padding: .45rem .95rem; border-radius: 9px; border: 1px solid var(--border);
+      background: var(--card2); color: var(--text2); font-size: .82rem; font-weight: 500;
+      cursor: pointer; font-family: 'Inter', sans-serif; transition: all .15s;
+    }
+    .day-tab.active { background: var(--em); color: #000; border-color: var(--em); font-weight: 600; }
+    .day-tab:hover:not(.active) { border-color: var(--em-bdr); color: var(--text); }
+
+    .day-type-badge {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .3rem .75rem; border-radius: 8px; font-size: .78rem; font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .day-type-badge.sport { background: var(--em-sub); color: var(--em-lt); border: 1px solid var(--em-bdr); }
+    .day-type-badge.repos { background: rgba(82,82,82,.15); color: var(--text3); border: 1px solid var(--border); }
+
+    /* MEAL ACCORDIONS */
+    .meal-accordion { background: var(--card2); border: 1px solid var(--border); border-radius: 12px; margin-bottom: .65rem; overflow: hidden; }
+    .meal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .85rem 1.1rem; cursor: pointer; user-select: none;
+    }
+    .meal-header-left { display: flex; align-items: center; gap: .6rem; }
+    .meal-label { font-size: .85rem; font-weight: 600; }
+    .meal-cal-badge { font-size: .72rem; color: var(--text3); }
+    .meal-chevron { color: var(--text3); transition: transform .2s; }
+    .meal-accordion.open .meal-chevron { transform: rotate(90deg); }
+    .meal-body { display: none; padding: 0 1.1rem 1.1rem; }
+    .meal-accordion.open .meal-body { display: block; }
+
+    .food-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+    .food-table th {
+      text-align: left; font-size: .65rem; font-weight: 600; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--text3); padding: .4rem .5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .food-table td { padding: .5rem .5rem; border-bottom: 1px solid var(--border); color: var(--text2); }
+    .food-table tr:last-child td { border-bottom: none; }
+    .food-table td:first-child { color: var(--text); font-weight: 500; }
+    .food-table .total-row td { border-top: 1px solid var(--border); border-bottom: none; font-weight: 600; font-size: .75rem; }
+    .prot { color: #60a5fa; }
+    .carb { color: #fb923c; }
+    .fat  { color: #facc15; }
+    .cal  { color: var(--em-lt); }
+
+    .day-total-bar {
+      background: var(--card2); border: 1px solid var(--em-bdr);
+      border-radius: 12px; padding: 1rem 1.25rem;
+      display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 1rem;
+    }
+    .day-total-item { display: flex; flex-direction: column; gap: .2rem; }
+    .day-total-label { font-size: .65rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text3); }
+    .day-total-value { font-size: 1.2rem; font-weight: 700; }
+
+    /* TRACKER */
+    .tracker-form-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;
+    }
+    .tracker-subsection {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem;
+    }
+    .tracker-subsection-title {
+      font-size: .68rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+      color: var(--em); margin-bottom: 1rem; display: flex; align-items: center; gap: .4rem;
+    }
+    .form-group { margin-bottom: .85rem; }
+    .form-group:last-child { margin-bottom: 0; }
+    .form-group label {
+      display: block; font-size: .72rem; color: var(--text2);
+      text-transform: uppercase; letter-spacing: .06em; margin-bottom: .35rem; font-weight: 500;
+    }
+    .form-input {
+      width: 100%; background: var(--card2); border: 1px solid var(--border);
+      border-radius: 9px; padding: .65rem .85rem; color: var(--text);
+      font-size: .875rem; font-family: 'Inter', sans-serif; outline: none; transition: border-color .2s;
+    }
+    .form-input:focus { border-color: var(--em); }
+    .form-input::placeholder { color: var(--text3); }
+    .range-wrapper { display: flex; align-items: center; gap: .75rem; }
+    .range-wrapper input[type=range] { flex: 1; accent-color: var(--em); cursor: pointer; }
+    .range-value {
+      min-width: 28px; text-align: center; font-size: .9rem; font-weight: 700;
+      color: var(--em-lt); background: var(--em-sub); border-radius: 6px; padding: .1rem .4rem;
+    }
+    .btn-save {
+      width: 100%; padding: .85rem; background: var(--em); color: #000;
+      border: none; border-radius: 10px; font-size: .9rem; font-weight: 600;
+      cursor: pointer; font-family: 'Inter', sans-serif; transition: all .15s;
+      display: flex; align-items: center; justify-content: center; gap: .5rem; margin-top: 1rem;
+    }
+    .btn-save:hover { background: var(--em-lt); }
+    .btn-save:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-secondary {
+      padding: .55rem 1.1rem; background: rgba(107,33,168,.15); color: #c084fc;
+      border: 1px solid rgba(107,33,168,.3); border-radius: 9px;
+      font-size: .82rem; font-weight: 600; cursor: pointer;
+      font-family: 'Inter', sans-serif; transition: all .15s;
+      display: flex; align-items: center; gap: .4rem;
+    }
+    .btn-secondary:hover { background: rgba(107,33,168,.25); color: #d8b4fe; border-color: rgba(107,33,168,.5); }
+
+    /* ── PUSH NOTIF BANNER ── */
+    #notif-banner {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--card); border: 1px solid var(--em-bdr);
+      border-radius: 14px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; gap: 1rem;
+    }
+    #notif-banner-text { font-size: .85rem; color: var(--text2); line-height: 1.5; }
+    #notif-banner-text strong { color: var(--text); display: block; margin-bottom: .2rem; }
+    #notif-status {
+      display: none; margin-top: .75rem; padding: .6rem .9rem;
+      border-radius: 9px; font-size: .82rem; font-weight: 500; line-height: 1.5;
+      border: 1px solid transparent;
+    }
+    #notif-status.info  { background: rgba(16,185,129,.08); border-color: rgba(16,185,129,.22); color: var(--em-lt); }
+    #notif-status.error { background: rgba(239,68,68,.08);  border-color: rgba(239,68,68,.22);  color: #fca5a5; }
+    .btn-notif {
+      display: flex; align-items: center; gap: .4rem; white-space: nowrap;
+      padding: .55rem 1.1rem; background: var(--em); color: #000;
+      border: none; border-radius: 9px; font-size: .82rem; font-weight: 600;
+      cursor: pointer; font-family: 'Inter', sans-serif; transition: all .15s; flex-shrink: 0;
+    }
+    .btn-notif:hover { background: var(--em-lt); }
+    .btn-notif:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── SKELETON ── */
+    @keyframes sk-pulse { 0%,100% { opacity: .3 } 50% { opacity: .65 } }
+    .sk { background: var(--card2); border-radius: 6px; animation: sk-pulse 1.6s ease-in-out infinite; }
+    .sk-h { height: 11px; }
+    .sk-H { height: 32px; }
+    .sk-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+
+    /* CHARTS */
+    .charts-section-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; margin-top: 2rem; }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .chart-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem;
+    }
+    .chart-card h3 { font-size: .82rem; font-weight: 600; color: var(--text2); margin-bottom: .85rem; }
+    .chart-canvas-wrap { height: 160px; position: relative; }
+
+    /* SOLO SESSIONS */
+    .solo-layout { display: grid; grid-template-columns: 340px 1fr; gap: 1.25rem; }
+    .solo-form-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 1.25rem; height: fit-content;
+    }
+    .solo-form-title { font-size: .9rem; font-weight: 600; margin-bottom: 1rem; }
+    .feeling-picker { display: flex; gap: .5rem; margin-top: .35rem; }
+    .feeling-btn {
+      width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent;
+      cursor: pointer; font-size: .85rem; display: flex; align-items: center; justify-content: center;
+      transition: all .15s; font-weight: 700; font-family: 'Inter', sans-serif;
+    }
+    .feeling-btn[data-v="1"] { background: rgba(239,68,68,.15); color: #ef4444; }
+    .feeling-btn[data-v="2"] { background: rgba(249,115,22,.15); color: #f97316; }
+    .feeling-btn[data-v="3"] { background: rgba(234,179,8,.15); color: #eab308; }
+    .feeling-btn[data-v="4"] { background: rgba(132,204,22,.15); color: #84cc16; }
+    .feeling-btn[data-v="5"] { background: rgba(16,185,129,.15); color: var(--em); }
+    .feeling-btn.active { border-color: currentColor; transform: scale(1.15); }
+    textarea.form-input { resize: vertical; min-height: 70px; line-height: 1.6; }
+
+    .solo-history { display: flex; flex-direction: column; gap: .65rem; }
+    .solo-history-title { font-size: .9rem; font-weight: 600; margin-bottom: .75rem; }
+    .solo-item {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: .95rem 1.1rem; transition: border-color .2s;
+    }
+    .solo-item:hover { border-color: var(--em-bdr); }
+    .solo-item-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: .3rem; }
+    .solo-item-left { display: flex; align-items: center; gap: .6rem; }
+    .solo-item-date { font-size: .75rem; color: var(--text3); }
+    .solo-item-desc { font-size: .88rem; font-weight: 600; }
+    .solo-item-right { display: flex; align-items: center; gap: .5rem; }
+    .solo-dur-badge {
+      font-size: .75rem; color: var(--em); background: var(--em-sub);
+      border: 1px solid var(--em-bdr); border-radius: 6px; padding: .2rem .5rem; font-weight: 500;
+    }
+    .feeling-badge {
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .78rem; font-weight: 700;
+    }
+    .feeling-badge[data-v="1"] { background: rgba(239,68,68,.15); color: #ef4444; }
+    .feeling-badge[data-v="2"] { background: rgba(249,115,22,.15); color: #f97316; }
+    .feeling-badge[data-v="3"] { background: rgba(234,179,8,.15); color: #eab308; }
+    .feeling-badge[data-v="4"] { background: rgba(132,204,22,.15); color: #84cc16; }
+    .feeling-badge[data-v="5"] { background: rgba(16,185,129,.15); color: var(--em); }
+    .solo-item-notes { font-size: .78rem; color: var(--text2); line-height: 1.5; margin-top: .25rem; }
+    .btn-del-solo {
+      background: none; border: none; cursor: pointer;
+      color: var(--text3); transition: color .15s; padding: .2rem;
+    }
+    .btn-del-solo:hover { color: #f87171; }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 3rem 2rem; color: var(--text2); }
+    .empty-state svg { color: var(--text3); margin-bottom: 1rem; }
+    .empty-state h3 { font-size: 1rem; color: var(--text); margin-bottom: .5rem; }
+    .empty-state p { font-size: .85rem; line-height: 1.6; }
+
+    /* LOADING */
+    .loading { text-align: center; padding: 2.5rem; color: var(--text2); font-size: .9rem; }
+    .spinner {
+      display: inline-block; width: 20px; height: 20px;
+      border: 2px solid var(--border); border-top-color: var(--em);
+      border-radius: 50%; animation: spin .7s linear infinite; margin-bottom: .75rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + .5rem)); right: 1.5rem;
+      padding: .85rem 1.5rem; border-radius: 10px;
+      font-size: .85rem; font-weight: 500;
+      transform: translateY(80px); opacity: 0;
+      transition: all .3s cubic-bezier(.34,1.56,.64,1);
+      z-index: 200; pointer-events: none;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: rgba(16,185,129,.15); border: 1px solid var(--em); color: var(--em-lt); }
+    .toast.error   { background: rgba(239,68,68,.15); border: 1px solid var(--danger); color: #fca5a5; }
+
+    /* ── NAV BADGE ── */
+    .nav-badge {
+      margin-left: auto; background: var(--danger); color: #fff;
+      border-radius: 20px; padding: .1rem .5rem;
+      font-size: .63rem; font-weight: 700; min-width: 18px;
+      text-align: center; display: none;
+    }
+
+    /* ── MESSAGES ── */
+    .msg-conv {
+      display: flex; flex-direction: column; gap: .65rem;
+      max-height: 440px; overflow-y: auto; padding: .5rem 0; margin-bottom: 1rem;
+    }
+    .msg-bubble-wrap { display: flex; gap: .5rem; }
+    .msg-bubble-wrap.mine { flex-direction: row-reverse; }
+    .msg-bubble-wrap > div { min-width: 0; }
+    .msg-bubble {
+      max-width: 72%; padding: .6rem 1rem; font-size: .875rem; line-height: 1.55;
+      word-break: break-word; overflow-wrap: break-word;
+    }
+    .msg-bubble.theirs {
+      background: var(--card2); border: 1px solid var(--border); color: var(--text);
+      border-radius: 14px 14px 14px 4px;
+    }
+    .msg-bubble.mine {
+      background: var(--em-sub); border: 1px solid var(--em-bdr); color: var(--em-lt);
+      border-radius: 14px 14px 4px 14px;
+    }
+    .msg-time { font-size: .63rem; color: var(--text3); margin-top: .2rem; }
+    .msg-bubble-wrap.mine .msg-time { text-align: right; }
+    .msg-send-row { display: flex; gap: .65rem; padding-bottom: env(safe-area-inset-bottom); }
+    .msg-send-row .form-input { flex: 1; }
+
+    /* ── PHOTO UPLOAD ── */
+    .photo-upload-btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      background: var(--card2); border: 1px solid var(--border);
+      border-radius: 8px; padding: .5rem .85rem; font-size: .8rem;
+      color: var(--text2); cursor: pointer; font-family: 'Inter', sans-serif;
+      transition: all .15s;
+    }
+    .photo-upload-btn:hover { border-color: var(--em-bdr); color: var(--em-lt); }
+    .photo-preview-wrap { margin-top: .65rem; display: none; }
+    .photo-preview-wrap img { max-height: 140px; border-radius: 10px; border: 1px solid var(--border); object-fit: cover; }
+
+    /* ── HAMBURGER ── */
+    .hamburger {
+      display: none; flex-direction: column; justify-content: center;
+      gap: 5px; background: none; border: none; cursor: pointer;
+      padding: .35rem; flex-shrink: 0;
+    }
+    .hamburger span {
+      display: block; width: 20px; height: 2px;
+      background: var(--text); border-radius: 2px; transition: all .25s;
+    }
+
+    /* ── SIDEBAR OVERLAY ── */
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.65); z-index: 99;
+      backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+    }
+    .sidebar-overlay.show { display: block; }
+
+    /* ── TABLETTES (layout 2 colonnes) ── */
+    @media (max-width: 900px) {
+      .tracker-form-grid { grid-template-columns: 1fr; }
+      .charts-grid { grid-template-columns: 1fr; }
+      .solo-layout { grid-template-columns: 1fr; }
+    }
+
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      body { overflow-y: auto; height: auto; }
+      .hamburger { display: flex; }
+
+      .sidebar {
+        position: fixed; left: calc(-1 * var(--sidebar)); top: 0;
+        height: 100vh; height: 100dvh; z-index: 100;
+        transition: left .28s ease; overflow-y: auto;
+        box-shadow: 4px 0 24px rgba(0,0,0,.55);
+        padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+      }
+      .sidebar.open { left: 0; }
+
+      .main { width: 100%; min-width: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+      .topbar { padding: env(safe-area-inset-top) 1rem 0; height: calc(56px + env(safe-area-inset-top)); flex-shrink: 0; align-items: flex-end; padding-bottom: .75rem; }
+      .content-area { padding: 1rem; padding-bottom: max(1rem, env(safe-area-inset-bottom)); flex: 1; overflow-y: auto; }
+
+      /* Grilles → colonne unique */
+      .tracker-form-grid { grid-template-columns: 1fr; }
+      .charts-grid { grid-template-columns: 1fr; }
+      .solo-layout { grid-template-columns: 1fr; }
+
+      /* Onglets nutrition → scroll horizontal */
+      .day-tabs {
+        overflow-x: auto; flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; padding-bottom: .25rem;
+      }
+      .day-tabs::-webkit-scrollbar { display: none; }
+      .day-tab { flex-shrink: 0; }
+
+      .session-card-body .ex-table { width: 100%; }
+      .meal-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .meal-body .food-table { width: max-content; min-width: 100%; }
+
+      /* Section top bar */
+      .section-top-bar { flex-direction: column; align-items: flex-start; gap: .65rem; }
+
+      /* Coach badge compact */
+      .coach-badge { font-size: .7rem; padding: .3rem .55rem; }
+
+      /* Chat */
+      .msg-conv { max-height: 55vh; }
+
+      /* Date inputs — évite le débordement iOS Safari */
+      input[type="date"] { width: 100%; max-width: 100%; box-sizing: border-box; }
+    }
+
+    @media (max-width: 480px) {
+      .coach-badge svg + * { display: none; }
+      .coach-badge::after { content: attr(data-name); }
+    }
+
+    /* ── EXERCISE BADGE & VIDEO ── */
+    .ex-badge-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .ex-acc-hd-left { display: flex; align-items: flex-start; gap: .55rem; flex: 1; min-width: 0; }
+    .ex-video-btn {
+      display: inline-flex; align-items: center; gap: .25rem;
+      background: none; border: none; cursor: pointer;
+      color: var(--em); flex-shrink: 0; padding: .1rem .25rem;
+      border-radius: 5px; transition: background .15s;
+    }
+    .ex-video-btn:hover { background: var(--em-sub); }
+    /* Video popup */
+    .vid-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.85);
+      display: none; align-items: center; justify-content: center;
+      z-index: 999; padding: 1rem;
+    }
+    .vid-overlay.open { display: flex; }
+    .vid-box {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.25rem; width: 100%; max-width: 360px;
+    }
+    .vid-box-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .vid-box-title { font-size: .95rem; font-weight: 600; }
+    .vid-close {
+      background: none; border: none; cursor: pointer;
+      color: var(--text2); transition: color .15s;
+    }
+    .vid-close:hover { color: var(--text); }
+    .vid-video { width: 100%; border-radius: 10px; max-height: 220px; background: #000; display: block; }
+    .vid-notes { font-size: .83rem; color: var(--text2); line-height: 1.6; margin-top: .85rem; white-space: pre-wrap; }
+
+    /* ── AVATAR PROFIL ── */
+    .user-avatar {
+      position: relative; overflow: hidden; cursor: pointer;
+    }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+    .user-avatar-hint {
+      position: absolute; inset: 0; border-radius: 50%;
+      background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity .2s; pointer-events: none;
+    }
+    .user-avatar:hover .user-avatar-hint { opacity: 1; }
+
+    /* ── POPUP AVATAR PREMIER LOGIN ── */
+    .avatar-popup-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.75);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; padding: 1.5rem;
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    }
+    .avatar-popup {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2rem 1.75rem; max-width: 360px; width: 100%;
+      text-align: center;
+    }
+    .avatar-popup-emoji { font-size: 2.5rem; margin-bottom: .75rem; line-height: 1; }
+    .avatar-popup-title { font-size: 1.1rem; font-weight: 700; margin-bottom: .85rem; }
+    .avatar-popup-desc { font-size: .85rem; color: var(--text2); line-height: 1.65; margin-bottom: 1.5rem; }
+    .avatar-popup-actions { display: flex; flex-direction: column; gap: .65rem; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <svg width="160" height="45" viewBox="0 0 160 45" xmlns="http://www.w3.org/2000/svg">
+      <line x1="28" y1="0" x2="28" y2="45" stroke="#6B21A8" stroke-width="1.5"/>
+      <line x1="0" y1="34" x2="160" y2="34" stroke="#6B21A8" stroke-width="1"/>
+      <text x="34" y="30" font-family="Georgia, serif" font-size="22" font-weight="400"
+            fill="#10b981" letter-spacing="4">ASCORA</text>
+    </svg>
+  </div>
+
+  <div class="nav-item active" data-section="program" onclick="showSection('program')">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Mon Programme
+  </div>
+  <div class="nav-item" data-section="nutrition" onclick="showSection('nutrition')">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+    Plan Alimentaire
+  </div>
+  <div class="nav-item" data-section="tracker" onclick="showSection('tracker')">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Tracker Quotidien
+  </div>
+  <div class="nav-item" data-section="solo" onclick="showSection('solo')">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Seances Solo
+  </div>
+  <div class="nav-item" data-section="messages" onclick="showSection('messages')">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    Messages
+    <span class="nav-badge" id="msg-badge">0</span>
+  </div>
+
+  <div class="nav-spacer"></div>
+
+  <div class="user-block">
+    <div class="user-info">
+      <input type="file" id="avatar-change-input" accept="image/*" capture="user" style="display:none" onchange="changeProfilePhoto(this)">
+      <div class="user-avatar" id="sidebar-avatar" onclick="document.getElementById('avatar-change-input').click()" title="Changer la photo de profil">
+        ?
+        <div class="user-avatar-hint"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+      </div>
+      <div>
+        <div class="user-name" id="sidebar-name">Chargement...</div>
+        <div class="user-role">Client</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="logout()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Deconnexion
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <span class="section-title" id="topbar-title">Mon Programme</span>
+    <div class="coach-badge">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Coach : <span id="coach-name">—</span>
+    </div>
+  </div>
+
+  <div class="content-area">
+
+    <!-- MON PROGRAMME -->
+    <section id="section-program" class="content-section active">
+      <div id="notif-banner" style="display:none">
+        <div id="notif-banner-text">
+          <strong>Activer les notifications</strong>
+          Recevez une alerte quand votre coach vous envoie un message ou modifie votre programme.
+        </div>
+        <button class="btn-notif" id="btn-notif" onclick="registerPush()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          Activer les notifications
+        </button>
+      </div>
+      <div id="notif-status"></div>
+      <div class="upcoming-card" id="upcoming-sessions-card" style="display:none">
+        <div class="upcoming-title">Mes prochaines séances</div>
+        <div class="upcoming-list" id="upcoming-sessions-list"></div>
+      </div>
+      <div class="loading" id="program-loading"><div class="spinner"></div><br>Chargement du programme...</div>
+      <div id="program-sessions"></div>
+    </section>
+
+    <!-- PLAN ALIMENTAIRE -->
+    <section id="section-nutrition" class="content-section">
+      <div class="section-top-bar">
+        <h2>Plan Alimentaire</h2>
+        <button class="btn-primary" onclick="downloadNutritionPDF()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Telecharger le PDF
+        </button>
+      </div>
+      <div class="loading" id="nutrition-loading"><div class="spinner"></div><br>Chargement...</div>
+      <div id="nutrition-content" style="display:none">
+        <div class="day-tabs" id="day-tabs"></div>
+        <div id="day-content"></div>
+      </div>
+      <div id="nutrition-empty" style="display:none">
+        <div class="empty-state">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+          <h3>Aucun plan alimentaire</h3>
+          <p>Votre coach n'a pas encore configure votre plan alimentaire.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRACKER QUOTIDIEN -->
+    <section id="section-tracker" class="content-section">
+      <div style="margin-bottom:1.25rem">
+        <div class="form-group" style="max-width:220px">
+          <label>Date</label>
+          <input class="form-input" type="date" id="tracker-date">
+        </div>
+      </div>
+
+      <div class="tracker-form-grid">
+        <div class="tracker-subsection">
+          <div class="tracker-subsection-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+            Physique
+          </div>
+          <div class="form-group">
+            <label>Poids (kg)</label>
+            <input class="form-input" type="number" id="t-weight" placeholder="75.5" step="0.1" min="0">
+          </div>
+          <div class="form-group">
+            <label>Tour de taille (cm)</label>
+            <input class="form-input" type="number" id="t-waist" placeholder="82" step="0.5" min="0">
+          </div>
+          <div class="form-group">
+            <label>Tour de cuisse (cm)</label>
+            <input class="form-input" type="number" id="t-thigh" placeholder="55" step="0.5" min="0">
+          </div>
+          <div class="form-group">
+            <label>Tour de bras (cm)</label>
+            <input class="form-input" type="number" id="t-arm" placeholder="32" step="0.5" min="0">
+          </div>
+        </div>
+
+        <div class="tracker-subsection">
+          <div class="tracker-subsection-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
+            Nutrition
+          </div>
+          <div class="form-group">
+            <label>Calories (kcal)</label>
+            <input class="form-input" type="number" id="t-calories" placeholder="2000" step="1" min="0">
+          </div>
+          <div class="form-group">
+            <label>Proteines (g)</label>
+            <input class="form-input" type="number" id="t-proteins" placeholder="150" step="0.5" min="0">
+          </div>
+          <div class="form-group">
+            <label>Lipides (g)</label>
+            <input class="form-input" type="number" id="t-fats" placeholder="70" step="0.5" min="0">
+          </div>
+          <div class="form-group">
+            <label>Glucides (g)</label>
+            <input class="form-input" type="number" id="t-carbs" placeholder="200" step="0.5" min="0">
+          </div>
+          <div class="form-group">
+            <label>Dont sucres (g)</label>
+            <input class="form-input" type="number" id="t-sugars" placeholder="40" step="0.5" min="0">
+          </div>
+          <div class="form-group">
+            <label>Eau (litres)</label>
+            <input class="form-input" type="number" id="t-water" placeholder="2.5" step="0.1" min="0">
+          </div>
+        </div>
+
+        <div class="tracker-subsection">
+          <div class="tracker-subsection-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+            Activite
+          </div>
+          <div class="form-group">
+            <label>Pas</label>
+            <input class="form-input" type="number" id="t-steps" placeholder="8000" step="100" min="0">
+          </div>
+        </div>
+
+        <div class="tracker-subsection">
+          <div class="tracker-subsection-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            Bien-etre
+          </div>
+          <div class="form-group">
+            <label>Heures de sommeil</label>
+            <input class="form-input" type="number" id="t-sleep" placeholder="7.5" step="0.5" min="0" max="24">
+          </div>
+          <div class="form-group">
+            <label>Niveau de stress (1-10)</label>
+            <div class="range-wrapper">
+              <input type="range" id="t-stress" min="1" max="10" value="5"
+                oninput="document.getElementById('stress-display').textContent=this.value">
+              <span class="range-value" id="stress-display">5</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tracker-subsection" style="grid-column:1/-1">
+        <div class="tracker-subsection-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Photo de progression
+        </div>
+        <input type="file" id="t-photo-input" accept="image/*" style="display:none" onchange="previewTrackerPhoto(this)">
+        <label for="t-photo-input" class="photo-upload-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Choisir une photo
+        </label>
+        <span id="t-photo-name" style="font-size:.78rem;color:var(--text3);margin-left:.75rem">Aucune</span>
+        <div class="photo-preview-wrap" id="t-photo-preview-wrap">
+          <img id="t-photo-preview" src="" alt="Aperçu">
+        </div>
+      </div>
+
+      <button class="btn-save" id="btn-save-tracker" onclick="saveTracker()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+        Sauvegarder
+      </button>
+
+      <div class="charts-section-title">Mon evolution (30 derniers jours)</div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Poids (kg)</h3>
+          <div class="chart-canvas-wrap"><canvas id="chart-weight"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Tour de taille (cm)</h3>
+          <div class="chart-canvas-wrap"><canvas id="chart-waist"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Calories (kcal)</h3>
+          <div class="chart-canvas-wrap"><canvas id="chart-calories"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Proteines (g)</h3>
+          <div class="chart-canvas-wrap"><canvas id="chart-proteins"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Pas</h3>
+          <div class="chart-canvas-wrap"><canvas id="chart-steps"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Stress (1-10)</h3>
+          <div class="chart-canvas-wrap"><canvas id="chart-stress"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MESSAGES -->
+    <section id="section-messages" class="content-section">
+      <div class="loading" id="messages-loading" style="display:none"><div class="spinner"></div><br>Chargement...</div>
+      <div class="msg-conv" id="client-msg-conv"></div>
+      <div class="msg-send-row">
+        <input class="form-input" id="client-msg-input" placeholder="Écrire un message à votre coach..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendClientMessage();}">
+        <button class="btn-primary" onclick="sendClientMessage()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Envoyer
+        </button>
+      </div>
+    </section>
+
+    <!-- SEANCES SOLO -->
+    <section id="section-solo" class="content-section">
+      <div class="solo-layout">
+        <div class="solo-form-card">
+          <div class="solo-form-title">Ajouter une seance</div>
+          <div class="form-group">
+            <label>Date</label>
+            <input class="form-input" type="date" id="solo-date">
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <input class="form-input" type="text" id="solo-desc" placeholder="Course a pied, muscu...">
+          </div>
+          <div class="form-group">
+            <label>Duree (min)</label>
+            <input class="form-input" type="number" id="solo-duration" placeholder="45" min="1">
+          </div>
+          <div class="form-group">
+            <label>Ressenti</label>
+            <div class="feeling-picker" id="feeling-picker">
+              <button class="feeling-btn" data-v="1" onclick="selectFeeling(1)">1</button>
+              <button class="feeling-btn" data-v="2" onclick="selectFeeling(2)">2</button>
+              <button class="feeling-btn" data-v="3" onclick="selectFeeling(3)">3</button>
+              <button class="feeling-btn" data-v="4" onclick="selectFeeling(4)">4</button>
+              <button class="feeling-btn" data-v="5" onclick="selectFeeling(5)">5</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Notes (optionnel)</label>
+            <textarea class="form-input" id="solo-notes" rows="3" placeholder="Sensations, observations..."></textarea>
+          </div>
+          <button class="btn-save" style="margin-top:.5rem" onclick="addSoloSession()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter
+          </button>
+        </div>
+
+        <div>
+          <div class="solo-history-title">Historique</div>
+          <div class="loading" id="solo-loading"><div class="spinner"></div><br>Chargement...</div>
+          <div class="solo-history" id="solo-history"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  const SUPABASE_URL = 'https://dxrkutyaamvhtshzanwu.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4cmt1dHlhYW12aHRzaHphbnd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNjExNzgsImV4cCI6MjA5MzgzNzE3OH0.RE2A9EBCLhNXqn2aBUcPTYmmlvOUhN-2HMn6xFuv9Y8';
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let profile = null;
+  let coachProfile = null;
+  let clientEmail = '';
+  let nutritionPlan = null;
+  let selectedDay = 0;
+  let selectedFeeling = 3;
+  let trackerCharts = {};
+  let nutritionLoaded = false;
+
+  function hasCookie(n) { return document.cookie.split(';').some(c => c.trim().startsWith(n + '=')); }
+
+  // ── AVATAR PROFIL ─────────────────────────────────────────────────────
+  var _HINT_HTML = '<div class="user-avatar-hint"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>';
+
+  function refreshSidebarAvatar() {
+    var avEl = document.getElementById('sidebar-avatar');
+    var initials = ((profile && profile.full_name) || 'C').charAt(0).toUpperCase();
+    if (profile && profile.avatar_url) {
+      avEl.innerHTML = '<img src="' + esc(profile.avatar_url) + '" alt="' + esc(initials) + '" onerror="this.remove()">' + _HINT_HTML;
+    } else {
+      avEl.innerHTML = initials + _HINT_HTML;
+    }
+  }
+
+  function checkAvatarPrompt() {
+    if (profile.avatar_url) return;
+    if (localStorage.getItem('avatar_prompted')) return;
+    document.getElementById('avatar-popup-overlay').style.display = 'flex';
+  }
+
+  function dismissAvatarPrompt() {
+    localStorage.setItem('avatar_prompted', '1');
+    document.getElementById('avatar-popup-overlay').style.display = 'none';
+  }
+
+  async function handleAvatarPromptUpload(input) {
+    var file = input.files[0];
+    if (!file) return;
+    dismissAvatarPrompt();
+    await uploadAvatarPhoto(file);
+  }
+
+  async function changeProfilePhoto(input) {
+    var file = input.files[0];
+    if (!file) return;
+    await uploadAvatarPhoto(file);
+    input.value = '';
+  }
+
+  async function uploadAvatarPhoto(file) {
+    var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    var path = profile.id + '.' + ext;
+    var { error: upErr } = await db.storage.from('avatars').upload(path, file, { upsert: true });
+    if (upErr) { toast('Erreur upload : ' + upErr.message, 'error'); return; }
+    var publicUrl = db.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+    var { error: dbErr } = await db.from('profiles').update({ avatar_url: publicUrl }).eq('id', profile.id);
+    if (dbErr) { toast('Erreur sauvegarde : ' + dbErr.message, 'error'); return; }
+    profile.avatar_url = publicUrl;
+    refreshSidebarAvatar();
+    toast('Photo de profil mise à jour !', 'success');
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────────────
+  async function init() {
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) { window.location.href = 'index.html'; return; }
+    if (!hasCookie('ascora_remember')) { await db.auth.signOut(); window.location.href = 'index.html'; return; }
+
+    const { data: p } = await db.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+    if (!p || p.role !== 'client' || p.status !== 'approved') {
+      await db.auth.signOut();
+      window.location.href = 'index.html';
+      return;
+    }
+
+    profile = p;
+    clientEmail = session.user.email || '';
+    refreshSidebarAvatar();
+    document.getElementById('sidebar-name').textContent = p.full_name || 'Client';
+
+    if (p.coach_id) {
+      const { data: coach } = await db.from('profiles').select('full_name').eq('id', p.coach_id).maybeSingle();
+      if (coach) {
+        coachProfile = coach;
+        document.getElementById('coach-name').textContent = coach.full_name;
+      }
+    }
+    initWatermark();
+
+    document.getElementById('tracker-date').value = today();
+    document.getElementById('solo-date').value = today();
+    selectFeeling(3);
+
+    loadProgram();
+    loadUpcomingSessions();
+    loadTodayTracker();
+    loadTrackerCharts();
+    loadSoloSessions();
+    loadUnreadCount();
+    subscribeToClientMessages();
+    checkNotifBanner();
+    checkAvatarPrompt();
+  }
+
+  // ── PUSH NOTIFICATIONS ────────────────────────────────────────────────
+  async function checkNotifBanner() {
+    if (!('Notification' in window) || !('PushManager' in window)) return;
+    if (Notification.permission !== 'default') return;
+
+    const { data } = await db.from('push_subscriptions')
+      .select('client_id').eq('client_id', profile.id).maybeSingle();
+    if (data) return;
+
+    document.getElementById('notif-banner').style.display = 'flex';
+  }
+
+  async function registerPush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    const banner = document.getElementById('notif-banner');
+    const status = document.getElementById('notif-status');
+    const btn    = document.getElementById('btn-notif');
+    btn.disabled = true;
+
+    try {
+      const permission = await Notification.requestPermission();
+
+      if (permission !== 'granted') {
+        banner.style.display = 'none';
+        status.textContent = 'Les notifications sont désactivées. Vous pouvez les activer dans les réglages de votre téléphone.';
+        status.className = 'error';
+        status.style.display = 'block';
+        return;
+      }
+
+      banner.style.display = 'none';
+
+      // enregistrement en arrière-plan, rien d'affiché
+      (async function() {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          const VAPID_PUBLIC = 'BBieE0Qe_pVV1cPH6ojLRDTFlgy5IUImkEq8xarnfhIc1DC417At1td8ssY_QBMw1YBosEkjBjxKVUuZWxjJ8vA';
+          const sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
+          });
+          const key  = sub.getKey('p256dh');
+          const auth = sub.getKey('auth');
+          await db.from('push_subscriptions').upsert({
+            client_id: profile.id,
+            endpoint:  sub.endpoint,
+            p256dh: key  ? btoa(String.fromCharCode(...new Uint8Array(key)))  : null,
+            auth:   auth ? btoa(String.fromCharCode(...new Uint8Array(auth))) : null
+          }, { onConflict: 'client_id' });
+        } catch (err) {
+          console.warn('Push background registration failed:', err);
+        }
+      })();
+    } catch (err) {
+      console.warn('Push permission error:', err);
+      btn.disabled = false;
+    }
+  }
+
+  function urlBase64ToUint8Array(base64String) {
+    var padding = '='.repeat((4 - base64String.length % 4) % 4);
+    var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    var raw = atob(base64);
+    var output = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) output[i] = raw.charCodeAt(i);
+    return output;
+  }
+
+  // ── NAVIGATION ────────────────────────────────────────────────────────
+  const sectionTitles = {
+    program: 'Mon Programme', nutrition: 'Plan Alimentaire',
+    tracker: 'Tracker Quotidien', solo: 'Seances Solo', messages: 'Messages'
+  };
+
+  function showSection(name) {
+    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('section-' + name).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.toggle('active', i.dataset.section === name));
+    document.getElementById('topbar-title').textContent = sectionTitles[name] || '';
+    if (name === 'nutrition' && !nutritionLoaded) { nutritionLoaded = true; loadNutrition(); }
+    if (name === 'messages') loadMessages();
+    closeSidebar();
+  }
+
+  // ── PROCHAINES SÉANCES ────────────────────────────────────────────────
+  async function loadUpcomingSessions() {
+    if (!profile) return;
+    const todayStr = today();
+    const { data } = await db.from('sessions')
+      .select('id,date,heure_debut,heure_fin,lieu_type')
+      .eq('client_id', profile.id)
+      .gte('date', todayStr)
+      .order('date')
+      .order('heure_debut', { nullsFirst: true })
+      .limit(5);
+
+    const card = document.getElementById('upcoming-sessions-card');
+    const list = document.getElementById('upcoming-sessions-list');
+    if (!data || !data.length) { card.style.display = 'none'; return; }
+
+    card.style.display = 'block';
+    list.innerHTML = data.map(s => {
+      const dateStr = new Date(s.date + 'T00:00:00').toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'short' });
+      const timeStr = s.heure_debut ? s.heure_debut.slice(0,5) + (s.heure_fin ? ' – ' + s.heure_fin.slice(0,5) : '') : '';
+      const lieu    = s.lieu_type || 'presentiel';
+      return `
+        <div class="upcoming-item">
+          <div class="upcoming-dot"></div>
+          <div class="upcoming-info">
+            <div class="upcoming-date">${dateStr}</div>
+            ${timeStr ? `<div class="upcoming-time">${timeStr}</div>` : ''}
+          </div>
+          <span class="upcoming-badge ${lieu === 'presentiel' ? 'pres' : 'dist'}">${lieu === 'presentiel' ? 'Présentiel' : 'Distanciel'}</span>
+        </div>`;
+    }).join('');
+  }
+
+  // ── PROGRAMME SPORTIF ─────────────────────────────────────────────────
+  async function loadProgram() {
+    document.getElementById('program-loading').style.display = 'block';
+    const { data } = await db.from('workout_sessions')
+      .select('id,name,warmup,instructions,end_notes,exercises,position')
+      .eq('client_id', profile.id)
+      .order('position');
+    document.getElementById('program-loading').style.display = 'none';
+
+    const sessions = data || [];
+    const container = document.getElementById('program-sessions');
+    _clientExVideoData = [];
+
+    if (!sessions.length) {
+      container.innerHTML = '<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><h3>Aucune seance programmee</h3><p>Votre coach n\'a pas encore cree votre programme sportif.</p></div>';
+      return;
+    }
+
+    container.innerHTML = sessions.map(function(s, idx) {
+      var exercises = [];
+      try { exercises = Array.isArray(s.exercises) ? s.exercises : JSON.parse(s.exercises || '[]'); } catch(e) {}
+      var count = exercises.length;
+      var rows = exercises.map(function(ex) {
+        var restVal = ex.rest || (ex.rest_seconds ? ex.rest_seconds + 's' : '');
+        var dotStyle = ex.badge_color ? 'display:inline-block;width:8px;height:8px;border-radius:50%;background:' + ex.badge_color + ';margin-right:5px;vertical-align:middle;flex-shrink:0' : '';
+        var nameTd = (dotStyle ? '<span style="' + dotStyle + '"></span>' : '') + esc(ex.name || '');
+        return '<tr><td>' + nameTd + '</td><td>' + esc(String(ex.sets || '')) + '</td><td>' + esc(String(ex.reps || '')) + '</td><td>' + (restVal ? '<span class="rest-badge">' + esc(restVal) + '</span>' : '') + '</td><td style="color:var(--text2)">' + esc(ex.notes || '') + '</td></tr>';
+      }).join('');
+      var cards = exercises.map(function(ex, ei) {
+        var restVal = ex.rest || (ex.rest_seconds ? ex.rest_seconds + 's' : '');
+        var metaParts = [];
+        if (ex.sets) metaParts.push(ex.sets + (parseInt(ex.sets) > 1 ? ' séries' : ' série'));
+        if (ex.reps) metaParts.push(esc(String(ex.reps)));
+        if (restVal) metaParts.push(esc(restVal));
+        var hasNotes = !!ex.notes;
+        var hasVideo = !!ex.video_url;
+        var accId = 'exacc-' + idx + '-' + ei;
+        var dotHtml = ex.badge_color ? '<span class="ex-badge-dot" style="background:' + esc(ex.badge_color) + ';margin-top:.35rem"></span>' : '';
+        var videoBtn = '';
+        if (hasVideo) {
+          var vidIdx = _clientExVideoData.length;
+          _clientExVideoData.push({ name: ex.name||'', videoUrl: ex.video_url, notes: ex.notes||'' });
+          videoBtn = '<button class="ex-video-btn" onclick="event.stopPropagation();openVideoPopup(' + vidIdx + ')" title="Voir la démonstration">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>' +
+          '</button>';
+        }
+        return '<div class="ex-acc" id="' + accId + '">' +
+          '<div class="ex-acc-hd' + (hasNotes ? ' clickable' : '') + '"' +
+          (hasNotes ? ' onclick="toggleExAcc(\'' + accId + '\')"' : '') + '>' +
+            dotHtml +
+            '<div class="ex-acc-hd-left">' +
+              '<div>' +
+                '<div class="ex-acc-name">' + esc(ex.name || '') + '</div>' +
+                (metaParts.length ? '<div class="ex-acc-meta">' + metaParts.join(' &middot; ') + '</div>' : '') +
+              '</div>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:.35rem;flex-shrink:0">' +
+              videoBtn +
+              (hasNotes ? '<svg class="ex-acc-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>' : '') +
+            '</div>' +
+          '</div>' +
+          (hasNotes ? '<div class="ex-acc-body">' + esc(ex.notes) + '</div>' : '') +
+        '</div>';
+      }).join('');
+
+      return '<div class="session-card" id="sc-' + idx + '"><div class="session-card-header" onclick="toggleSession(\'sc-' + idx + '\')"><div class="session-card-header-left"><span class="session-card-name">' + esc(s.name) + '</span><span class="session-meta-badge">' + count + ' exercice' + (count !== 1 ? 's' : '') + '</span></div><svg class="session-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div><div class="session-card-body">' + (s.warmup ? '<div class="warmup-text"><strong style="color:var(--text3);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em">Echauffement</strong><br>' + esc(s.warmup) + '</div>' : '') + (s.instructions ? '<div class="instructions-text"><div class="instructions-label">Notes / Instructions</div>' + esc(s.instructions) + '</div>' : '') + (count > 0 ? '<table class="ex-table"><thead><tr><th>Exercice</th><th>Series</th><th>Reps</th><th>Repos</th><th>Notes</th></tr></thead><tbody>' + rows + '</tbody></table><div class="ex-cards">' + cards + '</div>' : '<div style="color:var(--text3);font-size:.82rem;padding:.5rem 0">Aucun exercice defini.</div>') + (s.end_notes ? '<div class="end-notes-text"><div class="end-notes-label">Notes de fin de seance</div>' + esc(s.end_notes) + '</div>' : '') + '</div></div>';
+    }).join('');
+  }
+
+  function toggleSession(id) {
+    var target = document.getElementById(id);
+    var wasOpen = target.classList.contains('open');
+    document.querySelectorAll('.session-card.open').forEach(function(c) { c.classList.remove('open'); });
+    if (!wasOpen) target.classList.add('open');
+  }
+
+  function toggleExAcc(id) {
+    document.getElementById(id).classList.toggle('open');
+  }
+
+  var _clientExVideoData = [];
+
+  function openVideoPopup(idx) {
+    var d = _clientExVideoData[idx];
+    if (!d) return;
+    document.getElementById('vid-title').textContent = d.name || 'Démonstration';
+    var vid = document.getElementById('vid-video');
+    vid.src = d.videoUrl || '';
+    vid.load();
+    document.getElementById('vid-notes').textContent = d.notes || '';
+    document.getElementById('vid-notes').style.display = d.notes ? 'block' : 'none';
+    document.getElementById('vid-overlay').classList.add('open');
+  }
+
+  function closeVideoPopup() {
+    var vid = document.getElementById('vid-video');
+    vid.pause();
+    vid.src = '';
+    document.getElementById('vid-overlay').classList.remove('open');
+  }
+
+  // ── PLAN ALIMENTAIRE ──────────────────────────────────────────────────
+  var MEAL_KEYS   = ['petit-dejeuner', 'dejeuner', 'collation', 'diner'];
+  var MEAL_LABELS = { 'petit-dejeuner': 'Petit-dejeuner', 'dejeuner': 'Dejeuner', 'collation': 'Collation', 'diner': 'Diner' };
+  var MEAL_ICONS  = { 'petit-dejeuner': '&#127749;', 'dejeuner': '&#129367;', 'collation': '&#127822;', 'diner': '&#127869;' };
+  var DAY_NAMES   = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+
+  async function loadNutrition() {
+    document.getElementById('nutrition-loading').style.display = 'block';
+    document.getElementById('nutrition-content').style.display = 'none';
+    document.getElementById('nutrition-empty').style.display = 'none';
+
+    const { data } = await db.from('nutrition_plans').select('*').eq('client_id', profile.id).maybeSingle();
+    document.getElementById('nutrition-loading').style.display = 'none';
+
+    if (!data || !data.plan_data) {
+      document.getElementById('nutrition-empty').style.display = 'block';
+      return;
+    }
+
+    nutritionPlan = data;
+    renderDayTabs();
+    renderDay(0);
+    document.getElementById('nutrition-content').style.display = 'block';
+  }
+
+  function renderDayTabs() {
+    document.getElementById('day-tabs').innerHTML = DAY_NAMES.map(function(d, i) {
+      return '<button class="day-tab ' + (i === selectedDay ? 'active' : '') + '" onclick="switchDay(' + i + ')">' + d + '</button>';
+    }).join('');
+  }
+
+  function switchDay(idx) {
+    selectedDay = idx;
+    document.querySelectorAll('.day-tab').forEach(function(t, i) { t.classList.toggle('active', i === idx); });
+    renderDay(idx);
+  }
+
+  function renderDay(idx) {
+    var days = (nutritionPlan && nutritionPlan.plan_data && nutritionPlan.plan_data.days) ? nutritionPlan.plan_data.days : [];
+    var day = days[idx] || { name: DAY_NAMES[idx], type: 'sport', meals: {} };
+    var isRest = (day.type || '').toLowerCase() === 'repos';
+    var dayTotProt = 0, dayTotCarb = 0, dayTotFat = 0, dayTotCal = 0;
+
+    var mealsHtml = MEAL_KEYS.map(function(key) {
+      var foods = (day.meals && day.meals[key]) ? day.meals[key] : [];
+      var mProt = 0, mCarb = 0, mFat = 0, mCal = 0;
+      foods.forEach(function(f) {
+        mProt += Number(f.proteins || 0); mCarb += Number(f.carbs || 0);
+        mFat  += Number(f.fats || 0);    mCal  += Number(f.calories || 0);
+      });
+      dayTotProt += mProt; dayTotCarb += mCarb; dayTotFat += mFat; dayTotCal += mCal;
+
+      var rows = foods.map(function(f) {
+        return '<tr><td>' + esc(f.name || '') + '</td><td>' + esc(f.qty || '') + '</td><td class="prot">' + (f.proteins ? Number(f.proteins).toFixed(1) : '—') + '</td><td class="carb">' + (f.carbs ? Number(f.carbs).toFixed(1) : '—') + '</td><td class="fat">' + (f.fats ? Number(f.fats).toFixed(1) : '—') + '</td><td class="cal">' + (f.calories ? Math.round(Number(f.calories)) : '—') + '</td></tr>';
+      }).join('');
+
+      return '<div class="meal-accordion" id="meal-' + key + '"><div class="meal-header" onclick="toggleMeal(\'meal-' + key + '\')"><div class="meal-header-left"><span class="meal-label">' + MEAL_LABELS[key] + '</span><span class="meal-cal-badge">' + Math.round(mCal) + ' kcal</span></div><svg class="meal-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div><div class="meal-body">' + (foods.length ? '<table class="food-table"><thead><tr><th>Aliment</th><th>Quantite</th><th class="prot">Prot</th><th class="carb">Gluc</th><th class="fat">Lip</th><th class="cal">Cal</th></tr></thead><tbody>' + rows + '<tr class="total-row"><td colspan="2" style="color:var(--text3)">Total repas</td><td class="prot">' + mProt.toFixed(1) + 'g</td><td class="carb">' + mCarb.toFixed(1) + 'g</td><td class="fat">' + mFat.toFixed(1) + 'g</td><td class="cal">' + Math.round(mCal) + ' kcal</td></tr></tbody></table>' : '<div style="color:var(--text3);font-size:.8rem;padding:.5rem 0">Aucun aliment defini.</div>') + '</div></div>';
+    }).join('');
+
+    document.getElementById('day-content').innerHTML =
+      '<div class="day-type-badge ' + (isRest ? 'repos' : 'sport') + '">' + (isRest ? 'Repos' : 'Sport') + '</div>' +
+      mealsHtml +
+      '<div class="day-total-bar"><div class="day-total-item"><div class="day-total-label">Calories</div><div class="day-total-value cal">' + Math.round(dayTotCal) + ' kcal</div></div><div class="day-total-item"><div class="day-total-label">Proteines</div><div class="day-total-value prot">' + dayTotProt.toFixed(1) + 'g</div></div><div class="day-total-item"><div class="day-total-label">Glucides</div><div class="day-total-value carb">' + dayTotCarb.toFixed(1) + 'g</div></div><div class="day-total-item"><div class="day-total-label">Lipides</div><div class="day-total-value fat">' + dayTotFat.toFixed(1) + 'g</div></div></div>';
+  }
+
+  function toggleMeal(id) {
+    document.getElementById(id).classList.toggle('open');
+  }
+
+  // ── PDF NUTRITION ─────────────────────────────────────────────────────
+  async function downloadNutritionPDF() {
+    if (!nutritionPlan) { toast('Aucun plan a exporter.', 'error'); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const margin = 15;
+    let y = margin;
+    const W = 210 - margin * 2;
+    const clientName = profile.full_name || 'Client';
+    const coachName  = (coachProfile && coachProfile.full_name) ? coachProfile.full_name : 'Coach';
+
+    // Header
+    doc.setFillColor(16, 185, 129);
+    doc.rect(margin, y, W, 12, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+    doc.text('PLAN ALIMENTAIRE', margin + 4, y + 8.5);
+    y += 16;
+
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text('Client : ' + clientName + '   |   Coach : ' + coachName + '   |   Genere le ' + new Date().toLocaleDateString('fr-FR'), margin, y);
+    y += 10;
+
+    var days = (nutritionPlan.plan_data && nutritionPlan.plan_data.days) ? nutritionPlan.plan_data.days : [];
+    var cols = [58, 22, 18, 18, 18, 22];
+
+    for (var di = 0; di < days.length; di++) {
+      if (y > 250) { doc.addPage(); y = margin; }
+      var day = days[di];
+      var dayName = DAY_NAMES[di] || ('Jour ' + (di + 1));
+
+      doc.setFillColor(30, 30, 30);
+      doc.rect(margin, y, W, 8, 'F');
+      doc.setTextColor(16, 185, 129);
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+      doc.text(dayName + ' — ' + (day.type || 'sport').toUpperCase(), margin + 3, y + 5.5);
+      y += 11;
+
+      for (var mi = 0; mi < MEAL_KEYS.length; mi++) {
+        var key = MEAL_KEYS[mi];
+        var foods = (day.meals && day.meals[key]) ? day.meals[key] : [];
+        if (!foods.length) continue;
+        if (y > 250) { doc.addPage(); y = margin; }
+
+        doc.setTextColor(80, 80, 80);
+        doc.setFontSize(8.5); doc.setFont('helvetica', 'bold');
+        doc.text(MEAL_LABELS[key].toUpperCase(), margin, y);
+        y += 5;
+
+        var headers = ['Aliment', 'Qte', 'Prot', 'Gluc', 'Lip', 'Cal'];
+        var x = margin;
+        doc.setFillColor(245, 245, 245);
+        doc.rect(margin, y - 3.5, W, 6, 'F');
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+        headers.forEach(function(h, i) { doc.text(h, x + 1, y); x += cols[i]; });
+        y += 4;
+
+        var mProt = 0, mCarb = 0, mFat = 0, mCal = 0;
+        foods.forEach(function(f) {
+          if (y > 270) { doc.addPage(); y = margin; }
+          x = margin;
+          doc.setTextColor(40, 40, 40);
+          doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+          var cells = [f.name || '', f.qty || '', Number(f.proteins||0).toFixed(1)+'g', Number(f.carbs||0).toFixed(1)+'g', Number(f.fats||0).toFixed(1)+'g', Math.round(Number(f.calories||0))+' kcal'];
+          cells.forEach(function(c, i) { doc.text(String(c), x + 1, y); x += cols[i]; });
+          mProt += Number(f.proteins||0); mCarb += Number(f.carbs||0);
+          mFat  += Number(f.fats||0);     mCal  += Number(f.calories||0);
+          y += 4.5;
+        });
+
+        doc.setTextColor(16, 185, 129);
+        doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+        x = margin;
+        var totals = ['Total repas', '', mProt.toFixed(1)+'g', mCarb.toFixed(1)+'g', mFat.toFixed(1)+'g', Math.round(mCal)+' kcal'];
+        totals.forEach(function(c, i) { doc.text(c, x + 1, y); x += cols[i]; });
+        y += 6;
+      }
+
+      var dProt = 0, dCarb = 0, dFat = 0, dCal = 0;
+      MEAL_KEYS.forEach(function(k) {
+        ((day.meals && day.meals[k]) ? day.meals[k] : []).forEach(function(f) {
+          dProt += Number(f.proteins||0); dCarb += Number(f.carbs||0);
+          dFat  += Number(f.fats||0);    dCal  += Number(f.calories||0);
+        });
+      });
+      if (y > 255) { doc.addPage(); y = margin; }
+      doc.setFillColor(16, 185, 129);
+      doc.rect(margin, y - 3.5, W, 7, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+      doc.text('TOTAL JOURNEE : ' + dProt.toFixed(1) + 'g prot | ' + dCarb.toFixed(1) + 'g gluc | ' + dFat.toFixed(1) + 'g lip | ' + Math.round(dCal) + ' kcal', margin + 3, y + 0.5);
+      y += 10;
+    }
+
+    // ── Filigrane sur toutes les pages ─────────────────────────
+    var wmL1 = clientName + (clientEmail ? ' · ' + clientEmail : '');
+    var wmL2 = 'Ascora — ' + coachName;
+    var totalPages = doc.getNumberOfPages();
+
+    for (var pg = 1; pg <= totalPages; pg++) {
+      doc.setPage(pg);
+      doc.saveGraphicsState();
+      doc.setGState(new doc.GState({ opacity: 0.06 }));
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(0, 0, 0);
+      for (var wy = 20; wy < 295; wy += 48) {
+        for (var wx = -20; wx < 215; wx += 95) {
+          doc.text(wmL1, wx, wy, { angle: 35 });
+          doc.text(wmL2, wx + 4, wy + 13, { angle: 35 });
+        }
+      }
+      doc.restoreGraphicsState();
+    }
+    // ────────────────────────────────────────────────────────────
+
+    doc.save('plan-alimentaire-' + clientName.replace(/\s+/g, '-') + '.pdf');
+    toast('PDF telecharge !', 'success');
+  }
+
+  // ── TRACKER ───────────────────────────────────────────────────────────
+  async function loadTodayTracker() {
+    var dateStr = document.getElementById('tracker-date').value || today();
+    const { data } = await db.from('daily_tracker')
+      .select('*').eq('client_id', profile.id).eq('date', dateStr).maybeSingle();
+    if (data) {
+      populateTrackerForm(data);
+      if (data.photo_url) {
+        const { data: signed } = await db.storage.from('progress-photos').createSignedUrl(data.photo_url, 3600);
+        if (signed && signed.signedUrl) {
+          document.getElementById('t-photo-preview').src = signed.signedUrl;
+          document.getElementById('t-photo-preview-wrap').style.display = 'block';
+          document.getElementById('t-photo-name').textContent = 'Photo existante';
+        }
+      } else {
+        clearPhotoPreview();
+      }
+    } else {
+      clearTrackerForm();
+      clearPhotoPreview();
+    }
+  }
+
+  function clearTrackerForm() {
+    var ids = ['t-weight','t-waist','t-thigh','t-arm','t-calories','t-proteins','t-fats','t-carbs','t-sugars','t-water','t-steps','t-sleep'];
+    ids.forEach(function(id) { document.getElementById(id).value = ''; });
+    document.getElementById('t-stress').value = 5;
+    document.getElementById('stress-display').textContent = '5';
+  }
+
+  function clearPhotoPreview() {
+    document.getElementById('t-photo-preview').src = '';
+    document.getElementById('t-photo-preview-wrap').style.display = 'none';
+    document.getElementById('t-photo-name').textContent = 'Aucune';
+    document.getElementById('t-photo-input').value = '';
+  }
+
+  function populateTrackerForm(d) {
+    function set(id, val) { if (val != null) document.getElementById(id).value = val; }
+    set('t-weight', d.weight_kg);
+    set('t-waist', d.waist_cm);
+    set('t-thigh', d.thigh_cm);
+    set('t-arm', d.arm_cm);
+    set('t-calories', d.calories_kcal);
+    set('t-proteins', d.proteins_g);
+    set('t-fats', d.fats_g);
+    set('t-carbs', d.carbs_g);
+    set('t-sugars', d.sugars_g);
+    set('t-water', d.water_liters);
+    set('t-steps', d.steps);
+    set('t-sleep', d.sleep_hours);
+    if (d.stress_level != null) {
+      document.getElementById('t-stress').value = d.stress_level;
+      document.getElementById('stress-display').textContent = d.stress_level;
+    }
+  }
+
+  async function saveTracker() {
+    var btn = document.getElementById('btn-save-tracker');
+    btn.disabled = true;
+    var dateStr = document.getElementById('tracker-date').value || today();
+
+    function num(id) { var v = parseFloat(document.getElementById(id).value); return isNaN(v) ? null : v; }
+    function ints(id) { var v = parseInt(document.getElementById(id).value); return isNaN(v) ? null : v; }
+
+    var row = {
+      client_id:     profile.id,
+      date:          dateStr,
+      weight_kg:     num('t-weight'),
+      waist_cm:      num('t-waist'),
+      thigh_cm:      num('t-thigh'),
+      arm_cm:        num('t-arm'),
+      calories_kcal: num('t-calories'),
+      proteins_g:    num('t-proteins'),
+      fats_g:        num('t-fats'),
+      carbs_g:       num('t-carbs'),
+      sugars_g:      num('t-sugars'),
+      water_liters:  num('t-water'),
+      steps:         ints('t-steps'),
+      sleep_hours:   num('t-sleep'),
+      stress_level:  ints('t-stress'),
+    };
+
+    const fileInput = document.getElementById('t-photo-input');
+    if (fileInput.files && fileInput.files[0]) {
+      const photoPath = await uploadProgressPhoto(fileInput.files[0], dateStr);
+      if (photoPath) row.photo_url = photoPath;
+    }
+
+    const { error } = await db.from('daily_tracker').upsert(row, { onConflict: 'client_id,date' });
+    btn.disabled = false;
+    if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+    toast('Donnees sauvegardees !', 'success');
+    loadTrackerCharts();
+  }
+
+  // ── TRACKER CHARTS ────────────────────────────────────────────────────
+  async function loadTrackerCharts() {
+    var from = new Date();
+    from.setDate(from.getDate() - 89);
+    var fromStr = from.toISOString().slice(0, 10);
+
+    const { data } = await db.from('daily_tracker')
+      .select('date,weight_kg,waist_cm,calories_kcal,proteins_g,steps,stress_level')
+      .eq('client_id', profile.id)
+      .gte('date', fromStr)
+      .order('date');
+
+    var rows = (data || []).filter(function(r) { return r.date; });
+    var labels = rows.map(function(r) { return r.date.slice(5); });
+
+    var chartDefs = [
+      { id: 'chart-weight',   field: 'weight_kg',     color: '#10b981' },
+      { id: 'chart-waist',    field: 'waist_cm',      color: '#60a5fa' },
+      { id: 'chart-calories', field: 'calories_kcal', color: '#f59e0b' },
+      { id: 'chart-proteins', field: 'proteins_g',    color: '#34d399' },
+      { id: 'chart-steps',    field: 'steps',         color: '#a78bfa' },
+      { id: 'chart-stress',   field: 'stress_level',  color: '#fb7185' },
+    ];
+
+    var gridColor = '#1a1a1a';
+    var textColor = '#a3a3a3';
+
+    chartDefs.forEach(function(def) {
+      var canvas = document.getElementById(def.id);
+      if (!canvas) return;
+      if (trackerCharts[def.id]) { trackerCharts[def.id].destroy(); }
+      var values = rows.map(function(r) { return r[def.field] != null ? r[def.field] : null; });
+
+      trackerCharts[def.id] = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            borderColor: def.color,
+            backgroundColor: def.color + '18',
+            fill: true,
+            tension: 0.3,
+            spanGaps: true,
+            pointRadius: 2,
+            pointHoverRadius: 5,
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1a1a1a', borderColor: '#242424', borderWidth: 1,
+              titleColor: '#a3a3a3', bodyColor: '#f0f0f0',
+            }
+          },
+          scales: {
+            x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 9 }, maxTicksLimit: 8 } },
+            y: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 9 } } }
+          }
+        }
+      });
+    });
+  }
+
+  // ── SEANCES SOLO ──────────────────────────────────────────────────────
+  function selectFeeling(v) {
+    selectedFeeling = v;
+    document.querySelectorAll('.feeling-btn').forEach(function(btn) {
+      btn.classList.toggle('active', parseInt(btn.dataset.v) === v);
+    });
+  }
+
+  async function addSoloSession() {
+    var date     = document.getElementById('solo-date').value;
+    var desc     = document.getElementById('solo-desc').value.trim();
+    var dur      = parseInt(document.getElementById('solo-duration').value);
+    var notes    = document.getElementById('solo-notes').value.trim();
+
+    if (!date || !desc || isNaN(dur)) { toast('Remplissez la date, description et duree.', 'error'); return; }
+
+    const { error } = await db.from('solo_sessions').insert({
+      client_id: profile.id, date: date, description: desc,
+      duration_minutes: dur, feeling: selectedFeeling, notes: notes || null
+    });
+
+    if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+    toast('Seance ajoutee !', 'success');
+    document.getElementById('solo-desc').value = '';
+    document.getElementById('solo-duration').value = '';
+    document.getElementById('solo-notes').value = '';
+    selectFeeling(3);
+    document.getElementById('solo-date').value = today();
+    loadSoloSessions();
+  }
+
+  async function loadSoloSessions() {
+    document.getElementById('solo-loading').style.display = 'block';
+    const { data } = await db.from('solo_sessions')
+      .select('*').eq('client_id', profile.id)
+      .order('date', { ascending: false }).limit(50);
+    document.getElementById('solo-loading').style.display = 'none';
+
+    var list = document.getElementById('solo-history');
+    var sessions = data || [];
+
+    if (!sessions.length) {
+      list.innerHTML = '<div class="empty-state"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><h3>Aucune seance encore</h3><p>Ajoutez vos seances d\'entrainement solo.</p></div>';
+      return;
+    }
+
+    list.innerHTML = sessions.map(function(s) {
+      return '<div class="solo-item"><div class="solo-item-top"><div class="solo-item-left"><div class="solo-item-date">' + fmtDate(s.date) + '</div><div class="solo-item-desc">' + esc(s.description) + '</div></div><div class="solo-item-right">' + (s.duration_minutes ? '<span class="solo-dur-badge">' + s.duration_minutes + ' min</span>' : '') + (s.feeling ? '<div class="feeling-badge" data-v="' + s.feeling + '">' + s.feeling + '</div>' : '') + '<button class="btn-del-solo" onclick="deleteSoloSession(\'' + s.id + '\')" title="Supprimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button></div></div>' + (s.notes ? '<div class="solo-item-notes">' + esc(s.notes) + '</div>' : '') + '</div>';
+    }).join('');
+  }
+
+  async function deleteSoloSession(id) {
+    if (!confirm('Supprimer cette seance ?')) return;
+    await db.from('solo_sessions').delete().eq('id', id);
+    toast('Seance supprimee.', 'success');
+    loadSoloSessions();
+  }
+
+  // ── MESSAGERIE ────────────────────────────────────────────────────────
+  async function loadMessages() {
+    if (!profile.coach_id) {
+      document.getElementById('client-msg-conv').innerHTML = '<div class="empty-state"><h3>Aucun coach</h3><p>Vous n\'avez pas encore de coach attribue.</p></div>';
+      return;
+    }
+    document.getElementById('messages-loading').style.display = 'block';
+
+    const [{ data: sent }, { data: recv }] = await Promise.all([
+      db.from('messages').select('*').eq('sender_id', profile.id).eq('receiver_id', profile.coach_id).order('created_at'),
+      db.from('messages').select('*').eq('sender_id', profile.coach_id).eq('receiver_id', profile.id).order('created_at')
+    ]);
+
+    document.getElementById('messages-loading').style.display = 'none';
+
+    const all = [...(sent || []), ...(recv || [])].sort(function(a, b) {
+      return new Date(a.created_at) - new Date(b.created_at);
+    });
+
+    const conv = document.getElementById('client-msg-conv');
+    if (!all.length) {
+      conv.innerHTML = '<div style="color:var(--text3);font-size:.85rem;text-align:center;padding:2rem 1rem">Aucun message pour l\'instant. Ecrivez a votre coach !</div>';
+    } else {
+      conv.innerHTML = all.map(function(m) {
+        var mine = m.sender_id === profile.id;
+        var t = new Date(m.created_at).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        return '<div class="msg-bubble-wrap ' + (mine ? 'mine' : '') + '"><div><div class="msg-bubble ' + (mine ? 'mine' : 'theirs') + '">' + esc(m.content) + '</div><div class="msg-time">' + t + '</div></div></div>';
+      }).join('');
+    }
+    conv.scrollTop = conv.scrollHeight;
+
+    var unreadIds = (recv || []).filter(function(m) { return !m.is_read; }).map(function(m) { return m.id; });
+    if (unreadIds.length) {
+      await db.from('messages').update({ is_read: true }).in('id', unreadIds);
+      updateMsgBadge(0);
+    }
+  }
+
+  async function sendClientMessage() {
+    if (!profile.coach_id) return;
+    var input = document.getElementById('client-msg-input');
+    var content = input.value.trim();
+    if (!content) return;
+
+    const { error } = await db.from('messages').insert({
+      sender_id: profile.id, receiver_id: profile.coach_id, content: content
+    });
+
+    if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+    input.value = '';
+    loadMessages();
+  }
+
+  async function loadUnreadCount() {
+    if (!profile.coach_id) return;
+    const { count } = await db.from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('sender_id', profile.coach_id)
+      .eq('receiver_id', profile.id)
+      .eq('is_read', false);
+    updateMsgBadge(count || 0);
+  }
+
+  function updateMsgBadge(count) {
+    var badge = document.getElementById('msg-badge');
+    if (count > 0) {
+      badge.textContent = count > 99 ? '99+' : count;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function subscribeToClientMessages() {
+    if (!profile) return;
+    db.channel('client-inbox')
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'messages',
+        filter: 'receiver_id=eq.' + profile.id
+      }, function() {
+        loadUnreadCount();
+        if (document.getElementById('section-messages').classList.contains('active')) loadMessages();
+      })
+      .subscribe();
+  }
+
+  // ── PHOTO PROGRESSION ─────────────────────────────────────────────────
+  function previewTrackerPhoto(input) {
+    var file = input.files[0];
+    if (!file) return;
+    document.getElementById('t-photo-name').textContent = file.name;
+    var wrap = document.getElementById('t-photo-preview-wrap');
+    var preview = document.getElementById('t-photo-preview');
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      preview.src = e.target.result;
+      wrap.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function uploadProgressPhoto(file, dateStr) {
+    var ext = file.name.split('.').pop().toLowerCase();
+    var path = profile.id + '/' + dateStr + '.' + ext;
+    const { data, error } = await db.storage.from('progress-photos').upload(path, file, { upsert: true });
+    if (error) { toast('Erreur upload photo : ' + error.message, 'error'); return null; }
+    return data.path;
+  }
+
+  // ── HELPERS ───────────────────────────────────────────────────────────
+  function today() { return new Date().toISOString().slice(0, 10); }
+
+  function initWatermark() {
+    var overlay = document.getElementById('wm-overlay');
+    if (!overlay || !profile) return;
+    var cName  = profile.full_name || '';
+    var cEmail = clientEmail || '';
+    var coachN = coachProfile ? (coachProfile.full_name || 'Ascora') : 'Ascora';
+    var line1  = cName + (cEmail ? '  —  ' + cEmail : '');
+    var line2  = 'Ascora  —  ' + coachN;
+    var block  = '<div class="wm-block"><div>' + esc(line1) + '</div><div>' + esc(line2) + '</div></div>';
+    var row    = '<div class="wm-row">' + block + block + block + block + block + block + '</div>';
+    var inner  = '<div id="wm-inner">';
+    for (var i = 0; i < 12; i++) inner += row;
+    inner += '</div>';
+    overlay.innerHTML = inner;
+  }
+
+  function esc(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function fmtDate(d) {
+    if (!d) return '';
+    return new Date(d + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function toast(msg, type) {
+    type = type || 'success';
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast ' + type + ' show';
+    clearTimeout(el._t);
+    el._t = setTimeout(function() { el.className = 'toast'; }, 3500);
+  }
+
+  async function logout() {
+    await db.auth.signOut();
+    window.location.href = 'index.html';
+  }
+
+  document.getElementById('tracker-date').addEventListener('change', loadTodayTracker);
+
+  // ── MENU MOBILE ──────────────────────────────────
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('show');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('show');
+  }
+
+  init();
+</script>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+<div id="wm-overlay"></div>
+
+<!-- ── AVATAR PROMPT POPUP ── -->
+<div id="avatar-popup-overlay" class="avatar-popup-overlay" style="display:none">
+  <div class="avatar-popup">
+    <div class="avatar-popup-emoji">📸</div>
+    <div class="avatar-popup-title">Bienvenue sur Ascora !</div>
+    <div class="avatar-popup-desc">Ajoutez une photo de profil pour suivre votre progression au fil du temps. Voir votre visage évoluer au fil des semaines, c'est l'une des meilleures motivations !</div>
+    <div class="avatar-popup-actions">
+      <input type="file" id="avatar-prompt-input" accept="image/*" capture="user" style="display:none" onchange="handleAvatarPromptUpload(this)">
+      <button class="btn-save" onclick="document.getElementById('avatar-prompt-input').click()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Ajouter une photo
+      </button>
+      <button class="btn-logout" onclick="dismissAvatarPrompt()">Plus tard</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── VIDEO POPUP ── -->
+<div class="vid-overlay" id="vid-overlay" onclick="if(event.target===this)closeVideoPopup()">
+  <div class="vid-box">
+    <div class="vid-box-head">
+      <div class="vid-box-title" id="vid-title">Démonstration</div>
+      <button class="vid-close" onclick="closeVideoPopup()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <video class="vid-video" id="vid-video" controls playsinline></video>
+    <div class="vid-notes" id="vid-notes"></div>
+  </div>
+</div>
+
+</body>
+</html>
