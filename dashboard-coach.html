@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -1751,38 +1751,64 @@
 
         <!-- Tab: Nutrition -->
         <div class="detail-tab-content" id="tab-nutrition">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem">
-            <div style="font-size:.9rem;font-weight:600;display:flex;align-items:center;gap:.5rem">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
-              Plan Alimentaire
-            </div>
-            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-              <button class="btn-sm" style="background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.3)" onclick="openNutAIModal()">
-                🤖 Objectifs IA
-              </button>
-              <button class="btn-sm" id="btn-duo-nut-sync" style="display:none;background:rgba(249,115,22,.1);color:#f97316;border:1px solid rgba(249,115,22,.3)" onclick="showDuoNutReplaceModal()">
-                🔄 Synchroniser avec le duo
-              </button>
-              <button class="btn-sm" style="background:rgba(107,33,168,.15);color:#c084fc;border:1px solid rgba(107,33,168,.3)" onclick="generateNutPDF()">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                Générer PDF
-              </button>
-              <button class="btn-sm primary" id="btn-save-nut-plan" onclick="saveNutritionPlan()">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
-                Sauvegarder
-              </button>
-            </div>
-          </div>
-          <div class="day-tabs" id="nut-day-tabs" style="margin-bottom:1rem"></div>
-          <div style="margin-bottom:1.25rem;display:flex;align-items:center;gap:.75rem">
-            <label style="font-size:.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;font-weight:500;flex-shrink:0">Type de jour :</label>
-            <select class="form-input" id="nut-day-type" style="width:auto" onchange="updateNutDayType(this.value)">
-              <option value="sport">Sport</option>
-              <option value="repos">Repos</option>
-            </select>
-          </div>
-          <div id="nut-meals"></div>
-        </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem">
+    <div style="font-size:.9rem;font-weight:600;display:flex;align-items:center;gap:.5rem">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
+      Objectifs Nutrition IA
+    </div>
+  </div>
+  <p style="font-size:.82rem;color:var(--text3);margin-bottom:1.5rem">Remplissez les objectifs nutritionnels du client. L'IA utilisera ces données pour générer automatiquement ses menus quotidiens.</p>
+
+  <div class="form-row" style="margin-bottom:.9rem">
+    <div class="form-group">
+      <label class="form-label">Calories cibles (kcal)</label>
+      <input class="form-input" type="number" id="ai-calories" placeholder="2000">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Protéines (g)</label>
+      <input class="form-input" type="number" id="ai-proteines" placeholder="150">
+    </div>
+  </div>
+  <div class="form-row" style="margin-bottom:.9rem">
+    <div class="form-group">
+      <label class="form-label">Glucides (g)</label>
+      <input class="form-input" type="number" id="ai-glucides" placeholder="200">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Lipides (g)</label>
+      <input class="form-input" type="number" id="ai-lipides" placeholder="70">
+    </div>
+  </div>
+
+  <div style="margin-bottom:1rem">
+    <label class="form-label" style="margin-bottom:.5rem;display:block">Besoins spéciaux</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-fer"> Riche en fer</label>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-vitc"> Riche en vitamine C</label>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-vita"> Riche en vitamine A</label>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-fibres"> Riche en fibres</label>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-omega3"> Riche en oméga-3</label>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-calcium"> Riche en calcium</label>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-magnesium"> Riche en magnésium</label>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-vitd"> Riche en vitamine D</label>
+    </div>
+  </div>
+
+  <div class="form-group" style="margin-bottom:.9rem">
+    <label class="form-label">Allergies / aliments à éviter</label>
+    <input class="form-input" type="text" id="ai-allergies" placeholder="Ex : gluten, lactose, noix...">
+  </div>
+
+  <div class="form-group" style="margin-bottom:1.5rem">
+    <label class="form-label">Note pour l'IA (facultatif)</label>
+    <input class="form-input" type="text" id="ai-note" placeholder="Ex : client végétarien, préfère les repas simples...">
+  </div>
+
+  <button class="btn-sm primary" onclick="saveNutAIObjectives()" style="padding:.6rem 1.25rem">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+    Sauvegarder les objectifs
+  </button>
+</div>
 
         <!-- Tab: Séances -->
         <div class="detail-tab-content" id="tab-seances">
@@ -2709,7 +2735,7 @@
     document.getElementById(`tab-${tab}`).classList.add('active');
     if (tab === 'info')       loadBillingHistory();
     if (tab === 'sport')      loadWorkoutSessions();
-    if (tab === 'nutrition')  loadNutritionPlan();
+    if (tab === 'nutrition')  openNutAITab();
     if (tab === 'seances')    loadClientSessions();
     if (tab === 'evolution')  loadClientEvolution();
     if (tab === 'photos')     loadClientPhotos();
@@ -3361,546 +3387,17 @@
     toast('Séance supprimée.', 'success');
   }
 
-  // ── NUTRITION PLAN BUILDER ───────────────────────────────────
-  var NUT_DAY_NAMES  = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-  var NUT_DAY_FULL   = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-  var NUT_MEAL_KEYS  = ['petit-dejeuner', 'dejeuner', 'collation', 'diner'];
-  var NUT_MEAL_LBLS  = { 'petit-dejeuner': 'Petit-déjeuner', 'dejeuner': 'Déjeuner', 'collation': 'Collation', 'diner': 'Dîner' };
-  var NUT_MEAL_TXT   = { 'petit-dejeuner': 'Petit-déjeuner', 'dejeuner': 'Déjeuner', 'collation': 'Collation', 'diner': 'Dîner' };
-  var nutPlanData    = null;
-  var nutPlanId      = null;
-  var nutDay         = 0;
-  var _nutSearchResults = {};
-
-  var NUT_FOODS = [
-    /* Viandes & Volailles */
-    { name: 'Poulet (blanc, cru)',        per100: { proteins: 22,   carbs: 0,    fats: 1.7,  calories: 115 } },
-    { name: 'Poulet (blanc, cuit)',       per100: { proteins: 31,   carbs: 0,    fats: 3.6,  calories: 165 } },
-    { name: 'Poulet (cuisse, cru)',       per100: { proteins: 18,   carbs: 0,    fats: 5,    calories: 119 } },
-    { name: 'Poulet (cuisse, cuit)',      per100: { proteins: 26,   carbs: 0,    fats: 10,   calories: 197 } },
-    { name: 'Dinde (blanc, cuit)',        per100: { proteins: 30,   carbs: 0,    fats: 1.7,  calories: 135 } },
-    { name: 'Boeuf (steak, cuit)',        per100: { proteins: 28,   carbs: 0,    fats: 9,    calories: 198 } },
-    { name: 'Steak hache 5% MG (cru)',   per100: { proteins: 20,   carbs: 0,    fats: 5,    calories: 121 } },
-    { name: 'Steak hache 10% MG (cru)',  per100: { proteins: 19,   carbs: 0,    fats: 10,   calories: 152 } },
-    { name: 'Steak hache 15% MG (cru)',  per100: { proteins: 17,   carbs: 0,    fats: 15,   calories: 196 } },
-    { name: 'Boeuf hache 5% MG',         per100: { proteins: 26,   carbs: 0,    fats: 5,    calories: 148 } },
-    { name: 'Boeuf hache 15% MG',        per100: { proteins: 24,   carbs: 0,    fats: 15,   calories: 234 } },
-    { name: 'Porc (filet, cuit)',         per100: { proteins: 27,   carbs: 0,    fats: 5,    calories: 153 } },
-    { name: 'Veau (escalope, cuite)',     per100: { proteins: 28,   carbs: 0,    fats: 4,    calories: 150 } },
-    { name: 'Agneau (gigot, cuit)',       per100: { proteins: 26,   carbs: 0,    fats: 11,   calories: 203 } },
-    /* Charcuterie */
-    { name: 'Jambon blanc (tranches)',    per100: { proteins: 19,   carbs: 1,    fats: 4,    calories: 113 } },
-    { name: 'Jambon cru',                per100: { proteins: 24,   carbs: 0,    fats: 8,    calories: 166 } },
-    { name: 'Bacon (tranches)',          per100: { proteins: 37,   carbs: 0,    fats: 42,   calories: 541 } },
-    /* Poissons & Fruits de mer */
-    { name: 'Saumon (cru)',              per100: { proteins: 20,   carbs: 0,    fats: 11,   calories: 186 } },
-    { name: 'Saumon (cuit)',             per100: { proteins: 25,   carbs: 0,    fats: 13,   calories: 220 } },
-    { name: 'Thon (en boite, naturel)',  per100: { proteins: 28,   carbs: 0,    fats: 1,    calories: 116 } },
-    { name: 'Cabillaud (cuit)',          per100: { proteins: 23,   carbs: 0,    fats: 1,    calories: 100 } },
-    { name: 'Tilapia (cuit)',            per100: { proteins: 26,   carbs: 0,    fats: 3,    calories: 129 } },
-    { name: 'Maquereau (cuit)',          per100: { proteins: 22,   carbs: 0,    fats: 16,   calories: 239 } },
-    { name: 'Sardines (en boite)',       per100: { proteins: 25,   carbs: 0,    fats: 11,   calories: 208 } },
-    { name: 'Truite (cuite)',            per100: { proteins: 26,   carbs: 0,    fats: 5,    calories: 148 } },
-    { name: 'Crevettes (cuites)',        per100: { proteins: 24,   carbs: 0,    fats: 1.7,  calories: 115 } },
-    { name: 'Moules (cuites)',           per100: { proteins: 18,   carbs: 7,    fats: 2.7,  calories: 121 } },
-    /* Oeufs */
-    { name: 'Oeuf entier',              per100: { proteins: 13,   carbs: 1.1,  fats: 11,   calories: 155 }, unit_weight: 60  },
-    { name: 'Blanc d\'oeuf',            per100: { proteins: 11,   carbs: 0.7,  fats: 0.2,  calories: 52  }, unit_weight: 30  },
-    /* Produits laitiers */
-    { name: 'Fromage blanc 0%',         per100: { proteins: 11,   carbs: 5,    fats: 0.1,  calories: 64  }, unit_weight: 100 },
-    { name: 'Fromage blanc 3%',         per100: { proteins: 7,    carbs: 4,    fats: 3.2,  calories: 74  }, unit_weight: 100 },
-    { name: 'Yaourt nature 0%',         per100: { proteins: 6,    carbs: 7,    fats: 0.1,  calories: 52  }, unit_weight: 125 },
-    { name: 'Yaourt grec 0%',           per100: { proteins: 10,   carbs: 4,    fats: 0.3,  calories: 57  }, unit_weight: 125 },
-    { name: 'Yaourt grec nature',       per100: { proteins: 9,    carbs: 4,    fats: 9,    calories: 132 }, unit_weight: 125 },
-    { name: 'Skyr nature',              per100: { proteins: 11,   carbs: 4,    fats: 0.2,  calories: 63  }, unit_weight: 150 },
-    { name: 'Cottage cheese',           per100: { proteins: 12,   carbs: 3.4,  fats: 4.3,  calories: 98  }, unit_weight: 100 },
-    { name: 'Lait demi-ecreme',         per100: { proteins: 3.4,  carbs: 5,    fats: 1.7,  calories: 47  } },
-    { name: 'Lait entier',              per100: { proteins: 3.2,  carbs: 4.8,  fats: 3.5,  calories: 64  } },
-    { name: 'Lait ecreme',              per100: { proteins: 3.5,  carbs: 5,    fats: 0.1,  calories: 35  } },
-    { name: 'Gruyere',                  per100: { proteins: 29,   carbs: 0,    fats: 32,   calories: 410 } },
-    { name: 'Parmesan',                 per100: { proteins: 36,   carbs: 0,    fats: 26,   calories: 392 } },
-    { name: 'Mozzarella',               per100: { proteins: 22,   carbs: 2,    fats: 18,   calories: 260 } },
-    { name: 'Ricotta',                  per100: { proteins: 11,   carbs: 3,    fats: 13,   calories: 174 } },
-    { name: 'Camembert',                per100: { proteins: 20,   carbs: 0.5,  fats: 23,   calories: 290 } },
-    /* Proteines en poudre */
-    { name: 'Whey (poudre)',            per100: { proteins: 75,   carbs: 8,    fats: 5,    calories: 380 } },
-    { name: 'Caseine (poudre)',         per100: { proteins: 78,   carbs: 5,    fats: 2,    calories: 354 } },
-    /* Cereales & Feculents */
-    { name: 'Riz blanc (cru)',          per100: { proteins: 7,    carbs: 77,   fats: 0.6,  calories: 350 } },
-    { name: 'Riz blanc (cuit)',         per100: { proteins: 2.7,  carbs: 28,   fats: 0.3,  calories: 130 } },
-    { name: 'Riz complet (cru)',        per100: { proteins: 7.5,  carbs: 74,   fats: 2,    calories: 350 } },
-    { name: 'Riz complet (cuit)',       per100: { proteins: 2.6,  carbs: 23,   fats: 0.9,  calories: 112 } },
-    { name: 'Pates (crues)',            per100: { proteins: 12,   carbs: 70,   fats: 1.5,  calories: 350 } },
-    { name: 'Pates (cuites)',           per100: { proteins: 5,    carbs: 30,   fats: 1,    calories: 158 } },
-    { name: 'Pates completes (crues)',  per100: { proteins: 13,   carbs: 68,   fats: 2,    calories: 360 } },
-    { name: 'Pates completes (cuites)', per100: { proteins: 5.5,  carbs: 27,   fats: 1.2,  calories: 140 } },
-    { name: 'Flocons d\'avoine',        per100: { proteins: 13,   carbs: 59,   fats: 7,    calories: 379 } },
-    { name: 'Pain complet',             per100: { proteins: 9,    carbs: 41,   fats: 3,    calories: 247 }, unit_weight: 30  },
-    { name: 'Pain de seigle',           per100: { proteins: 9,    carbs: 48,   fats: 1.7,  calories: 258 }, unit_weight: 30  },
-    { name: 'Pain blanc (baguette)',    per100: { proteins: 8,    carbs: 52,   fats: 2,    calories: 265 }, unit_weight: 30  },
-    { name: 'Pomme de terre (cuite)',   per100: { proteins: 2,    carbs: 17,   fats: 0.1,  calories: 77  }, unit_weight: 150 },
-    { name: 'Patate douce (cuite)',     per100: { proteins: 1.6,  carbs: 20,   fats: 0.1,  calories: 86  }, unit_weight: 200 },
-    { name: 'Quinoa (cru)',             per100: { proteins: 14,   carbs: 64,   fats: 6,    calories: 368 } },
-    { name: 'Quinoa (cuit)',            per100: { proteins: 4.4,  carbs: 21,   fats: 1.9,  calories: 120 } },
-    { name: 'Boulgour (cru)',           per100: { proteins: 12,   carbs: 76,   fats: 1.3,  calories: 362 } },
-    { name: 'Boulgour (cuit)',          per100: { proteins: 3.1,  carbs: 19,   fats: 0.5,  calories: 83  } },
-    { name: 'Couscous (cru)',           per100: { proteins: 13,   carbs: 77,   fats: 1.5,  calories: 376 } },
-    { name: 'Couscous (cuit)',          per100: { proteins: 3.8,  carbs: 23,   fats: 0.2,  calories: 112 } },
-    { name: 'Polenta (cuite)',          per100: { proteins: 2,    carbs: 17,   fats: 0.5,  calories: 80  } },
-    { name: 'Farine de ble T55',        per100: { proteins: 10,   carbs: 74,   fats: 1.2,  calories: 364 } },
-    { name: 'Farine complete T150',     per100: { proteins: 12,   carbs: 66,   fats: 2,    calories: 329 } },
-    { name: 'Muesli (sans sucre)',      per100: { proteins: 9,    carbs: 58,   fats: 7,    calories: 340 } },
-    /* Legumineuses */
-    { name: 'Lentilles (crues)',        per100: { proteins: 24,   carbs: 48,   fats: 1,    calories: 290 } },
-    { name: 'Lentilles (cuites)',       per100: { proteins: 9,    carbs: 20,   fats: 0.4,  calories: 116 } },
-    { name: 'Pois chiches (crus)',      per100: { proteins: 19,   carbs: 61,   fats: 6,    calories: 364 } },
-    { name: 'Pois chiches (cuits)',     per100: { proteins: 8.9,  carbs: 27,   fats: 2.6,  calories: 164 } },
-    { name: 'Haricots rouges (crus)',  per100: { proteins: 22,   carbs: 60,   fats: 1.5,  calories: 333 } },
-    { name: 'Haricots rouges (cuits)', per100: { proteins: 8.7,  carbs: 22,   fats: 0.5,  calories: 127 } },
-    { name: 'Haricots blancs (crus)',  per100: { proteins: 21,   carbs: 62,   fats: 1.2,  calories: 335 } },
-    { name: 'Haricots blancs (cuits)', per100: { proteins: 7.5,  carbs: 24,   fats: 0.4,  calories: 130 } },
-    { name: 'Edamame',                  per100: { proteins: 11,   carbs: 8.9,  fats: 5.2,  calories: 121 } },
-    { name: 'Tofu nature',              per100: { proteins: 8,    carbs: 1.9,  fats: 4.8,  calories: 76  } },
-    /* Legumes */
-    { name: 'Brocoli',                  per100: { proteins: 2.8,  carbs: 7,    fats: 0.4,  calories: 35  } },
-    { name: 'Epinards',                 per100: { proteins: 2.9,  carbs: 3.6,  fats: 0.4,  calories: 23  } },
-    { name: 'Courgette',                per100: { proteins: 1.2,  carbs: 3.4,  fats: 0.2,  calories: 17  } },
-    { name: 'Tomate',                   per100: { proteins: 0.9,  carbs: 3.9,  fats: 0.2,  calories: 18  }, unit_weight: 120 },
-    { name: 'Concombre',                per100: { proteins: 0.6,  carbs: 3.6,  fats: 0.1,  calories: 16  } },
-    { name: 'Carotte',                  per100: { proteins: 0.9,  carbs: 9.6,  fats: 0.2,  calories: 41  }, unit_weight: 80  },
-    { name: 'Poivron rouge',            per100: { proteins: 1,    carbs: 9.3,  fats: 0.3,  calories: 31  } },
-    { name: 'Poivron vert',             per100: { proteins: 0.9,  carbs: 4.6,  fats: 0.2,  calories: 20  } },
-    { name: 'Champignons',              per100: { proteins: 3.1,  carbs: 3.3,  fats: 0.3,  calories: 22  } },
-    { name: 'Haricots verts',           per100: { proteins: 1.8,  carbs: 7,    fats: 0.2,  calories: 31  } },
-    { name: 'Chou-fleur',               per100: { proteins: 1.9,  carbs: 5,    fats: 0.3,  calories: 25  } },
-    { name: 'Chou vert',                per100: { proteins: 1.3,  carbs: 6,    fats: 0.2,  calories: 25  } },
-    { name: 'Laitue',                   per100: { proteins: 1.4,  carbs: 2.2,  fats: 0.2,  calories: 15  } },
-    { name: 'Oignon',                   per100: { proteins: 1.1,  carbs: 9.3,  fats: 0.1,  calories: 40  } },
-    { name: 'Ail',                      per100: { proteins: 6,    carbs: 33,   fats: 0.5,  calories: 149 } },
-    { name: 'Poireau',                  per100: { proteins: 1.5,  carbs: 14,   fats: 0.3,  calories: 61  } },
-    { name: 'Asperge',                  per100: { proteins: 2.2,  carbs: 3.9,  fats: 0.1,  calories: 20  } },
-    { name: 'Celeri',                   per100: { proteins: 0.7,  carbs: 3,    fats: 0.2,  calories: 16  } },
-    { name: 'Betterave',                per100: { proteins: 1.7,  carbs: 10,   fats: 0.1,  calories: 43  } },
-    { name: 'Artichaut',                per100: { proteins: 3.3,  carbs: 10,   fats: 0.2,  calories: 47  } },
-    { name: 'Radis',                    per100: { proteins: 0.7,  carbs: 3.4,  fats: 0.1,  calories: 16  } },
-    { name: 'Aubergine',                per100: { proteins: 1,    carbs: 6,    fats: 0.2,  calories: 25  } },
-    { name: 'Petits pois (cuits)',      per100: { proteins: 5.4,  carbs: 14,   fats: 0.4,  calories: 81  } },
-    { name: 'Mais (grains, cuit)',      per100: { proteins: 3.4,  carbs: 19,   fats: 1.5,  calories: 96  } },
-    /* Fruits */
-    { name: 'Banane',                   per100: { proteins: 1.1,  carbs: 23,   fats: 0.3,  calories: 89  }, unit_weight: 120 },
-    { name: 'Pomme',                    per100: { proteins: 0.3,  carbs: 14,   fats: 0.2,  calories: 52  }, unit_weight: 150 },
-    { name: 'Orange',                   per100: { proteins: 0.9,  carbs: 12,   fats: 0.1,  calories: 47  }, unit_weight: 180 },
-    { name: 'Fruits rouges (melange)',   per100: { proteins: 0.8,  carbs: 8,    fats: 0.4,  calories: 40  } },
-    { name: 'Fraise',                   per100: { proteins: 0.8,  carbs: 8,    fats: 0.3,  calories: 32  } },
-    { name: 'Myrtille',                 per100: { proteins: 0.7,  carbs: 14,   fats: 0.3,  calories: 57  } },
-    { name: 'Mangue',                   per100: { proteins: 0.8,  carbs: 17,   fats: 0.4,  calories: 60  }, unit_weight: 300 },
-    { name: 'Ananas',                   per100: { proteins: 0.5,  carbs: 13,   fats: 0.1,  calories: 50  } },
-    { name: 'Kiwi',                     per100: { proteins: 1.1,  carbs: 15,   fats: 0.5,  calories: 61  }, unit_weight: 80  },
-    { name: 'Raisin',                   per100: { proteins: 0.7,  carbs: 18,   fats: 0.2,  calories: 69  } },
-    { name: 'Melon',                    per100: { proteins: 0.6,  carbs: 8,    fats: 0.2,  calories: 34  } },
-    { name: 'Poire',                    per100: { proteins: 0.4,  carbs: 15,   fats: 0.1,  calories: 57  }, unit_weight: 170 },
-    { name: 'Peche',                    per100: { proteins: 0.9,  carbs: 10,   fats: 0.3,  calories: 39  }, unit_weight: 130 },
-    { name: 'Abricot',                  per100: { proteins: 1.4,  carbs: 11,   fats: 0.4,  calories: 48  }, unit_weight: 40  },
-    { name: 'Cerise',                   per100: { proteins: 1,    carbs: 16,   fats: 0.3,  calories: 63  }, unit_weight: 8   },
-    { name: 'Pastèque',                 per100: { proteins: 0.6,  carbs: 8,    fats: 0.2,  calories: 30  } },
-    { name: 'Grenade',                  per100: { proteins: 1.7,  carbs: 19,   fats: 1.2,  calories: 83  }, unit_weight: 280 },
-    /* Matieres grasses & Oleagineux */
-    { name: 'Huile d\'olive',           per100: { proteins: 0,    carbs: 0,    fats: 100,  calories: 884 } },
-    { name: 'Huile de coco',            per100: { proteins: 0,    carbs: 0,    fats: 100,  calories: 884 } },
-    { name: 'Beurre',                   per100: { proteins: 0.7,  carbs: 0.6,  fats: 81,   calories: 717 } },
-    { name: 'Avocat',                   per100: { proteins: 2,    carbs: 8.5,  fats: 15,   calories: 160 } },
-    { name: 'Amandes',                  per100: { proteins: 21,   carbs: 22,   fats: 50,   calories: 579 } },
-    { name: 'Noix',                     per100: { proteins: 15,   carbs: 14,   fats: 65,   calories: 654 } },
-    { name: 'Noix de cajou',            per100: { proteins: 18,   carbs: 30,   fats: 44,   calories: 553 } },
-    { name: 'Pistaches',                per100: { proteins: 20,   carbs: 28,   fats: 45,   calories: 562 } },
-    { name: 'Noisettes',                per100: { proteins: 15,   carbs: 17,   fats: 61,   calories: 628 } },
-    { name: 'Beurre de cacahuete',      per100: { proteins: 25,   carbs: 20,   fats: 50,   calories: 589 } },
-    { name: 'Cacahuetes',               per100: { proteins: 26,   carbs: 16,   fats: 49,   calories: 567 } },
-    { name: 'Graines de chia',          per100: { proteins: 17,   carbs: 42,   fats: 31,   calories: 486 } },
-    { name: 'Graines de lin',           per100: { proteins: 18,   carbs: 29,   fats: 42,   calories: 534 } },
-    { name: 'Graines de tournesol',     per100: { proteins: 21,   carbs: 20,   fats: 51,   calories: 584 } },
-    { name: 'Graines de courge',        per100: { proteins: 30,   carbs: 18,   fats: 49,   calories: 559 } },
-    { name: 'Tahini',                   per100: { proteins: 17,   carbs: 26,   fats: 54,   calories: 595 } },
-    /* Divers */
-    { name: 'Chocolat noir 85%',        per100: { proteins: 12,   carbs: 24,   fats: 42,   calories: 530 } },
-    { name: 'Miel',                     per100: { proteins: 0.3,  carbs: 82,   fats: 0,    calories: 304 } },
-    { name: 'Confiture',                per100: { proteins: 0.4,  carbs: 65,   fats: 0.1,  calories: 250 } },
-    { name: 'Sucre blanc',              per100: { proteins: 0,    carbs: 100,  fats: 0,    calories: 400 } },
-    { name: 'Sauce tomate (nature)',    per100: { proteins: 1.6,  carbs: 8,    fats: 0.4,  calories: 32  } },
-    { name: 'Ketchup',                  per100: { proteins: 1.2,  carbs: 26,   fats: 0.1,  calories: 101 } },
-    { name: 'Mayonnaise',               per100: { proteins: 1.3,  carbs: 2.5,  fats: 75,   calories: 680 } },
-    { name: 'Vinaigrette (huile+vinaigre)', per100: { proteins: 0, carbs: 1.5, fats: 30,   calories: 270 } }
-  ];
-
-  function emptyNutPlan() {
-    return { days: NUT_DAY_NAMES.map(function() {
-      return { type: 'sport', meals: { 'petit-dejeuner': [], 'dejeuner': [], 'collation': [], 'diner': [] } };
-    })};
-  }
-
-  async function loadNutritionPlan() {
-    nutDay = 0;
-    document.getElementById('nut-meals').innerHTML = '<div class="loading"><div class="spinner"></div><br>Chargement...</div>';
-    var { data } = await db.from('nutrition_plans').select('*').eq('client_id', selectedClient.id).maybeSingle();
-    if (data && data.plan_data) {
-      nutPlanId   = data.id;
-      nutPlanData = data.plan_data;
-      while (nutPlanData.days.length < 7) {
-        nutPlanData.days.push({ type: 'sport', meals: { 'petit-dejeuner': [], 'dejeuner': [], 'collation': [], 'diner': [] } });
-      }
-      nutPlanData.days.forEach(function(d) {
-        NUT_MEAL_KEYS.forEach(function(k) { if (!d.meals[k]) d.meals[k] = []; });
-      });
-    } else {
-      nutPlanId   = null;
-      nutPlanData = emptyNutPlan();
-    }
-    renderNutBuilder();
-  }
-
-  function renderNutBuilder() {
-    document.getElementById('nut-day-tabs').innerHTML = NUT_DAY_NAMES.map(function(d, i) {
-      return '<button class="day-tab ' + (i === nutDay ? 'active' : '') + '" onclick="switchNutDay(' + i + ')">' + d + '</button>';
-    }).join('');
-    renderNutDayEditor();
-  }
-
-  function switchNutDay(idx) {
-    nutDay = idx;
-    document.querySelectorAll('#nut-day-tabs .day-tab').forEach(function(t, i) { t.classList.toggle('active', i === idx); });
-    renderNutDayEditor();
-  }
-
-  function nutR1(n) { return Math.round((n || 0) * 10) / 10; }
-
-  function nutMealTotals(foods) {
-    var p = 0, c = 0, l = 0, k = 0;
-    foods.forEach(function(f) { p += f.proteins || 0; c += f.carbs || 0; l += f.fats || 0; k += f.calories || 0; });
-    return { p: nutR1(p), c: nutR1(c), l: nutR1(l), k: Math.round(k) };
-  }
-
-  function nutTotalsHtml(t) {
-    return '<span class="nm-prot">' + t.p + 'g P</span>' +
-           '<span class="nm-carb">' + t.c + 'g G</span>' +
-           '<span class="nm-fat">'  + t.l + 'g L</span>' +
-           '<span class="nm-cal">'  + t.k + ' kcal</span>';
-  }
-
-  function renderNutDayEditor() {
-    var day = nutPlanData.days[nutDay];
-    document.getElementById('nut-day-type').value = day.type || 'sport';
-
-    document.getElementById('nut-meals').innerHTML = NUT_MEAL_KEYS.map(function(key) {
-      var foods = day.meals[key] || [];
-      var totals = nutMealTotals(foods);
-
-      var foodRows = foods.map(function(f, fi) {
-        var p = nutR1(f.proteins), c = nutR1(f.carbs), l = nutR1(f.fats), k = Math.round(f.calories || 0);
-        var isUnit = (f.unit_mode === 'unit' && f.unit_weight);
-        var qtyVal = f.qty != null ? f.qty : (isUnit ? 1 : 100);
-        var unitHtml;
-        if (f.unit_weight) {
-          var gActive = !isUnit ? ' active' : '';
-          var uActive = isUnit  ? ' active' : '';
-          unitHtml = '<div class="nfr-unit-btns">' +
-            '<button class="nfr-unit-btn' + gActive + '" onclick="nutSetUnitMode(' + nutDay + ',\'' + key + '\',' + fi + ',\'g\')" title="Grammes">g</button>' +
-            '<button class="nfr-unit-btn' + uActive + '" onclick="nutSetUnitMode(' + nutDay + ',\'' + key + '\',' + fi + ',\'unit\')" title="1 unit&eacute; = ' + f.unit_weight + 'g">u</button>' +
-          '</div>';
-        } else {
-          unitHtml = '<span class="nfr-unit">g</span>';
-        }
-        return '<div class="nut-food-row" id="nfr-' + nutDay + '-' + key + '-' + fi + '">' +
-          '<span class="nfr-name" title="' + esc(f.name || '') + '">' + esc(f.name || '') + '</span>' +
-          '<div class="nfr-qty-wrap">' +
-            '<input class="nfr-qty-inp" type="number" min="1" value="' + qtyVal + '" ' +
-              'onchange="nutUpdateQty(' + nutDay + ',\'' + key + '\',' + fi + ',this.value)">' +
-            unitHtml +
-          '</div>' +
-          '<div class="nfr-macros">' +
-            '<div class="nfr-macro-item prot"><label>Prot</label>' +
-              '<input class="nfr-macro-inp" type="number" step=".1" min="0" value="' + p + '" ' +
-                'onchange="nutUpdateMacro(' + nutDay + ',\'' + key + '\',' + fi + ',\'proteins\',this.value)">' +
-            '</div>' +
-            '<div class="nfr-macro-item carb"><label>Gluc</label>' +
-              '<input class="nfr-macro-inp" type="number" step=".1" min="0" value="' + c + '" ' +
-                'onchange="nutUpdateMacro(' + nutDay + ',\'' + key + '\',' + fi + ',\'carbs\',this.value)">' +
-            '</div>' +
-            '<div class="nfr-macro-item fat"><label>Lip</label>' +
-              '<input class="nfr-macro-inp" type="number" step=".1" min="0" value="' + l + '" ' +
-                'onchange="nutUpdateMacro(' + nutDay + ',\'' + key + '\',' + fi + ',\'fats\',this.value)">' +
-            '</div>' +
-            '<div class="nfr-macro-item cal"><label>Kcal</label>' +
-              '<input class="nfr-macro-inp" type="number" step="1" min="0" value="' + k + '" ' +
-                'onchange="nutUpdateMacro(' + nutDay + ',\'' + key + '\',' + fi + ',\'calories\',this.value)">' +
-            '</div>' +
-          '</div>' +
-          '<button class="nfr-del" onclick="nutRemoveFood(' + nutDay + ',\'' + key + '\',' + fi + ')" title="Retirer">×</button>' +
-        '</div>';
-      }).join('');
-
-      return '<div class="nut-meal-card">' +
-        '<div class="nut-meal-header">' +
-          '<span class="nut-meal-label">' + NUT_MEAL_LBLS[key] + '</span>' +
-          '<div class="nut-meal-macros" id="nmt-' + nutDay + '-' + key + '">' + nutTotalsHtml(totals) + '</div>' +
-        '</div>' +
-        '<div class="nut-food-list">' +
-          (foodRows || '<div style="padding:.5rem 1rem;font-size:.78rem;color:var(--text3);font-style:italic">Aucun aliment — recherchez ci-dessous</div>') +
-        '</div>' +
-        '<div class="nut-search-wrap">' +
-          '<input class="nut-search-inp" type="text" id="nsi-' + nutDay + '-' + key + '" ' +
-            'placeholder="Rechercher un aliment (ex: poulet, riz, yaourt…)" ' +
-            'oninput="nutSearchInput(' + nutDay + ',\'' + key + '\',this)" ' +
-            'onblur="setTimeout(function(){nutHideDrop(\'' + nutDay + '-' + key + '\')},220)" ' +
-            'autocomplete="off">' +
-          '<div class="nut-search-drop" id="nsd-' + nutDay + '-' + key + '" style="display:none"></div>' +
-        '</div>' +
-      '</div>';
-    }).join('');
-  }
-
-  function nutRefreshMealTotals(dayIdx, mealKey) {
-    var el = document.getElementById('nmt-' + dayIdx + '-' + mealKey);
-    if (!el) return;
-    var t = nutMealTotals(nutPlanData.days[dayIdx].meals[mealKey] || []);
-    el.innerHTML = nutTotalsHtml(t);
-  }
-
-  function nutUpdateQty(dayIdx, mealKey, foodIdx, qty) {
-    var f = nutPlanData.days[dayIdx].meals[mealKey][foodIdx];
-    qty = parseFloat(qty) || 1;
-    f.qty = qty;
-    if (f.per100) {
-      var effectiveG = (f.unit_mode === 'unit' && f.unit_weight) ? qty * f.unit_weight : qty;
-      f.proteins = nutR1(f.per100.proteins * effectiveG / 100);
-      f.carbs    = nutR1(f.per100.carbs    * effectiveG / 100);
-      f.fats     = nutR1(f.per100.fats     * effectiveG / 100);
-      f.calories = nutR1(f.per100.calories * effectiveG / 100);
-      var row = document.getElementById('nfr-' + dayIdx + '-' + mealKey + '-' + foodIdx);
-      if (row) {
-        var inputs = row.querySelectorAll('.nfr-macro-inp');
-        if (inputs[0]) inputs[0].value = f.proteins;
-        if (inputs[1]) inputs[1].value = f.carbs;
-        if (inputs[2]) inputs[2].value = f.fats;
-        if (inputs[3]) inputs[3].value = Math.round(f.calories);
-      }
-    }
-    nutRefreshMealTotals(dayIdx, mealKey);
-  }
-
-  function nutUpdateMacro(dayIdx, mealKey, foodIdx, field, value) {
-    nutPlanData.days[dayIdx].meals[mealKey][foodIdx][field] = parseFloat(value) || 0;
-    nutRefreshMealTotals(dayIdx, mealKey);
-  }
-
-  function nutRemoveFood(dayIdx, mealKey, foodIdx) {
-    nutPlanData.days[dayIdx].meals[mealKey].splice(foodIdx, 1);
-    renderNutDayEditor();
-  }
-
-  function nutSetUnitMode(dayIdx, mealKey, foodIdx, mode) {
-    var f = nutPlanData.days[dayIdx].meals[mealKey][foodIdx];
-    if (!f.unit_weight || f.unit_mode === mode) return;
-    var currentQty = parseFloat(f.qty) || (f.unit_mode === 'unit' ? 1 : 100);
-    if (mode === 'unit') {
-      f.qty = Math.max(1, Math.round(currentQty / f.unit_weight));
-    } else {
-      f.qty = Math.round(currentQty * f.unit_weight);
-    }
-    f.unit_mode = mode;
-    var effectiveG = (mode === 'unit') ? f.qty * f.unit_weight : f.qty;
-    if (f.per100) {
-      f.proteins = nutR1(f.per100.proteins * effectiveG / 100);
-      f.carbs    = nutR1(f.per100.carbs    * effectiveG / 100);
-      f.fats     = nutR1(f.per100.fats     * effectiveG / 100);
-      f.calories = nutR1(f.per100.calories * effectiveG / 100);
-    }
-    renderNutDayEditor();
-  }
-
-  function nutNorm(s) {
-    return (s || '').toLowerCase()
-      .replace(/[àâä]/g, 'a').replace(/[éèêë]/g, 'e')
-      .replace(/[îï]/g, 'i').replace(/[ôö]/g, 'o')
-      .replace(/[ùûü]/g, 'u').replace(/ç/g, 'c')
-      .replace(/[^a-z0-9 '-]/g, '');
-  }
-
-  function nutSearchInput(dayIdx, mealKey, inputEl) {
-    var dropKey = dayIdx + '-' + mealKey;
-    var dropId  = 'nsd-' + dropKey;
-    var query   = inputEl.value.trim();
-    var drop    = document.getElementById(dropId);
-    if (query.length < 2) {
-      if (drop) drop.style.display = 'none';
-      return;
-    }
-    var q = nutNorm(query);
-    var words = q.split(/\s+/).filter(function(w) { return w.length > 0; });
-    var results = NUT_FOODS.filter(function(f) {
-      var n = nutNorm(f.name);
-      return words.every(function(w) { return n.indexOf(w) !== -1; });
-    });
-    results.sort(function(a, b) {
-      var an = nutNorm(a.name), bn = nutNorm(b.name);
-      var aStarts = an.indexOf(q) === 0 ? 0 : 1;
-      var bStarts = bn.indexOf(q) === 0 ? 0 : 1;
-      return aStarts - bStarts || an.localeCompare(bn);
-    });
-    results = results.slice(0, 8);
-    _nutSearchResults[dropKey] = results;
-    if (!drop) return;
-    if (!results.length) {
-      drop.innerHTML = '<div class="nut-drop-empty">Aucun aliment trouv&eacute; pour "' + esc(query) + '"</div>';
-      drop.style.display = 'block';
-      return;
-    }
-    drop.innerHTML = results.map(function(p, pi) {
-      var m = p.per100;
-      var label = p.name.length > 50 ? p.name.substring(0, 50) + '...' : p.name;
-      return '<div class="nut-drop-item" onclick="nutSelectFood(' + dayIdx + ',\'' + mealKey + '\',' + pi + ')">' +
-        '<span class="nut-drop-name">' + esc(label) + '</span>' +
-        '<span class="nut-drop-meta">P:' + m.proteins + ' G:' + m.carbs + ' L:' + m.fats + ' ' + m.calories + 'kcal</span>' +
-      '</div>';
-    }).join('');
-    drop.style.display = 'block';
-  }
-
-  function nutSelectFood(dayIdx, mealKey, resultIdx) {
-    var dropKey = dayIdx + '-' + mealKey;
-    var p = (_nutSearchResults[dropKey] || [])[resultIdx];
-    if (!p) return;
-    var m = p.per100;
-    var entry = {
-      name: p.name, qty: 100, unit_mode: 'g',
-      proteins: m.proteins, carbs: m.carbs, fats: m.fats, calories: m.calories,
-      per100: m
-    };
-    if (p.unit_weight) entry.unit_weight = p.unit_weight;
-    nutPlanData.days[dayIdx].meals[mealKey].push(entry);
-    renderNutDayEditor();
-    var si = document.getElementById('nsi-' + dayIdx + '-' + mealKey);
-    if (si) { si.value = ''; si.focus(); }
-  }
-
-  function nutHideDrop(dropKey) {
-    var d = document.getElementById('nsd-' + dropKey);
-    if (d) d.style.display = 'none';
-  }
-
-  function updateNutDayType(value) {
-    if (nutPlanData) nutPlanData.days[nutDay].type = value;
-  }
-
-  async function saveNutritionPlan() {
-    if (!nutPlanData) return;
-    var btn = document.getElementById('btn-save-nut-plan');
-    btn.disabled = true;
-    var err;
-    if (nutPlanId) {
-      var res = await db.from('nutrition_plans').update({ plan_data: nutPlanData, updated_at: new Date().toISOString() }).eq('id', nutPlanId);
-      err = res.error;
-    } else {
-      var res2 = await db.from('nutrition_plans').insert({ client_id: selectedClient.id, coach_id: profile.id, plan_data: nutPlanData }).select().single();
-      err = res2.error;
-      if (res2.data) nutPlanId = res2.data.id;
-    }
-    btn.disabled = false;
-    if (err) { toast('Erreur : ' + err.message, 'error'); return; }
-    toast('Plan alimentaire sauvegardé !', 'success');
-    sendAutoNotif(selectedClient.id, '🥗 Votre plan alimentaire a été mis à jour par votre coach.');
-  }
-
-  function generateNutPDF() {
-    if (!nutPlanData) { toast('Chargez d\'abord un client', 'error'); return; }
-    var clientName  = selectedClient ? (selectedClient.full_name || 'Client') : 'Client';
-    var clientEmail = selectedClient ? (selectedClient.email || '') : '';
-    var coachName   = profile ? (profile.full_name || 'Coach') : 'Coach';
-    var date = new Date().toLocaleDateString('fr-FR');
-    var parts = [];
-    parts.push('<!DOCTYPE html><html><head><meta charset="UTF-8">');
-    parts.push('<title>Plan Alimentaire</title><style>');
-    parts.push('body{font-family:Arial,sans-serif;font-size:11px;color:#111;margin:0;padding:20px}');
-    parts.push('h1{font-size:17px;margin:0 0 3px;color:#1a1a1a}');
-    parts.push('.sub{font-size:10px;color:#888;margin-bottom:20px}');
-    parts.push('.day{margin-bottom:18px;page-break-inside:avoid}');
-    parts.push('.day-h{background:#f5f5f5;padding:5px 10px;font-size:12px;font-weight:bold;border-left:3px solid #6B21A8;margin-bottom:8px}');
-    parts.push('.day-type{font-size:10px;color:#666;font-weight:normal;margin-left:6px}');
-    parts.push('.meal{margin:0 0 9px 12px}');
-    parts.push('.meal-h{font-size:11px;font-weight:bold;color:#333;border-bottom:1px solid #eee;padding-bottom:2px;margin-bottom:5px}');
-    parts.push('table{width:100%;border-collapse:collapse;font-size:10px}');
-    parts.push('th{background:#fafafa;padding:3px 6px;text-align:left;border:1px solid #e0e0e0;color:#555;font-weight:600}');
-    parts.push('td{padding:3px 6px;border:1px solid #eee}');
-    parts.push('.tot{font-size:10px;color:#555;text-align:right;margin-top:3px;font-style:italic}');
-    parts.push('.day-tot{margin:6px 0 0 12px;font-size:10px;font-weight:bold;color:#222;border-top:1px solid #ddd;padding-top:5px}');
-    parts.push('.empty{font-size:10px;color:#aaa;font-style:italic;padding:2px 0}');
-    parts.push('.pdf-footer{margin-top:30px;padding-top:10px;border-top:1px solid #ddd;font-size:9px;color:#aaa;text-align:center;line-height:1.7}');
-    parts.push('@media print{@page{margin:14mm}body{padding:0}.pdf-footer{position:fixed;bottom:0;left:0;right:0;padding:6px 14mm;border-top:1px solid #e0e0e0;background:#fff}}');
-    parts.push('<\/style><\/head><body>');
-    parts.push('<h1>Plan Alimentaire &mdash; ' + esc(clientName) + '<\/h1>');
-    parts.push('<div class="sub">G&eacute;n&eacute;r&eacute; le ' + date + '<\/div>');
-    nutPlanData.days.forEach(function(day, di) {
-      var dayTP = 0, dayTC = 0, dayTL = 0, dayTK = 0;
-      var dayType = (day.type === 'repos') ? 'Repos' : 'Sport';
-      parts.push('<div class="day"><div class="day-h">' + NUT_DAY_FULL[di]);
-      parts.push('<span class="day-type">(' + dayType + ')<\/span><\/div>');
-      NUT_MEAL_KEYS.forEach(function(key) {
-        var foods = day.meals[key] || [];
-        parts.push('<div class="meal"><div class="meal-h">' + NUT_MEAL_TXT[key] + '<\/div>');
-        if (!foods.length) {
-          parts.push('<div class="empty">Aucun aliment<\/div>');
-        } else {
-          parts.push('<table><thead><tr>');
-          parts.push('<th>Aliment<\/th><th>Qt&eacute;<\/th>');
-          parts.push('<th style="color:#3b82f6">Prot&eacute;ines<\/th>');
-          parts.push('<th style="color:#f97316">Glucides<\/th>');
-          parts.push('<th style="color:#ca8a04">Lipides<\/th>');
-          parts.push('<th style="color:#16a34a">Calories<\/th>');
-          parts.push('<\/tr><\/thead><tbody>');
-          var tp = 0, tc = 0, tl = 0, tk = 0;
-          foods.forEach(function(f) {
-            var p = nutR1(f.proteins), c = nutR1(f.carbs), l = nutR1(f.fats), k = Math.round(f.calories || 0);
-            tp += f.proteins || 0; tc += f.carbs || 0; tl += f.fats || 0; tk += f.calories || 0;
-            var isU = (f.unit_mode === 'unit' && f.unit_weight);
-            var qtyLabel = isU
-              ? (f.qty || 1) + ' u. (' + Math.round((f.qty || 1) * f.unit_weight) + 'g)'
-              : (f.qty || 100) + 'g';
-            parts.push('<tr><td>' + esc(f.name) + '<\/td><td>' + qtyLabel + '<\/td>');
-            parts.push('<td>' + p + 'g<\/td><td>' + c + 'g<\/td><td>' + l + 'g<\/td><td>' + k + ' kcal<\/td><\/tr>');
-          });
-          dayTP += tp; dayTC += tc; dayTL += tl; dayTK += tk;
-          parts.push('<\/tbody><\/table>');
-          parts.push('<div class="tot">Total : ' + nutR1(tp) + 'g P - ' + nutR1(tc) + 'g G - ' + nutR1(tl) + 'g L - ' + Math.round(tk) + ' kcal<\/div>');
-        }
-        parts.push('<\/div>');
-      });
-      parts.push('<div class="day-tot">Total jour : ' + nutR1(dayTP) + 'g P - ' + nutR1(dayTC) + 'g G - ' + nutR1(dayTL) + 'g L - ' + Math.round(dayTK) + ' kcal<\/div>');
-      parts.push('<\/div>');
-    });
-    parts.push('<div class="pdf-footer">');
-    parts.push('Programme confidentiel &eacute;tabli par ' + esc(coachName) + ' via Ascora<br>');
-    parts.push('Client&nbsp;: ' + esc(clientName) + (clientEmail ? ' &mdash; ' + esc(clientEmail) : '') + '<br>');
-    parts.push('Toute reproduction est interdite');
-    parts.push('<\/div>');
-    parts.push('<\/body><\/html>');
-    var win = window.open('', '_blank');
-    if (!win) { toast('Autorisez les popups pour le PDF', 'error'); return; }
-    win.document.write(parts.join(''));
-    win.document.close();
-    setTimeout(function() { win.print(); }, 350);
-  }
-
-  function openNutAIModal() {
+  function openNutAITab() {
     const obj = selectedClient.ai_nutrition_objectives ? JSON.parse(selectedClient.ai_nutrition_objectives) : {};
-    document.getElementById('ai-calories').value   = obj.calories   || '';
-    document.getElementById('ai-proteines').value  = obj.proteines  || '';
-    document.getElementById('ai-glucides').value   = obj.glucides   || '';
-    document.getElementById('ai-lipides').value    = obj.lipides    || '';
-    document.getElementById('ai-allergies').value  = obj.allergies  || '';
-    document.getElementById('ai-note').value       = obj.note       || '';
+    document.getElementById('ai-calories').value  = obj.calories  || '';
+    document.getElementById('ai-proteines').value = obj.proteines || '';
+    document.getElementById('ai-glucides').value  = obj.glucides  || '';
+    document.getElementById('ai-lipides').value   = obj.lipides   || '';
+    document.getElementById('ai-allergies').value = obj.allergies || '';
+    document.getElementById('ai-note').value      = obj.note      || '';
     ['fer','vitc','vita','fibres','omega3','calcium','magnesium','vitd'].forEach(function(k) {
       document.getElementById('ai-' + k).checked = !!(obj.besoins && obj.besoins.includes(k));
     });
-    document.getElementById('nut-ai-modal').classList.add('show');
   }
 
   async function saveNutAIObjectives() {
@@ -3922,7 +3419,6 @@
     selectedClient.ai_nutrition_objectives = JSON.stringify(obj);
     const idx = clients.findIndex(function(c) { return c.id === selectedClient.id; });
     if (idx !== -1) clients[idx].ai_nutrition_objectives = JSON.stringify(obj);
-    closeModal('nut-ai-modal');
     toast('Objectifs IA sauvegardés !', 'success');
   }
 
@@ -4954,67 +4450,6 @@
     <div class="modal-actions">
       <button class="btn-modal cancel" onclick="closeModal('duo-sport-modal')">Non, garder individuel</button>
       <button class="btn-modal confirm" onclick="confirmDuoSportSync()">Oui, synchroniser</button>
-    </div>
-  </div>
-</div>
-<div class="modal-overlay" id="nut-ai-modal">
-  <div class="modal" style="max-width:520px;max-height:85vh;overflow-y:auto">
-    <div class="modal-header">
-      <div class="modal-title">🤖 Objectifs nutrition IA</div>
-      <button class="modal-close" onclick="closeModal('nut-ai-modal')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <p style="font-size:.8rem;color:var(--text3);margin-bottom:1.25rem">Ces objectifs seront utilisés par l'IA pour générer automatiquement les menus du client.</p>
-
-    <div class="form-row" style="margin-bottom:.9rem">
-      <div class="form-group">
-        <label class="form-label">Calories cibles (kcal)</label>
-        <input class="form-input" type="number" id="ai-calories" placeholder="2000">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Protéines (g)</label>
-        <input class="form-input" type="number" id="ai-proteines" placeholder="150">
-      </div>
-    </div>
-    <div class="form-row" style="margin-bottom:.9rem">
-      <div class="form-group">
-        <label class="form-label">Glucides (g)</label>
-        <input class="form-input" type="number" id="ai-glucides" placeholder="200">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Lipides (g)</label>
-        <input class="form-input" type="number" id="ai-lipides" placeholder="70">
-      </div>
-    </div>
-
-    <div style="margin-bottom:1rem">
-      <label class="form-label" style="margin-bottom:.5rem;display:block">Besoins spéciaux (cocher si applicable)</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
-        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-fer"> Riche en fer</label>
-        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-vitc"> Riche en vitamine C</label>
-        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-vita"> Riche en vitamine A</label>
-        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-fibres"> Riche en fibres</label>
-        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-omega3"> Riche en oméga-3</label>
-        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-calcium"> Riche en calcium</label>
-        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-magnesium"> Riche en magnésium</label>
-        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer"><input type="checkbox" id="ai-vitd"> Riche en vitamine D</label>
-      </div>
-    </div>
-
-    <div class="form-group" style="margin-bottom:1.1rem">
-      <label class="form-label">Allergies / aliments à éviter</label>
-      <input class="form-input" type="text" id="ai-allergies" placeholder="Ex : gluten, lactose, noix...">
-    </div>
-
-    <div class="form-group" style="margin-bottom:1.1rem">
-      <label class="form-label">Note pour l'IA (facultatif)</label>
-      <input class="form-input" type="text" id="ai-note" placeholder="Ex : client végétarien, préfère les repas simples...">
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn-modal cancel" onclick="closeModal('nut-ai-modal')">Annuler</button>
-      <button class="btn-modal confirm" onclick="saveNutAIObjectives()">Sauvegarder les objectifs</button>
     </div>
   </div>
 </div>
