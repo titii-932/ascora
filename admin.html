@@ -316,7 +316,7 @@
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    const ADMIN_HASH = 'a8f6c2e1b3d9f7e4c5a2b8d1e6f3c9a7b4d2e8f5c1a9b6d3e7f2c4a1b8d5e9f6';
+    const ADMIN_HASH = '25b2ee5e488e3a72f0cc5fd812fffc179e33631fb61444232ce7d72254ad3419';
     if (hashHex === ADMIN_HASH) {
       document.getElementById('gate').style.display = 'none';
       document.getElementById('panel').style.display = 'block';
