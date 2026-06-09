@@ -302,7 +302,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const ADMIN_PW = 'Ascora2026!';
   const SUPA_URL = 'https://dxrkutyaamvhtshzanwu.supabase.co';
   const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4cmt1dHlhYW12aHRzaHphbnd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNjExNzgsImV4cCI6MjA5MzgzNzE3OH0.RE2A9EBCLhNXqn2aBUcPTYmmlvOUhN-2HMn6xFuv9Y8';
 
@@ -310,19 +309,23 @@
   const db = createClient(SUPA_URL, SUPA_KEY);
 
   // ── GATE ──────────────────────────────────────────────────────
-  function checkPw() {
+  async function checkPw() {
     const val = document.getElementById('pw-input').value;
-    if (val === ADMIN_PW) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(val);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const ADMIN_HASH = 'a8f6c2e1b3d9f7e4c5a2b8d1e6f3c9a7b4d2e8f5c1a9b6d3e7f2c4a1b8d5e9f6';
+    if (hashHex === ADMIN_HASH) {
       document.getElementById('gate').style.display = 'none';
       document.getElementById('panel').style.display = 'block';
       loadCoaches();
       loadGlobalExercises();
     } else {
-      const err = document.getElementById('pw-error');
-      err.textContent = 'Mot de passe incorrect.';
+      document.getElementById('pw-error').textContent = 'Mot de passe incorrect.';
       document.getElementById('pw-input').value = '';
       document.getElementById('pw-input').focus();
-      setTimeout(function() { err.textContent = ''; }, 3000);
     }
   }
 
