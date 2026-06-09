@@ -1332,7 +1332,19 @@
     document.getElementById('nutrition-content').style.display = 'none';
     document.getElementById('nutrition-no-objectives').style.display = 'none';
 
-    const { data: profileData } = await db.from('profiles').select('ai_nutrition_objectives').eq('id', coachClientId || profile.id).maybeSingle();
+    let clientId = null;
+    if (typeof profile !== 'undefined' && profile && profile.id) {
+      clientId = profile.id;
+    } else {
+      const { data: { user } } = await db.auth.getUser();
+      clientId = user?.id;
+    }
+    if (!clientId) {
+      document.getElementById('nutrition-loading').style.display = 'none';
+      document.getElementById('nutrition-no-objectives').style.display = 'block';
+      return;
+    }
+    const { data: profileData } = await db.from('profiles').select('ai_nutrition_objectives').eq('id', clientId).maybeSingle();
     const raw = profileData?.ai_nutrition_objectives;
 
     document.getElementById('nutrition-loading').style.display = 'none';
