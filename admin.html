@@ -401,7 +401,6 @@
       .select('id, full_name, email, status, created_at')
       .eq('role', 'coach')
       .order('created_at', { ascending: false });
-    console.log('coaches data:', data, 'error:', error);
 
     if (error) {
       tbody.innerHTML = '<tr><td colspan="5" class="table-empty" style="color:#f87171">Erreur : ' + esc(error.message) + '</td></tr>';
