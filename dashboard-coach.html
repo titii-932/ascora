@@ -1450,6 +1450,10 @@
         <div class="section-header">
           <h2>Mes clients</h2>
         </div>
+        <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+          <button id="tab-presentiel" class="status-filter-tab active" style="background:rgba(16,185,129,.15);color:#10b981;border-color:rgba(16,185,129,.4)" onclick="filterSessionType('presentiel')">🏋️ Présentiel</button>
+          <button id="tab-distanciel" class="status-filter-tab" onclick="filterSessionType('distanciel')">📱 Distanciel</button>
+        </div>
         <div class="status-filter-tabs">
           <button class="status-filter-tab active" data-status="en_cours" onclick="filterClientStatus('en_cours')">🟠 En cours</button>
           <button class="status-filter-tab" data-status="actif"    onclick="filterClientStatus('actif')">🟢 Actif</button>
@@ -1674,6 +1678,19 @@
               <label>Antécédents médicaux importants</label>
               <textarea class="form-input" id="ci-medical-history" rows="3"
                 placeholder="Opérations, maladies chroniques, hospitalisations..."></textarea>
+            </div>
+
+            <div class="info-section-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              Type de séance
+            </div>
+            <div style="display:flex;gap:.75rem;margin-bottom:1rem">
+              <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.84rem">
+                <input type="radio" name="session-type" id="ci-type-presentiel" value="presentiel"> Présentiel
+              </label>
+              <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.84rem">
+                <input type="radio" name="session-type" id="ci-type-distanciel" value="distanciel"> Distanciel
+              </label>
             </div>
 
             <!-- ── DUO ── -->
@@ -2101,6 +2118,7 @@
   let clients = [];
   let selectedClient = null;
   let activeClientStatus = 'en_cours';
+  let currentSessionTypeFilter = 'presentiel';
   let unreadByClient = {};
   let duoPartner = null;
   let _pendingDuoSessionId = null;
@@ -2296,6 +2314,7 @@
 
     const filtered = clients
       .filter(c => (c.client_status || 'en_cours') === activeClientStatus)
+      .filter(c => (c.session_type || 'presentiel') === currentSessionTypeFilter)
       .sort((a, b) => a.full_name.localeCompare(b.full_name, 'fr', { sensitivity: 'base' }));
 
     if (!filtered.length) {
@@ -2421,6 +2440,19 @@
     document.querySelectorAll('.status-filter-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.status === status);
     });
+    renderClientGrid();
+  }
+
+  function filterSessionType(type) {
+    document.getElementById('tab-presentiel').classList.toggle('active', type === 'presentiel');
+    document.getElementById('tab-distanciel').classList.toggle('active', type === 'distanciel');
+    document.getElementById('tab-presentiel').style.background = type === 'presentiel' ? 'rgba(16,185,129,.15)' : '';
+    document.getElementById('tab-presentiel').style.color = type === 'presentiel' ? '#10b981' : '';
+    document.getElementById('tab-presentiel').style.borderColor = type === 'presentiel' ? 'rgba(16,185,129,.4)' : '';
+    document.getElementById('tab-distanciel').style.background = type === 'distanciel' ? 'rgba(107,33,168,.2)' : '';
+    document.getElementById('tab-distanciel').style.color = type === 'distanciel' ? '#a855f7' : '';
+    document.getElementById('tab-distanciel').style.borderColor = type === 'distanciel' ? 'rgba(107,33,168,.5)' : '';
+    currentSessionTypeFilter = type;
     renderClientGrid();
   }
 
@@ -2627,6 +2659,10 @@
     document.getElementById('ci-medications').value    = selectedClient.medications      || '';
     document.getElementById('ci-medical-history').value = selectedClient.medical_history || '';
 
+    const sType = selectedClient.session_type || 'presentiel';
+    const radioEl = document.getElementById('ci-type-' + sType);
+    if (radioEl) radioEl.checked = true;
+
     document.getElementById('ci-price').value = selectedClient.price_per_session || '';
 
     // Réinitialise le formulaire et l'historique pour le nouveau client
@@ -2718,6 +2754,7 @@
       medical_history:  txt('ci-medical-history'),
 
       price_per_session: num('ci-price'),
+      session_type: document.querySelector('input[name="session-type"]:checked')?.value || 'presentiel',
     };
 
     const btn = document.getElementById('btn-save-health');
