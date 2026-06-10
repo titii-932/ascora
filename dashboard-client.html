@@ -656,6 +656,23 @@
     .avatar-popup-title { font-size: 1.1rem; font-weight: 700; margin-bottom: .85rem; }
     .avatar-popup-desc { font-size: .85rem; color: var(--text2); line-height: 1.65; margin-bottom: 1.5rem; }
     .avatar-popup-actions { display: flex; flex-direction: column; gap: .65rem; }
+  .perf-card { background:var(--card); border:1px solid var(--border); border-radius:14px; margin-bottom:.75rem; overflow:hidden; }
+  .perf-card-header { padding:.85rem 1.1rem; display:flex; align-items:center; justify-content:space-between; cursor:pointer; gap:.75rem; }
+  .perf-card-header:hover { background:rgba(255,255,255,.02); }
+  .perf-card-name { font-size:.9rem; font-weight:600; color:var(--text); }
+  .perf-card-body { padding:1rem 1.1rem; border-top:1px solid var(--border); display:none; }
+  .perf-card-body.open { display:block; }
+  .perf-ex-block { margin-bottom:1.1rem; }
+  .perf-ex-block:last-child { margin-bottom:0; }
+  .perf-ex-name { font-size:.82rem; font-weight:600; color:var(--text2); margin-bottom:.5rem; }
+  .perf-series-row { display:flex; gap:.5rem; flex-wrap:wrap; }
+  .perf-serie-box { display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .perf-serie-label { font-size:.62rem; color:var(--text3); }
+  .perf-serie-inputs { display:flex; gap:3px; }
+  .perf-serie-input { width:48px; border:1px solid var(--border); border-radius:7px; padding:4px 5px; font-size:.75rem; text-align:center; background:var(--card2); color:var(--text3); font-family:'Inter',sans-serif; }
+  .perf-serie-input:focus { outline:none; border-color:var(--em); color:var(--text); background:var(--card); }
+  .perf-serie-unit { font-size:.58rem; color:var(--text3); text-align:center; }
+  .perf-actions { display:flex; justify-content:flex-end; gap:.5rem; margin-top:1rem; padding-top:.75rem; border-top:1px solid var(--border); }
   </style>
 </head>
 <body>
@@ -949,48 +966,65 @@
 
     <!-- SEANCES SOLO -->
     <section id="section-solo" class="content-section">
-      <div class="solo-layout">
-        <div class="solo-form-card">
-          <div class="solo-form-title">Ajouter une seance</div>
-          <div class="form-group">
-            <label>Date</label>
-            <input class="form-input" type="date" id="solo-date">
-          </div>
-          <div class="form-group">
-            <label>Description</label>
-            <input class="form-input" type="text" id="solo-desc" placeholder="Course a pied, muscu...">
-          </div>
-          <div class="form-group">
-            <label>Duree (min)</label>
-            <input class="form-input" type="number" id="solo-duration" placeholder="45" min="1">
-          </div>
-          <div class="form-group">
-            <label>Ressenti</label>
-            <div class="feeling-picker" id="feeling-picker">
-              <button class="feeling-btn" data-v="1" onclick="selectFeeling(1)">1</button>
-              <button class="feeling-btn" data-v="2" onclick="selectFeeling(2)">2</button>
-              <button class="feeling-btn" data-v="3" onclick="selectFeeling(3)">3</button>
-              <button class="feeling-btn" data-v="4" onclick="selectFeeling(4)">4</button>
-              <button class="feeling-btn" data-v="5" onclick="selectFeeling(5)">5</button>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Notes (optionnel)</label>
-            <textarea class="form-input" id="solo-notes" rows="3" placeholder="Sensations, observations..."></textarea>
-          </div>
-          <button class="btn-save" style="margin-top:.5rem" onclick="addSoloSession()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Ajouter
-          </button>
-        </div>
 
-        <div>
-          <div class="solo-history-title">Historique</div>
-          <div class="loading" id="solo-loading"><div class="spinner"></div><br>Chargement...</div>
-          <div class="solo-history" id="solo-history"></div>
+  <!-- SÉANCES DU PROGRAMME -->
+  <div style="margin-bottom:2rem">
+    <div style="font-size:.9rem;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Séances de mon programme
+    </div>
+    <div id="program-sessions-solo" class="loading"><div class="spinner"></div><br>Chargement...</div>
+  </div>
+
+  <!-- SÉANCE LIBRE -->
+  <div style="border-top:1px solid var(--border);padding-top:1.5rem">
+    <div style="font-size:.9rem;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Ajouter une séance libre
+    </div>
+    <div class="solo-layout">
+      <div class="solo-form-card">
+        <div class="solo-form-title">Séance libre</div>
+        <div class="form-group">
+          <label>Date</label>
+          <input class="form-input" type="date" id="solo-date">
         </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input class="form-input" type="text" id="solo-desc" placeholder="Course a pied, yoga...">
+        </div>
+        <div class="form-group">
+          <label>Duree (min)</label>
+          <input class="form-input" type="number" id="solo-duration" placeholder="45" min="1">
+        </div>
+        <div class="form-group">
+          <label>Ressenti</label>
+          <div class="feeling-picker" id="feeling-picker">
+            <button class="feeling-btn" data-v="1" onclick="selectFeeling(1)">1</button>
+            <button class="feeling-btn" data-v="2" onclick="selectFeeling(2)">2</button>
+            <button class="feeling-btn" data-v="3" onclick="selectFeeling(3)">3</button>
+            <button class="feeling-btn" data-v="4" onclick="selectFeeling(4)">4</button>
+            <button class="feeling-btn" data-v="5" onclick="selectFeeling(5)">5</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notes (optionnel)</label>
+          <textarea class="form-input" id="solo-notes" rows="3" placeholder="Sensations, observations..."></textarea>
+        </div>
+        <button class="btn-save" style="margin-top:.5rem" onclick="addSoloSession()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter
+        </button>
       </div>
-    </section>
+      <div>
+        <div class="solo-history-title">Historique séances libres</div>
+        <div class="loading" id="solo-loading"><div class="spinner"></div><br>Chargement...</div>
+        <div class="solo-history" id="solo-history"></div>
+      </div>
+    </div>
+  </div>
+
+</section>
 
   </div>
 </div>
@@ -1189,6 +1223,7 @@
     document.querySelectorAll('.nav-item').forEach(i => i.classList.toggle('active', i.dataset.section === name));
     document.getElementById('topbar-title').textContent = sectionTitles[name] || '';
     if (name === 'nutrition') loadNutritionSection();
+    if (name === 'solo') { loadProgramSessions(); loadSoloSessions(); }
     if (name === 'messages') loadMessages();
     closeSidebar();
   }
@@ -1714,6 +1749,145 @@
     await db.from('solo_sessions').delete().eq('id', id);
     toast('Seance supprimee.', 'success');
     loadSoloSessions();
+  }
+
+  // ── SÉANCES PROGRAMME ──────────────────────────────────────────────────
+  async function loadProgramSessions() {
+    const container = document.getElementById('program-sessions-solo');
+    container.innerHTML = '<div class="loading"><div class="spinner"></div><br>Chargement...</div>';
+
+    const { data: sessions } = await db.from('workout_sessions')
+      .select('*').eq('client_id', profile.id).order('position');
+
+    if (!sessions || !sessions.length) {
+      container.innerHTML = '<div class="empty-state"><p>Votre coach n\'a pas encore créé de programme.</p></div>';
+      return;
+    }
+
+    const sessionIds = sessions.map(function(s) { return s.id; });
+    const { data: lastPerfs } = await db.from('solo_performance')
+      .select('*').eq('client_id', profile.id)
+      .in('workout_session_id', sessionIds)
+      .order('performed_at', { ascending: false });
+
+    const lastPerfMap = {};
+    (lastPerfs || []).forEach(function(p) {
+      if (!lastPerfMap[p.workout_session_id]) lastPerfMap[p.workout_session_id] = p;
+    });
+
+    container.innerHTML = sessions.map(function(s) {
+      var exercises = [];
+      try { exercises = Array.isArray(s.exercises) ? s.exercises : JSON.parse(s.exercises || '[]'); } catch(e) {}
+      var lastPerf = lastPerfMap[s.id];
+      var lastExData = lastPerf ? (lastPerf.exercises_data || []) : [];
+
+      var exBlocks = exercises.map(function(ex, ei) {
+        var sets = parseInt(ex.sets) || 3;
+        var lastEx = lastExData[ei] || {};
+        var lastSeries = lastEx.series || [];
+
+        var seriesHtml = '';
+        for (var si = 0; si < sets; si++) {
+          var lastS = lastSeries[si] || {};
+          var placeholderReps = lastS.reps || '—';
+          var placeholderKg   = lastS.kg   || '—';
+          seriesHtml += '<div class="perf-serie-box">' +
+            '<span class="perf-serie-label">S' + (si+1) + '</span>' +
+            '<div class="perf-serie-inputs">' +
+              '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
+                '<input class="perf-serie-input" placeholder="' + placeholderReps + '" data-sess="' + s.id + '" data-ex="' + ei + '" data-serie="' + si + '" data-type="reps">' +
+                '<span class="perf-serie-unit">reps</span>' +
+              '</div>' +
+              '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
+                '<input class="perf-serie-input" placeholder="' + placeholderKg + '" data-sess="' + s.id + '" data-ex="' + ei + '" data-serie="' + si + '" data-type="kg">' +
+                '<span class="perf-serie-unit">kg</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }
+
+        return '<div class="perf-ex-block">' +
+          '<div class="perf-ex-name">' + esc(ex.name || 'Exercice ' + (ei+1)) + ' <span style="font-weight:400;color:var(--text3);font-size:.72rem">· ' + sets + ' séries</span></div>' +
+          '<div class="perf-series-row">' + seriesHtml + '</div>' +
+        '</div>';
+      }).join('');
+
+      var lastDate = lastPerf ? ' · <span style="font-size:.72rem;color:var(--text3)">Dernière fois : ' + new Date(lastPerf.performed_at).toLocaleDateString('fr-FR') + '</span>' : '<span style="font-size:.72rem;color:var(--text3)"> · Première fois</span>';
+
+      return '<div class="perf-card" id="perf-card-' + s.id + '">' +
+        '<div class="perf-card-header" onclick="togglePerfCard(\'' + s.id + '\')">' +
+          '<div>' +
+            '<div class="perf-card-name">' + esc(s.name || 'Séance') + '</div>' +
+            '<div>' + lastDate + '</div>' +
+          '</div>' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="chevron-' + s.id + '"><polyline points="6 9 12 15 18 9"/></svg>' +
+        '</div>' +
+        '<div class="perf-card-body" id="perf-body-' + s.id + '">' +
+          exBlocks +
+          '<div class="perf-actions">' +
+            '<div style="display:flex;align-items:center;gap:.5rem">' +
+              '<label style="font-size:.75rem;color:var(--text3)">Ressenti</label>' +
+              '<div style="display:flex;gap:.3rem">' +
+                [1,2,3,4,5].map(function(v) {
+                  return '<button onclick="setPerfFeeling(\'' + s.id + '\',' + v + ')" id="pf-' + s.id + '-' + v + '" style="width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--card2);color:var(--text3);font-size:.72rem;cursor:pointer">' + v + '</button>';
+                }).join('') +
+              '</div>' +
+            '</div>' +
+            '<button class="btn-sm primary" onclick="savePerfSession(\'' + s.id + '\')" style="padding:.45rem 1rem">✓ Terminer</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function togglePerfCard(id) {
+    var body = document.getElementById('perf-body-' + id);
+    var chevron = document.getElementById('chevron-' + id);
+    body.classList.toggle('open');
+    chevron.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+  }
+
+  var _perfFeelings = {};
+  function setPerfFeeling(sessId, val) {
+    _perfFeelings[sessId] = val;
+    [1,2,3,4,5].forEach(function(v) {
+      var btn = document.getElementById('pf-' + sessId + '-' + v);
+      if (btn) {
+        btn.style.background = v === val ? 'var(--em)' : 'var(--card2)';
+        btn.style.color = v === val ? '#000' : 'var(--text3)';
+        btn.style.borderColor = v === val ? 'var(--em)' : 'var(--border)';
+      }
+    });
+  }
+
+  async function savePerfSession(sessId) {
+    var inputs = document.querySelectorAll('[data-sess="' + sessId + '"]');
+    var exMap = {};
+    inputs.forEach(function(inp) {
+      var ei = inp.dataset.ex;
+      var si = inp.dataset.serie;
+      var type = inp.dataset.type;
+      if (!exMap[ei]) exMap[ei] = { series: [] };
+      if (!exMap[ei].series[si]) exMap[ei].series[si] = {};
+      exMap[ei].series[si][type] = inp.value || inp.placeholder || '';
+    });
+
+    var exercisesData = Object.keys(exMap).sort().map(function(k) { return exMap[k]; });
+    var feeling = _perfFeelings[sessId] || null;
+
+    var today = new Date().toISOString().slice(0,10);
+    var { error } = await db.from('solo_performance').insert({
+      client_id: profile.id,
+      workout_session_id: sessId,
+      performed_at: today,
+      exercises_data: exercisesData,
+      feeling: feeling
+    });
+
+    if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+    toast('Séance enregistrée !', 'success');
+    togglePerfCard(sessId);
+    loadProgramSessions();
   }
 
   // ── MESSAGERIE ────────────────────────────────────────────────────────
