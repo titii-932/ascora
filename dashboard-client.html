@@ -777,6 +777,7 @@
         ✨ Générer mon menu du jour
       </button>
       <div style="font-size:.72rem;color:var(--text3);margin-top:.5rem">Chaque génération propose un menu différent qui respecte vos objectifs</div>
+      <div id="menu-counter" style="font-size:.72rem;color:var(--text3);margin-top:.25rem"></div>
     </div>
 
     <div id="menu-loading" style="display:none;text-align:center;padding:2rem">
@@ -1378,6 +1379,23 @@
     const obj = window._nutObjectives;
     if (!obj) return;
 
+    // Vérifier la limite journalière (5 générations max)
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: genData, error: genError } = await db.from('menu_generations')
+      .select('id')
+      .eq('client_id', profile.id)
+      .eq('generated_at', today);
+
+    if (genData && genData.length >= 5) {
+      document.getElementById('menu-result').innerHTML = '<div style="text-align:center;padding:1.5rem;background:var(--card);border:1px solid var(--border);border-radius:12px">' +
+        '<div style="font-size:1.5rem;margin-bottom:.5rem">⏳</div>' +
+        '<div style="font-weight:600;margin-bottom:.35rem">Limite journalière atteinte</div>' +
+        '<div style="font-size:.8rem;color:var(--text3)">Vous avez généré 5 menus aujourd\'hui. Revenez demain !</div>' +
+      '</div>';
+      document.getElementById('menu-result').style.display = 'block';
+      return;
+    }
+
     document.getElementById('btn-generate-menu').disabled = true;
     document.getElementById('menu-loading').style.display = 'block';
     document.getElementById('menu-result').style.display = 'none';
@@ -1416,6 +1434,15 @@
       const clean = text.replace(/```json|```/g, '').trim();
       const menu = JSON.parse(clean);
       renderDailyMenu(menu);
+      // Enregistrer la génération
+      await db.from('menu_generations').insert({
+        client_id: profile.id,
+        generated_at: today
+      });
+      // Mettre à jour le compteur affiché
+      const remaining = 4 - (genData ? genData.length : 0);
+      const counterEl = document.getElementById('menu-counter');
+      if (counterEl) counterEl.textContent = remaining > 0 ? remaining + ' génération(s) restante(s) aujourd\'hui' : 'Dernière génération du jour utilisée';
     } catch(e) {
       document.getElementById('menu-result').innerHTML = '<div style="color:#f87171;text-align:center;padding:1rem">Erreur lors de la génération. Réessayez.</div>';
       document.getElementById('menu-result').style.display = 'block';
