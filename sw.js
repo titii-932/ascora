@@ -1,4 +1,4 @@
-const CACHE = 'ascora-v7';
+const CACHE = 'ascora-v8';
 
 const STATIC = [
   '/index.html',
