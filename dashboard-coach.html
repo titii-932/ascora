@@ -1830,6 +1830,16 @@
               <div style="color:var(--text2);font-size:.85rem">Chargement...</div>
             </div>
           </div>
+
+          <div class="prog-card" style="margin-top:1.25rem">
+            <h3>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5h11M6.5 17.5h11M4 12h16M2 9v6M22 9v6M5 7v10M19 7v10"/></svg>
+              Séances solo réalisées (musculation)
+            </h3>
+            <div id="solo-perf-list">
+              <div style="color:var(--text2);font-size:.85rem">Chargement...</div>
+            </div>
+          </div>
         </div>
 
         <!-- Tab: Évolution -->
@@ -3448,6 +3458,73 @@
         </div>
         <div class="session-dur">${s.duration ? s.duration + ' min' : ''}</div>
       </div>`).join('');
+    loadSoloPerformance();
+  }
+
+  async function loadSoloPerformance() {
+    const container = document.getElementById('solo-perf-list');
+    if (!container) return;
+
+    // Récupérer les noms des séances du programme
+    const { data: sessions } = await db.from('workout_sessions')
+      .select('id,name,exercises').eq('client_id', selectedClient.id);
+    const sessionMap = {};
+    (sessions || []).forEach(function(s) {
+      var exercises = [];
+      try { exercises = Array.isArray(s.exercises) ? s.exercises : JSON.parse(s.exercises || '[]'); } catch(e) {}
+      sessionMap[s.id] = { name: s.name, exercises: exercises };
+    });
+
+    // Récupérer les perfs réalisées
+    const { data: perfs } = await db.from('solo_performance')
+      .select('*').eq('client_id', selectedClient.id)
+      .order('performed_at', { ascending: false }).limit(30);
+
+    if (!perfs || !perfs.length) {
+      container.innerHTML = '<div style="color:var(--text2);font-size:.85rem">Aucune séance de musculation réalisée pour le moment.</div>';
+      return;
+    }
+
+    container.innerHTML = perfs.map(function(p) {
+      var sess = sessionMap[p.workout_session_id] || { name: 'Séance supprimée', exercises: [] };
+      var exData = p.exercises_data || [];
+
+      var feelingHtml = '';
+      if (p.feeling) {
+        var colors = ['#ef4444','#f97316','#eab308','#84cc16','#10b981'];
+        feelingHtml = '<span style="font-size:.72rem;padding:.15rem .5rem;border-radius:6px;background:' + colors[p.feeling-1] + '22;color:' + colors[p.feeling-1] + '">Ressenti ' + p.feeling + '/5</span>';
+      }
+
+      var exHtml = exData.map(function(ex, ei) {
+        var exName = (sess.exercises[ei] && sess.exercises[ei].name) ? sess.exercises[ei].name : 'Exercice ' + (ei+1);
+        var series = ex.series || [];
+        var seriesHtml = series.map(function(s, si) {
+          var reps = s.reps || '—';
+          var kg = s.kg || '—';
+          return '<span style="display:inline-flex;align-items:center;gap:.2rem;font-size:.74rem;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:.15rem .5rem;margin:.15rem">' +
+            '<span style="color:var(--text3)">S' + (si+1) + '</span> ' +
+            '<span style="color:var(--text)">' + esc(String(reps)) + ' reps</span> · ' +
+            '<span style="color:var(--em-lt)">' + esc(String(kg)) + ' kg</span>' +
+          '</span>';
+        }).join('');
+
+        return '<div style="margin-bottom:.65rem">' +
+          '<div style="font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:.25rem">' + esc(exName) + '</div>' +
+          '<div style="display:flex;flex-wrap:wrap">' + seriesHtml + '</div>' +
+        '</div>';
+      }).join('');
+
+      return '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:.75rem">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;gap:.5rem;flex-wrap:wrap">' +
+          '<div style="font-size:.9rem;font-weight:700;color:var(--text)">' + esc(sess.name) + '</div>' +
+          '<div style="display:flex;align-items:center;gap:.5rem">' +
+            feelingHtml +
+            '<span style="font-size:.74rem;color:var(--text3)">' + new Date(p.performed_at).toLocaleDateString('fr-FR') + '</span>' +
+          '</div>' +
+        '</div>' +
+        exHtml +
+      '</div>';
+    }).join('');
   }
 
   // ── CALENDAR ────────────────────────────────────
