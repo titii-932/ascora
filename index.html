@@ -353,8 +353,11 @@
     const { createClient } = supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    let isPasswordRecovery = window.location.hash.includes('type=recovery');
+
     db.auth.onAuthStateChange(function(event, session) {
       if (event === 'PASSWORD_RECOVERY') {
+        isPasswordRecovery = true;
         document.querySelectorAll('.form-section').forEach(function(f) { f.classList.remove('active'); });
         var tabsEl = document.querySelector('.tabs');
         if (tabsEl) tabsEl.style.display = 'none';
@@ -367,6 +370,7 @@
     function hasCookie(n) { return document.cookie.split(';').some(c => c.trim().startsWith(n + '=')); }
 
     db.auth.getSession().then(({ data: { session } }) => {
+      if (isPasswordRecovery) return;
       if (!session) return;
       if (!hasCookie('ascora_remember')) { db.auth.signOut(); return; }
       redirectUser(session.user.id);
