@@ -1089,8 +1089,13 @@
     .msg-bubble-wrap.mine { flex-direction: row-reverse; }
     .msg-bubble-wrap > div { min-width: 0; }
     .msg-bubble {
-      max-width: 72%; padding: .6rem 1rem; font-size: .85rem; line-height: 1.55;
-      word-break: break-word; overflow-wrap: break-word;
+      padding: .6rem 1rem; font-size: .85rem; line-height: 1.55;
+      word-break: break-word;
+      max-width: 70%;
+      width: fit-content;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
     }
     .msg-bubble.theirs {
       background: var(--card2); border: 1px solid var(--border); color: var(--text);
