@@ -2755,7 +2755,7 @@
     if (tab === 'info')       loadBillingHistory();
     if (tab === 'sport')      loadWorkoutSessions();
     if (tab === 'nutrition')  openNutAITab();
-    if (tab === 'seances')    loadClientSessions();
+    if (tab === 'seances')  { loadClientSessions(); loadSoloPerformance(); }
     if (tab === 'evolution')  loadClientEvolution();
     if (tab === 'photos')     loadClientPhotos();
     if (tab === 'messages')   loadConvMessages();
@@ -3458,7 +3458,6 @@
         </div>
         <div class="session-dur">${s.duration ? s.duration + ' min' : ''}</div>
       </div>`).join('');
-    loadSoloPerformance();
   }
 
   async function loadSoloPerformance() {
