@@ -1357,6 +1357,11 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5h11M6.5 17.5h11M2 8.5h4.5M17.5 8.5H22M2 15.5h4.5M17.5 15.5H22"/></svg>
     Exercices
   </div>
+  <div class="nav-item" data-section="messages" onclick="showSection('messages')">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    Messages
+    <span class="nav-badge" id="messages-nav-badge" style="display:none;background:var(--danger);color:#fff">0</span>
+  </div>
   <div class="nav-section-label" style="margin-top:1rem">Gestion</div>
   <div class="nav-item" data-section="pending" onclick="showSection('pending')" style="color:var(--warn)">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -1900,6 +1905,39 @@
       </div>
     </section>
 
+    <!-- ── MESSAGES ── -->
+    <section id="section-messages" class="content-section">
+      <div style="display:grid;grid-template-columns:300px 1fr;gap:1.25rem;height:calc(100vh - 120px)">
+
+        <!-- Liste des conversations -->
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column">
+          <div style="padding:.85rem 1rem;border-bottom:1px solid var(--border)">
+            <input type="text" id="msg-search-client" placeholder="🔍 Rechercher un client..." oninput="filterMsgClients()" style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.55rem .75rem;color:var(--text);font-size:.85rem;font-family:'Inter',sans-serif;outline:none">
+          </div>
+          <div id="msg-clients-list" style="flex:1;overflow-y:auto">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </div>
+
+        <!-- Fenêtre de chat -->
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column" id="msg-chat-panel">
+          <div id="msg-chat-empty" style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--text3)">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            <p style="margin-top:.75rem;font-size:.85rem">Sélectionnez un client pour discuter</p>
+          </div>
+          <div id="msg-chat-active" style="display:none;flex-direction:column;height:100%">
+            <div style="padding:.85rem 1.1rem;border-bottom:1px solid var(--border);font-weight:600;font-size:.9rem" id="msg-chat-name">—</div>
+            <div class="msg-conv" id="msg-chat-conv" style="flex:1;overflow-y:auto;padding:1rem"></div>
+            <div class="msg-input-row" style="padding:.85rem 1rem;border-top:1px solid var(--border)">
+              <input class="form-input" id="msg-chat-input" placeholder="Écrire un message..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendMsgFromPanel();}">
+              <button class="btn-sm primary" onclick="sendMsgFromPanel()">Envoyer</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
     <!-- ── DEMANDES EN ATTENTE ── -->
     <section id="section-pending" class="content-section">
       <div class="section-header">
@@ -2202,7 +2240,7 @@
     document.getElementById('sidebar-avatar').textContent = p.full_name.charAt(0).toUpperCase();
 
     const hashSection = window.location.hash.replace('#','');
-    const validSections = ['home','clients','calendar','finance','revenus','exercises','pending'];
+    const validSections = ['home','clients','calendar','finance','revenus','exercises','messages','pending'];
     showSection(validSections.includes(hashSection) ? hashSection : 'home');
     loadPendingCount();
     subscribeToNewRequests();
@@ -2215,7 +2253,7 @@
   const sectionTitles = {
     home: 'Accueil', clients: 'Clients', calendar: 'Calendrier',
     finance: 'Finances', pending: 'Demandes en attente', revenus: 'Revenus',
-    exercises: 'Exercices'
+    exercises: 'Exercices', messages: 'Messages'
   };
 
   function showSection(name) {
@@ -2231,6 +2269,7 @@
     if (name === 'pending')  loadPendingRequests();
     if (name === 'revenus')   loadRevenues();
     if (name === 'exercises') loadExercises();
+    if (name === 'messages') loadMessagesSection();
     closeSidebar();
   }
 
@@ -3524,6 +3563,107 @@
         exHtml +
       '</div>';
     }).join('');
+  }
+
+  // ── MESSAGES ────────────────────────────────────
+  var msgAllClients = [];
+  var msgActiveClientId = null;
+
+  async function loadMessagesSection() {
+    const listEl = document.getElementById('msg-clients-list');
+    listEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+    const { data: cls } = await db.from('profiles')
+      .select('id,full_name,avatar_url').eq('coach_id', profile.id).eq('status','approved')
+      .order('full_name');
+    msgAllClients = cls || [];
+
+    // Compter les non-lus par client
+    const { data: unread } = await db.from('messages')
+      .select('sender_id').eq('receiver_id', profile.id).eq('is_read', false);
+    const unreadMap = {};
+    (unread || []).forEach(function(m) { unreadMap[m.sender_id] = (unreadMap[m.sender_id]||0) + 1; });
+    msgAllClients.forEach(function(c) { c._unread = unreadMap[c.id] || 0; });
+
+    renderMsgClientsList(msgAllClients);
+  }
+
+  function renderMsgClientsList(clients) {
+    const listEl = document.getElementById('msg-clients-list');
+    if (!clients.length) {
+      listEl.innerHTML = '<div style="padding:1rem;color:var(--text3);font-size:.82rem;text-align:center">Aucun client</div>';
+      return;
+    }
+    listEl.innerHTML = clients.map(function(c) {
+      var initial = (c.full_name || '?').charAt(0).toUpperCase();
+      var avatar = c.avatar_url
+        ? '<img src="' + esc(c.avatar_url) + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover">'
+        : '<div style="width:36px;height:36px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.85rem;color:var(--em-lt)">' + initial + '</div>';
+      var badge = c._unread > 0 ? '<span style="background:var(--danger);color:#fff;font-size:.68rem;border-radius:10px;padding:.1rem .4rem;font-weight:600">' + c._unread + '</span>' : '';
+      var activeStyle = c.id === msgActiveClientId ? 'background:var(--card2);' : '';
+      return '<div onclick="openMsgChat(\'' + c.id + '\')" style="padding:.7rem 1rem;display:flex;align-items:center;gap:.65rem;cursor:pointer;border-bottom:1px solid var(--border);' + activeStyle + '">' +
+        avatar +
+        '<span style="flex:1;font-size:.85rem;font-weight:500;color:var(--text)">' + esc(c.full_name || '—') + '</span>' +
+        badge +
+      '</div>';
+    }).join('');
+  }
+
+  function filterMsgClients() {
+    var q = document.getElementById('msg-search-client').value.toLowerCase();
+    var filtered = msgAllClients.filter(function(c) {
+      return (c.full_name || '').toLowerCase().includes(q);
+    });
+    renderMsgClientsList(filtered);
+  }
+
+  async function openMsgChat(clientId) {
+    msgActiveClientId = clientId;
+    var client = msgAllClients.find(function(c) { return c.id === clientId; });
+    if (!client) return;
+
+    document.getElementById('msg-chat-empty').style.display = 'none';
+    document.getElementById('msg-chat-active').style.display = 'flex';
+    document.getElementById('msg-chat-name').textContent = client.full_name;
+
+    var convEl = document.getElementById('msg-chat-conv');
+    convEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+    const { data: sent } = await db.from('messages').select('*')
+      .eq('sender_id', profile.id).eq('receiver_id', clientId).order('created_at');
+    const { data: recv } = await db.from('messages').select('*')
+      .eq('sender_id', clientId).eq('receiver_id', profile.id).order('created_at');
+    const all = [...(sent||[]), ...(recv||[])].sort(function(a,b){ return new Date(a.created_at) - new Date(b.created_at); });
+
+    if (!all.length) {
+      convEl.innerHTML = '<div style="color:var(--text2);font-size:.85rem;padding:1rem 0">Aucun message. Envoyez le premier !</div>';
+    } else {
+      convEl.innerHTML = all.map(function(m) {
+        var isMine = m.sender_id === profile.id;
+        var time = new Date(m.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+        return '<div class="msg-bubble-wrap ' + (isMine ? 'mine' : '') + '">' +
+          '<div><div class="msg-bubble ' + (isMine ? 'mine' : 'theirs') + '">' + esc(m.content) + '</div>' +
+          '<div class="msg-time">' + time + '</div></div></div>';
+      }).join('');
+      convEl.scrollTop = convEl.scrollHeight;
+    }
+
+    await db.from('messages').update({ is_read: true })
+      .eq('sender_id', clientId).eq('receiver_id', profile.id).eq('is_read', false);
+
+    loadMessagesSection();
+  }
+
+  async function sendMsgFromPanel() {
+    var input = document.getElementById('msg-chat-input');
+    var content = (input.value || '').trim();
+    if (!content || !msgActiveClientId) return;
+    const { error } = await db.from('messages').insert({
+      sender_id: profile.id, receiver_id: msgActiveClientId, content: content
+    });
+    if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+    input.value = '';
+    openMsgChat(msgActiveClientId);
   }
 
   // ── CALENDAR ────────────────────────────────────
