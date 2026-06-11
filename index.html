@@ -246,6 +246,22 @@
         </div>
       </div>
 
+      <!-- ── RESET PASSWORD (depuis lien email) ── -->
+      <div class="form-section" id="reset-form">
+        <div style="font-size:.9rem;font-weight:600;margin-bottom:1rem;color:var(--em-lt)">Choisissez un nouveau mot de passe</div>
+        <div class="form-group">
+          <label>Nouveau mot de passe</label>
+          <input type="password" id="reset-pw1" placeholder="Min. 6 caractères" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label>Confirmez le mot de passe</label>
+          <input type="password" id="reset-pw2" placeholder="Répétez le mot de passe" autocomplete="new-password"
+                 onkeydown="if(event.key==='Enter') handleResetPassword()">
+        </div>
+        <button class="btn-primary" onclick="handleResetPassword()">Modifier mon mot de passe</button>
+        <div class="forgot-msg" id="reset-msg"></div>
+      </div>
+
       <!-- ── REGISTER (clients uniquement) ── -->
       <div class="form-section" id="register-form">
         <div class="form-group">
@@ -336,6 +352,16 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4cmt1dHlhYW12aHRzaHphbnd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNjExNzgsImV4cCI6MjA5MzgzNzE3OH0.RE2A9EBCLhNXqn2aBUcPTYmmlvOUhN-2HMn6xFuv9Y8';
     const { createClient } = supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    db.auth.onAuthStateChange(function(event, session) {
+      if (event === 'PASSWORD_RECOVERY') {
+        document.querySelectorAll('.form-section').forEach(function(f) { f.classList.remove('active'); });
+        var tabsEl = document.querySelector('.tabs');
+        if (tabsEl) tabsEl.style.display = 'none';
+        var resetForm = document.getElementById('reset-form');
+        if (resetForm) resetForm.classList.add('active');
+      }
+    });
 
     // ── AUTO-REDIRECT si déjà connecté ──────────────────────
     function hasCookie(n) { return document.cookie.split(';').some(c => c.trim().startsWith(n + '=')); }
@@ -594,6 +620,31 @@
       } else {
         msg.style.color = '#34d399';
         msg.textContent = 'Email envoyé ! Vérifiez votre boîte mail.';
+      }
+    }
+
+    async function handleResetPassword() {
+      const pw1 = document.getElementById('reset-pw1').value;
+      const pw2 = document.getElementById('reset-pw2').value;
+      const msg = document.getElementById('reset-msg');
+      if (!pw1 || pw1.length < 6) {
+        msg.style.color = '#f87171';
+        msg.textContent = 'Le mot de passe doit faire au moins 6 caractères.';
+        return;
+      }
+      if (pw1 !== pw2) {
+        msg.style.color = '#f87171';
+        msg.textContent = 'Les deux mots de passe ne correspondent pas.';
+        return;
+      }
+      const { error } = await db.auth.updateUser({ password: pw1 });
+      if (error) {
+        msg.style.color = '#f87171';
+        msg.textContent = 'Erreur : ' + error.message;
+      } else {
+        msg.style.color = '#34d399';
+        msg.textContent = 'Mot de passe modifié ! Redirection...';
+        setTimeout(function() { window.location.href = window.location.pathname; }, 1500);
       }
     }
 
