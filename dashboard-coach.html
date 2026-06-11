@@ -1085,15 +1085,15 @@
       max-height: 400px; overflow-y: auto; padding: .5rem 0;
       margin-bottom: 1rem;
     }
-    .msg-bubble-wrap { display: flex; }
-    .msg-bubble-wrap.mine { justify-content: flex-end; }
-    .msg-bubble-wrap:not(.mine) { justify-content: flex-start; }
-    .msg-bubble-wrap > div { max-width: 70%; min-width: 0; }
+    .msg-bubble-wrap { display: flex; flex-direction: column; }
+    .msg-bubble-wrap.mine { align-items: flex-end; }
+    .msg-bubble-wrap:not(.mine) { align-items: flex-start; }
     .msg-bubble {
-      display: inline-block;
       padding: .6rem 1rem; font-size: .85rem; line-height: 1.55;
+      max-width: 70%;
       overflow-wrap: break-word;
       white-space: pre-wrap;
+      box-sizing: border-box;
     }
     .msg-bubble.theirs {
       background: var(--card2); border: 1px solid var(--border); color: var(--text);
@@ -3645,8 +3645,9 @@
         var isMine = m.sender_id === profile.id;
         var time = new Date(m.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
         return '<div class="msg-bubble-wrap ' + (isMine ? 'mine' : '') + '">' +
-          '<div><div class="msg-bubble ' + (isMine ? 'mine' : 'theirs') + '">' + esc(m.content) + '</div>' +
-          '<div class="msg-time">' + time + '</div></div></div>';
+          '<div class="msg-bubble ' + (isMine ? 'mine' : 'theirs') + '">' + esc(m.content) + '</div>' +
+          '<div class="msg-time">' + time + '</div>' +
+        '</div>';
       }).join('');
       convEl.scrollTop = convEl.scrollHeight;
     }
@@ -4029,8 +4030,9 @@
         var isMine = m.sender_id === profile.id;
         var time = new Date(m.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
         return '<div class="msg-bubble-wrap ' + (isMine ? 'mine' : '') + '">' +
-          '<div><div class="msg-bubble ' + (isMine ? 'mine' : 'theirs') + '">' + esc(m.content) + '</div>' +
-          '<div class="msg-time">' + time + '</div></div></div>';
+          '<div class="msg-bubble ' + (isMine ? 'mine' : 'theirs') + '">' + esc(m.content) + '</div>' +
+          '<div class="msg-time">' + time + '</div>' +
+        '</div>';
       }).join('');
       convEl.scrollTop = convEl.scrollHeight;
     }
