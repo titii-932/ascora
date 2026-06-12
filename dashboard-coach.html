@@ -3760,6 +3760,7 @@
     });
     if (error) { toast('Erreur : ' + error.message, 'error'); return; }
     input.value = '';
+    pushMessageNotif(msgActiveClientId, content);
     openMsgChat(msgActiveClientId);
   }
 
@@ -4146,11 +4147,29 @@
     });
     if (error) { toast('Erreur : ' + error.message, 'error'); return; }
     input.value = '';
+    pushMessageNotif(selectedClient.id, content);
     loadConvMessages();
   }
 
   async function sendAutoNotif(clientId, text) {
     await db.from('messages').insert({ sender_id: profile.id, receiver_id: clientId, content: text });
+  }
+
+  async function pushMessageNotif(receiverId, preview) {
+    try {
+      await fetch('https://dxrkutyaamvhtshzanwu.supabase.co/functions/v1/send-message-notif', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4cmt1dHlhYW12aHRzaHphbnd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNjExNzgsImV4cCI6MjA5MzgzNzE3OH0.RE2A9EBCLhNXqn2aBUcPTYmmlvOUhN-2HMn6xFuv9Y8'
+        },
+        body: JSON.stringify({
+          receiver_id: receiverId,
+          sender_name: profile.full_name,
+          message_preview: preview.slice(0, 80)
+        })
+      });
+    } catch (e) { console.warn('Notif push échouée:', e); }
   }
 
   function updateTabMsgBadge(count) {
