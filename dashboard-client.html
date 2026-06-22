@@ -1002,7 +1002,7 @@
           <input class="form-input" type="number" id="solo-duration" placeholder="45" min="1">
         </div>
         <div class="form-group">
-          <label>Ressenti</label>
+          <label>Note de la séance</label>
           <div class="feeling-picker" id="feeling-picker">
             <button class="feeling-btn" data-v="1" onclick="selectFeeling(1)">1</button>
             <button class="feeling-btn" data-v="2" onclick="selectFeeling(2)">2</button>
@@ -1830,7 +1830,7 @@
           exBlocks +
           '<div class="perf-actions">' +
             '<div style="display:flex;align-items:center;gap:.5rem">' +
-              '<label style="font-size:.75rem;color:var(--text3)">Ressenti</label>' +
+              '<label style="font-size:.75rem;color:var(--text3)">Note de la séance</label>' +
               '<div style="display:flex;gap:.3rem">' +
                 [1,2,3,4,5].map(function(v) {
                   return '<button onclick="setPerfFeeling(\'' + s.id + '\',' + v + ')" id="pf-' + s.id + '-' + v + '" style="width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--card2);color:var(--text3);font-size:.72rem;cursor:pointer">' + v + '</button>';
