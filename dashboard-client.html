@@ -1139,6 +1139,11 @@
     document.getElementById('solo-date').value = today();
     selectFeeling(3);
 
+    const validSections = ['program','nutrition','tracker','solo','messages'];
+    const hashSection = window.location.hash.replace('#','');
+    if (validSections.includes(hashSection)) {
+      showSection(hashSection);
+    }
     loadProgram();
     loadUpcomingSessions();
     loadTodayTracker();
@@ -1226,6 +1231,7 @@
   };
 
   function showSection(name) {
+    if (window.location.hash.replace('#','') !== name) window.location.hash = name;
     document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
     document.getElementById('section-' + name).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(i => i.classList.toggle('active', i.dataset.section === name));
