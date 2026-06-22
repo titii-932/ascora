@@ -1282,6 +1282,16 @@
     .payment-label { display: flex; align-items: center; gap: .45rem; cursor: pointer; font-size: .84rem; font-weight: 500; }
     .payment-label input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--em); cursor: pointer; flex-shrink: 0; }
 
+    .ex-drag-handle { cursor: grab; color: var(--text3); display: inline-flex; align-items: center; padding: .25rem; touch-action: none; flex-shrink: 0; }
+    .ex-drag-handle:active { cursor: grabbing; }
+    .ex-drag-handle:hover { color: var(--text); }
+    .ex-row-ghost { opacity: .4; background: var(--card2); }
+    .ex-row-chosen { background: var(--card2); }
+    td.ex-td-handle { width: 28px; padding-right: 0; text-align: center; }
+    .ex-card-item { position: relative; }
+    .ex-card-handle { position: absolute; top: .55rem; left: .55rem; cursor: grab; color: var(--text3); padding: .2rem; touch-action: none; z-index: 3; }
+    .ex-card-handle:active { cursor: grabbing; }
+
     /* ── EXERCISE DISPLAY : TABLE ↔ CARDS ── */
     @media (min-width: 768px) {
       .ex-table-wrap { display: block !important; }
@@ -2237,6 +2247,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script>
   const SUPABASE_URL = 'https://dxrkutyaamvhtshzanwu.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4cmt1dHlhYW12aHRzaHphbnd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNjExNzgsImV4cCI6MjA5MzgzNzE3OH0.RE2A9EBCLhNXqn2aBUcPTYmmlvOUhN-2HMn6xFuv9Y8';
@@ -3276,7 +3287,8 @@
       var count = exercises.length;
       var rows = exercises.map(function(ex, ei) {
         var dotColor = ex.badge_color || 'var(--border)';
-        return '<tr>' +
+        return '<tr data-ei="' + ei + '">' +
+          '<td class="ex-td-handle"><span class="ex-drag-handle" data-handle><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg></span></td>' +
           '<td><div class="ex-name-cell">' +
             '<span class="ex-badge-dot" style="background:' + esc(dotColor) + '"></span>' +
             '<input class="ex-inp" data-sess="' + s.id + '" data-ei="' + ei + '" value="' + esc(ex.name||'') + '" placeholder="Squat..." oninput="growInp(this);onExNameInput(this)" onfocus="onExNameInput(this)" onblur="setTimeout(hideExAutocomplete,180)" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'name\',this.value)">' +
@@ -3291,7 +3303,8 @@
 
       var cards = exercises.map(function(ex, ei) {
         var dotColor = ex.badge_color || 'var(--border)';
-        return '<div class="ex-card-item">' +
+        return '<div class="ex-card-item" data-ei="' + ei + '">' +
+          '<span class="ex-card-handle" data-handle><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg></span>' +
           '<button class="ex-card-del" onclick="removeExercise(\'' + s.id + '\',' + ei + ')" title="Supprimer">' +
             '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>' +
           '</button>' +
@@ -3340,7 +3353,7 @@
             '<textarea class="form-input" id="wnotes-' + s.id + '" rows="3" placeholder="Ex: méthode top set / back off, consignes d\'exécution, tempo, points d\'attention...">' + esc(s.instructions||'') + '</textarea>' +
           '</div>' +
           '<div class="ex-table-wrap">' +
-          '<table class="ex-table"><thead><tr><th>Exercice</th><th>Séries</th><th>Reps</th><th>Repos</th><th>Notes</th><th></th></tr></thead>' +
+          '<table class="ex-table"><thead><tr><th></th><th>Exercice</th><th>Séries</th><th>Reps</th><th>Repos</th><th>Notes</th><th></th></tr></thead>' +
           '<tbody id="wex-' + s.id + '">' + rows + '</tbody></table>' +
           '</div>' +
           '<div class="ex-card-list" id="wex-cards-' + s.id + '">' + cards + '</div>' +
@@ -3363,6 +3376,37 @@
         openCard.querySelectorAll('.ex-ta-notes').forEach(growTaNotes);
       }
     }
+
+    // Activer le glisser-déposer des exercices (tableau + cartes)
+    workoutSessions.forEach(function(s) {
+      var tbody = document.getElementById('wex-' + s.id);
+      var cardList = document.getElementById('wex-cards-' + s.id);
+      [tbody, cardList].forEach(function(el) {
+        if (!el || el._sortableReady) return;
+        el._sortableReady = true;
+        new Sortable(el, {
+          handle: '[data-handle]',
+          animation: 150,
+          ghostClass: 'ex-row-ghost',
+          chosenClass: 'ex-row-chosen',
+          onEnd: function(evt) {
+            if (evt.oldIndex === evt.newIndex) return;
+            reorderExercises(s.id, evt.oldIndex, evt.newIndex);
+          }
+        });
+      });
+    });
+  }
+
+  function reorderExercises(sessionId, oldIndex, newIndex) {
+    var s = workoutSessions.find(function(x) { return x.id === sessionId; });
+    if (!s) return;
+    var arr = Array.isArray(s.exercises) ? s.exercises : JSON.parse(s.exercises || '[]');
+    var moved = arr.splice(oldIndex, 1)[0];
+    arr.splice(newIndex, 0, moved);
+    s.exercises = arr;
+    renderWorkoutSessions(sessionId);
+    toast('Ordre modifié — pensez à sauvegarder la séance.', 'success');
   }
 
   function toggleWSession(id) {
