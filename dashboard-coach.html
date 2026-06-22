@@ -2282,9 +2282,31 @@
     document.getElementById('sidebar-name').textContent = p.full_name;
     document.getElementById('sidebar-avatar').textContent = p.full_name.charAt(0).toUpperCase();
 
-    const hashSection = window.location.hash.replace('#','');
+    const rawHash = window.location.hash.replace('#','');
     const validSections = ['home','clients','calendar','finance','revenus','exercises','messages','pending'];
-    showSection(validSections.includes(hashSection) ? hashSection : 'home');
+    // Cas fiche client : #clients/IDCLIENT/SOUSONGLET
+    if (rawHash.indexOf('clients/') === 0) {
+      const segs = rawHash.split('/');
+      const wantedClientId = segs[1];
+      const wantedTab = segs[2] || 'info';
+      const validTabs = ['info','sport','nutrition','seances','evolution','photos','messages'];
+      window._pendingDetailTab = validTabs.includes(wantedTab) ? wantedTab : 'info';
+      showSection('clients');
+      // Attendre que la liste clients soit chargée, puis rouvrir la fiche
+      let _tries = 0;
+      const _reopen = setInterval(function() {
+        _tries++;
+        if (typeof clients !== 'undefined' && clients && clients.length) {
+          const found = clients.find(function(c) { return c.id === wantedClientId; });
+          clearInterval(_reopen);
+          if (found) openClientDetail(wantedClientId);
+        } else if (_tries > 40) {
+          clearInterval(_reopen);
+        }
+      }, 100);
+    } else {
+      showSection(validSections.includes(rawHash) ? rawHash : 'home');
+    }
     loadPendingCount();
     subscribeToNewRequests();
     subscribeToCoachMessages();
@@ -2647,6 +2669,7 @@
   }
 
   function showClientsListView() {
+    if (window.location.hash.indexOf('clients/') === 0 || window.location.hash === '#clients') window.location.hash = 'clients';
     document.getElementById('clients-list-view').style.display = 'block';
     document.getElementById('client-detail-view').classList.remove('active');
   }
@@ -2868,7 +2891,9 @@
     const duoNutBtn = document.getElementById('btn-duo-nut-sync');
     if (duoNutBtn) duoNutBtn.style.display = selectedClient.duo_partner_id ? '' : 'none';
 
-    switchDetailTab('info');
+    const _wantedTab = window._pendingDetailTab || 'info';
+    window._pendingDetailTab = null;
+    switchDetailTab(_wantedTab);
     renderDuoSection();
     loadBillingHistory();
   }
@@ -2891,6 +2916,7 @@
   }
 
   function switchDetailTab(tab) {
+    if (selectedClient) window.location.hash = 'clients/' + selectedClient.id + '/' + tab;
     document.querySelectorAll('.detail-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
     document.querySelectorAll('.detail-tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(`tab-${tab}`).classList.add('active');
