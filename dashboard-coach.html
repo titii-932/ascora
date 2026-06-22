@@ -1803,6 +1803,11 @@
   </div>
   <p style="font-size:.82rem;color:var(--text3);margin-bottom:1.5rem">Remplissez les objectifs nutritionnels du client. L'IA utilisera ces données pour générer automatiquement ses menus quotidiens.</p>
 
+  <div style="display:flex;gap:.5rem;margin-bottom:1.5rem;background:var(--card);padding:.35rem;border-radius:12px;border:1px solid var(--border);width:fit-content">
+    <button type="button" id="nut-mode-sport" onclick="switchNutMode('sport')" style="padding:.55rem 1.25rem;border:none;border-radius:9px;font-size:.85rem;font-weight:600;cursor:pointer;background:var(--em);color:#000;transition:all .2s">🏋️ Jour Sport</button>
+    <button type="button" id="nut-mode-repos" onclick="switchNutMode('repos')" style="padding:.55rem 1.25rem;border:none;border-radius:9px;font-size:.85rem;font-weight:600;cursor:pointer;background:transparent;color:var(--text3);transition:all .2s">😴 Jour Repos</button>
+  </div>
+
   <div class="form-row" style="margin-bottom:.9rem">
     <div class="form-group">
       <label class="form-label">Calories cibles (kcal)</label>
@@ -3543,8 +3548,25 @@
     toast('Séance supprimée.', 'success');
   }
 
-  function openNutAITab() {
-    const obj = selectedClient.ai_nutrition_objectives ? JSON.parse(selectedClient.ai_nutrition_objectives) : {};
+  // Stocke en mémoire les valeurs des deux modes pendant l'édition
+  let _nutDraft = { sport: {}, repos: {}, currentMode: 'sport' };
+
+  function _readNutForm() {
+    const besoins = ['fer','vitc','vita','fibres','omega3','calcium','magnesium','vitd']
+      .filter(function(k) { return document.getElementById('ai-' + k).checked; });
+    return {
+      calories:  document.getElementById('ai-calories').value  || null,
+      proteines: document.getElementById('ai-proteines').value || null,
+      glucides:  document.getElementById('ai-glucides').value  || null,
+      lipides:   document.getElementById('ai-lipides').value   || null,
+      allergies: document.getElementById('ai-allergies').value.trim() || null,
+      note:      document.getElementById('ai-note').value.trim()      || null,
+      besoins:   besoins
+    };
+  }
+
+  function _writeNutForm(obj) {
+    obj = obj || {};
     document.getElementById('ai-calories').value  = obj.calories  || '';
     document.getElementById('ai-proteines').value = obj.proteines || '';
     document.getElementById('ai-glucides').value  = obj.glucides  || '';
@@ -3556,18 +3578,42 @@
     });
   }
 
+  function switchNutMode(mode) {
+    // Sauvegarde ce qui est tapé dans le mode courant avant de changer
+    _nutDraft[_nutDraft.currentMode] = _readNutForm();
+    _nutDraft.currentMode = mode;
+    _writeNutForm(_nutDraft[mode]);
+    // Style des boutons
+    const sportBtn = document.getElementById('nut-mode-sport');
+    const reposBtn = document.getElementById('nut-mode-repos');
+    if (mode === 'sport') {
+      sportBtn.style.background = 'var(--em)'; sportBtn.style.color = '#000';
+      reposBtn.style.background = 'transparent'; reposBtn.style.color = 'var(--text3)';
+    } else {
+      reposBtn.style.background = 'var(--em)'; reposBtn.style.color = '#000';
+      sportBtn.style.background = 'transparent'; sportBtn.style.color = 'var(--text3)';
+    }
+  }
+
+  function openNutAITab() {
+    const raw = selectedClient.ai_nutrition_objectives ? JSON.parse(selectedClient.ai_nutrition_objectives) : {};
+    // Rétrocompatibilité : si ancien format (pas de clé .sport), on traite tout l'objet comme le mode Sport
+    let sport, repos;
+    if (raw.sport || raw.repos) {
+      sport = raw.sport || {};
+      repos = raw.repos || {};
+    } else {
+      sport = raw;   // ancien format -> devient le jour Sport
+      repos = {};
+    }
+    _nutDraft = { sport: sport, repos: repos, currentMode: 'sport' };
+    switchNutMode('sport');
+  }
+
   async function saveNutAIObjectives() {
-    const besoins = ['fer','vitc','vita','fibres','omega3','calcium','magnesium','vitd']
-      .filter(function(k) { return document.getElementById('ai-' + k).checked; });
-    const obj = {
-      calories:  document.getElementById('ai-calories').value  || null,
-      proteines: document.getElementById('ai-proteines').value || null,
-      glucides:  document.getElementById('ai-glucides').value  || null,
-      lipides:   document.getElementById('ai-lipides').value   || null,
-      allergies: document.getElementById('ai-allergies').value.trim() || null,
-      note:      document.getElementById('ai-note').value.trim()      || null,
-      besoins:   besoins
-    };
+    // Capture le mode actuellement affiché avant de sauvegarder
+    _nutDraft[_nutDraft.currentMode] = _readNutForm();
+    const obj = { sport: _nutDraft.sport, repos: _nutDraft.repos };
     const { error } = await db.from('profiles')
       .update({ ai_nutrition_objectives: JSON.stringify(obj) })
       .eq('id', selectedClient.id);
@@ -3575,7 +3621,7 @@
     selectedClient.ai_nutrition_objectives = JSON.stringify(obj);
     const idx = clients.findIndex(function(c) { return c.id === selectedClient.id; });
     if (idx !== -1) clients[idx].ai_nutrition_objectives = JSON.stringify(obj);
-    toast('Objectifs IA sauvegardés !', 'success');
+    toast('Objectifs Sport et Repos sauvegardés !', 'success');
   }
 
   async function loadClientSessions() {
