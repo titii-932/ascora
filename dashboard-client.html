@@ -794,6 +794,10 @@
     </div>
 
     <div style="text-align:center;margin-bottom:1.5rem">
+      <div style="display:flex;gap:.5rem;justify-content:center;margin-bottom:1rem">
+        <button type="button" id="day-mode-sport" onclick="setNutMode('sport')" style="padding:.6rem 1.4rem;border:1px solid var(--border);border-radius:12px;font-size:.9rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#10b981,#059669);color:#000;transition:all .2s">🏋️ Jour Sport</button>
+        <button type="button" id="day-mode-repos" onclick="setNutMode('repos')" style="padding:.6rem 1.4rem;border:1px solid var(--border);border-radius:12px;font-size:.9rem;font-weight:700;cursor:pointer;background:var(--card);color:var(--text3);transition:all .2s">😴 Jour Repos</button>
+      </div>
       <button onclick="generateDailyMenu()" id="btn-generate-menu" style="background:linear-gradient(135deg,#10b981,#059669);color:#000;border:none;border-radius:12px;padding:.85rem 2rem;font-size:.95rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:.6rem;transition:opacity .2s">
         ✨ Générer mon menu du jour
       </button>
@@ -1394,8 +1398,19 @@
       return;
     }
 
-    const obj = JSON.parse(raw);
-    window._nutObjectives = obj;
+    const parsed = JSON.parse(raw);
+    // Rétrocompatibilité : ancien format (pas de clé .sport) -> tout devient le mode sport
+    let nutModes;
+    if (parsed.sport || parsed.repos) {
+      nutModes = { sport: parsed.sport || {}, repos: parsed.repos || {} };
+    } else {
+      nutModes = { sport: parsed, repos: {} };
+    }
+    window._nutModes = nutModes;
+    window._nutMode = 'sport';
+    // Si le mode repos est vide, on force sport
+    if (!nutModes.repos || Object.keys(nutModes.repos).length === 0) window._nutMode = 'sport';
+    window._nutObjectives = nutModes[window._nutMode];
 
     const labels = [
       { key: 'calories', label: 'Calories', unit: 'kcal', color: '#f97316' },
@@ -1411,7 +1426,45 @@
         '</div>' : '';
     }).join('');
 
+    renderNutModeDisplay();
     document.getElementById('nutrition-content').style.display = 'block';
+  }
+
+  function setNutMode(mode) {
+    window._nutMode = mode;
+    window._nutObjectives = window._nutModes[mode];
+    // Style des boutons
+    const s = document.getElementById('day-mode-sport');
+    const r = document.getElementById('day-mode-repos');
+    if (s && r) {
+      if (mode === 'sport') {
+        s.style.background = 'linear-gradient(135deg,#10b981,#059669)'; s.style.color = '#000';
+        r.style.background = 'var(--card)'; r.style.color = 'var(--text3)';
+      } else {
+        r.style.background = 'linear-gradient(135deg,#10b981,#059669)'; r.style.color = '#000';
+        s.style.background = 'var(--card)'; s.style.color = 'var(--text3)';
+      }
+    }
+    renderNutModeDisplay();
+  }
+
+  function renderNutModeDisplay() {
+    const obj = window._nutObjectives || {};
+    const labels = [
+      { key: 'calories', label: 'Calories', unit: 'kcal', color: '#f97316' },
+      { key: 'proteines', label: 'Protéines', unit: 'g', color: '#10b981' },
+      { key: 'glucides', label: 'Glucides', unit: 'g', color: '#3b82f6' },
+      { key: 'lipides', label: 'Lipides', unit: 'g', color: '#f59e0b' },
+    ];
+    const el = document.getElementById('nut-objectives-display');
+    if (el) {
+      el.innerHTML = labels.map(function(l) {
+        return obj[l.key] ? '<div style="display:flex;flex-direction:column;align-items:center;gap:.2rem">' +
+          '<span style="font-size:1.3rem;font-weight:700;color:' + l.color + '">' + obj[l.key] + '</span>' +
+          '<span style="font-size:.7rem;color:var(--text3)">' + l.label + ' (' + l.unit + ')</span>' +
+          '</div>' : '';
+      }).join('');
+    }
   }
 
   async function generateDailyMenu() {
