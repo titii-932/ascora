@@ -2025,6 +2025,9 @@
       <div class="filter-row">
         <label>Mois :</label>
         <input type="month" id="fin-month" onchange="loadFinances()">
+        <button class="btn-sm" onclick="openExternalBillingModal()" style="margin-left:auto;background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.3);padding:.5rem 1rem">
+          + Personne tierce
+        </button>
       </div>
       <div class="fin-contracts-wrap">
         <div class="fin-contracts-header">
@@ -3990,7 +3993,7 @@
       return;
     }
     const rowsHtml = fins.map(f => {
-      const clientName = esc(clientNameMap[f.client_id] || '—');
+      const clientName = esc(f.external_name || clientNameMap[f.client_id] || '—');
       const sessions = f.sessions_count != null ? f.sessions_count : '—';
       const theoretical = f.amount != null ? `${Number(f.amount).toFixed(0)} €` : '—';
       const confirmed = f.paid_at && f.amount != null ? `${Number(f.amount).toFixed(0)} €` : '—';
@@ -3999,7 +4002,7 @@
       const method = f.payment_method ? `<span class="fin-method-badge">${esc(f.payment_method)}</span>` : `<span style="color:var(--text3);font-size:.75rem">—</span>`;
       const note = f.fin_note ? `<span class="fin-note" title="${esc(f.fin_note)}">${esc(f.fin_note)}</span>` : `<span style="color:var(--text3);font-size:.75rem">—</span>`;
       return `<tr>
-        <td style="font-weight:600">${clientName}</td>
+        <td style="font-weight:600">${clientName}${f.external_name ? ' <span style="font-size:.65rem;background:var(--card2);color:var(--text3);border:1px solid var(--border);border-radius:4px;padding:.1rem .4rem;margin-left:.3rem;vertical-align:middle">Externe</span>' : ''}</td>
         <td style="text-align:center;color:var(--text2)">${sessions}</td>
         <td class="fin-theoretical">${theoretical}</td>
         <td class="fin-confirmed-val">${confirmed}</td>
@@ -4011,7 +4014,7 @@
     }).join('');
     if (tbody) tbody.innerHTML = rowsHtml;
     const cardsHtml = fins.map(f => {
-      const clientName = esc(clientNameMap[f.client_id] || '—');
+      const clientName = esc(f.external_name || clientNameMap[f.client_id] || '—');
       const confirmed = f.paid_at && f.amount != null ? `${Number(f.amount).toFixed(0)} €` : '—';
       const theoretical = f.amount != null ? `${Number(f.amount).toFixed(0)} €` : '—';
       const isEncaisse = !!f.paid_at;
@@ -4033,6 +4036,48 @@
       </div>`;
     }).join('');
     if (mobileDiv) mobileDiv.innerHTML = cardsHtml || '<div class="empty-state"><p>Aucun client ce mois.</p></div>';
+  }
+
+  function openExternalBillingModal() {
+    document.getElementById('ext-name').value = '';
+    document.getElementById('ext-amount').value = '';
+    document.getElementById('ext-sessions').value = '';
+    document.getElementById('ext-month').value = document.getElementById('fin-month').value || nowMonthVal;
+    document.getElementById('ext-status').value = 'avenir';
+    document.getElementById('ext-method').value = '';
+    document.getElementById('external-billing-modal').classList.add('show');
+  }
+
+  async function saveExternalBilling() {
+    const name = document.getElementById('ext-name').value.trim();
+    const amount = parseFloat(document.getElementById('ext-amount').value);
+    const sessions = parseInt(document.getElementById('ext-sessions').value) || null;
+    const month = document.getElementById('ext-month').value;
+    const status = document.getElementById('ext-status').value;
+    const method = document.getElementById('ext-method').value;
+
+    if (!name || isNaN(amount) || !month) {
+      toast('Renseignez au moins le nom, le montant et le mois.', 'error');
+      return;
+    }
+
+    const isPaid = status === 'encaisse';
+    const { error } = await db.from('finances').insert({
+      coach_id: profile.id,
+      client_id: null,
+      external_name: name,
+      category: 'session_payment',
+      billing_month: month,
+      amount: amount,
+      sessions_count: sessions,
+      paid_at: isPaid ? new Date().toISOString().slice(0,10) : null,
+      payment_method: method || null
+    });
+
+    if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+    closeModal('external-billing-modal');
+    toast('Personne ajoutée !', 'success');
+    loadFinances();
   }
 
   async function loadFinChart() {
@@ -4827,6 +4872,57 @@
     <div class="modal-actions">
       <button class="btn-modal cancel" onclick="closeModal('fin-edit-modal')">Annuler</button>
       <button class="btn-modal confirm" onclick="saveFinEdit()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="external-billing-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title">+ Personne tierce</div>
+      <button class="modal-close" onclick="closeModal('external-billing-modal')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p style="font-size:.8rem;color:var(--text3);margin-bottom:1.1rem">Ajoutez une personne non inscrite sur Ascora pour qu'elle apparaisse dans votre facturation.</p>
+    <div class="form-group" style="margin-bottom:.9rem">
+      <label class="form-label">Nom de la personne</label>
+      <input class="form-input" type="text" id="ext-name" placeholder="Ex : Jean Dupont">
+    </div>
+    <div class="form-row" style="margin-bottom:.9rem">
+      <div class="form-group">
+        <label class="form-label">Montant (€)</label>
+        <input class="form-input" type="number" id="ext-amount" placeholder="50">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Séances</label>
+        <input class="form-input" type="number" id="ext-sessions" placeholder="1">
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:.9rem">
+      <label class="form-label">Mois</label>
+      <input class="form-input" type="month" id="ext-month">
+    </div>
+    <div class="form-row" style="margin-bottom:1.1rem">
+      <div class="form-group">
+        <label class="form-label">Statut</label>
+        <select class="form-input" id="ext-status">
+          <option value="avenir">⏳ À venir</option>
+          <option value="encaisse">✓ Encaissé</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Paiement</label>
+        <select class="form-input" id="ext-method">
+          <option value="">—</option>
+          <option value="Virement">Virement</option>
+          <option value="Espèces">Espèces</option>
+          <option value="Chèque">Chèque</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal cancel" onclick="closeModal('external-billing-modal')">Annuler</button>
+      <button class="btn-modal confirm" onclick="saveExternalBilling()">Ajouter</button>
     </div>
   </div>
 </div>
