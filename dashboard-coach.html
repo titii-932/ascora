@@ -1378,10 +1378,6 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
     Finances
   </div>
-  <div class="nav-item" data-section="revenus" onclick="showSection('revenus')">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-    Revenus
-  </div>
   <div class="nav-item" data-section="exercises" onclick="showSection('exercises')">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5h11M6.5 17.5h11M2 8.5h4.5M17.5 8.5H22M2 15.5h4.5M17.5 15.5H22"/></svg>
     Exercices
@@ -1396,6 +1392,11 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
     Demandes
     <span class="nav-badge" id="pending-badge">0</span>
+  </div>
+  <div class="nav-item" data-section="urgent" onclick="showSection('urgent')" id="nav-urgent" style="display:none;color:#f87171">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    Urgent
+    <span class="nav-badge" id="urgent-badge">0</span>
   </div>
 
   <div class="nav-spacer"></div>
@@ -2000,6 +2001,18 @@
       <div class="pending-grid" id="pending-grid"></div>
     </section>
 
+    <!-- ── DEMANDES DE MENU (URGENT) ── -->
+    <section id="section-urgent" class="content-section">
+      <div class="section-header">
+        <h2>Demandes de menu</h2>
+        <span id="urgent-quota-label" style="font-size:.82rem;color:var(--text2)"></span>
+      </div>
+      <div class="loading" id="urgent-loading">
+        <div class="spinner"></div><br>Chargement...
+      </div>
+      <div class="pending-grid" id="urgent-grid"></div>
+    </section>
+
     <!-- ── CALENDAR ── -->
     <section id="section-calendar" class="content-section">
       <div class="cal-nav">
@@ -2020,6 +2033,16 @@
 
     <!-- ── FINANCES ── -->
     <section id="section-finance" class="content-section">
+      <div class="finance-summary" style="grid-template-columns:repeat(2,1fr);margin-bottom:1.25rem">
+        <div class="fin-card">
+          <div class="fin-label">Confirmés ce mois</div>
+          <div class="fin-value income" id="rev-confirmed">— €</div>
+        </div>
+        <div class="fin-card">
+          <div class="fin-label">En attente</div>
+          <div class="fin-value" style="color:var(--warn)" id="rev-pending-amount">— €</div>
+        </div>
+      </div>
       <div class="fin-chart-card">
         <div class="fin-chart-header">
           <span class="fin-chart-title">Chiffre d'affaires — 6 mois passés &amp; à venir</span>
@@ -2062,27 +2085,6 @@
           </table>
         </div>
         <div class="fin-cards-mobile" id="fin-cards-mobile"></div>
-      </div>
-    </section>
-
-    <!-- ── REVENUS ── -->
-    <section id="section-revenus" class="content-section">
-      <div class="finance-summary" style="grid-template-columns:repeat(2,1fr)">
-        <div class="fin-card">
-          <div class="fin-label">Confirmés ce mois</div>
-          <div class="fin-value income" id="rev-confirmed">— €</div>
-        </div>
-        <div class="fin-card">
-          <div class="fin-label">En attente</div>
-          <div class="fin-value" style="color:var(--warn)" id="rev-pending-amount">— €</div>
-        </div>
-      </div>
-      <div class="filter-row" style="margin-bottom:1.25rem">
-        <label>Mois :</label>
-        <input type="month" id="rev-month" onchange="loadRevenues()">
-      </div>
-      <div id="revenues-list">
-        <div class="loading"><div class="spinner"></div><br>Chargement...</div>
       </div>
     </section>
 
@@ -2294,7 +2296,7 @@
     document.getElementById('sidebar-avatar').textContent = p.full_name.charAt(0).toUpperCase();
 
     const rawHash = window.location.hash.replace('#','');
-    const validSections = ['home','clients','calendar','finance','revenus','exercises','messages','pending'];
+    const validSections = ['home','clients','calendar','finance','exercises','messages','pending','urgent'];
     // Cas fiche client : #clients/IDCLIENT/SOUSONGLET
     if (rawHash.indexOf('clients/') === 0) {
       const segs = rawHash.split('/');
@@ -2319,7 +2321,9 @@
       showSection(validSections.includes(rawHash) ? rawHash : 'home');
     }
     loadPendingCount();
+    loadMenuRequestsCount();
     subscribeToNewRequests();
+    subscribeToMenuRequests();
     subscribeToCoachMessages();
     initExAutocomplete();
     loadExercises();
@@ -2329,8 +2333,8 @@
   // ── NAVIGATION ──────────────────────────────────
   const sectionTitles = {
     home: 'Accueil', clients: 'Clients', calendar: 'Calendrier',
-    finance: 'Finances', pending: 'Demandes en attente', revenus: 'Revenus',
-    exercises: 'Exercices', messages: 'Messages'
+    finance: 'Finances', pending: 'Demandes en attente',
+    exercises: 'Exercices', messages: 'Messages', urgent: 'Demandes de menu'
   };
 
   function showSection(name) {
@@ -2344,9 +2348,9 @@
     if (name === 'calendar') renderCalendar();
     if (name === 'finance')  loadFinances();
     if (name === 'pending')  loadPendingRequests();
-    if (name === 'revenus')   loadRevenues();
     if (name === 'exercises') loadExercises();
     if (name === 'messages') loadMessagesSection();
+    if (name === 'urgent')   loadMenuRequests();
     closeSidebar();
   }
 
@@ -4103,6 +4107,16 @@
     (cls || []).forEach(c => { clientNameMap[c.id] = c.full_name; });
     const { data } = await db.from('finances').select('*').eq('coach_id', profile.id).eq('category', 'session_payment').eq('billing_month', val).order('billing_month', { ascending: false });
     const fins = data || [];
+
+    let confirmedTotal = 0, pendingTotal = 0;
+    fins.forEach(f => {
+      if (f.amount == null) return;
+      if (f.paid_at) confirmedTotal += Number(f.amount);
+      else           pendingTotal  += Number(f.amount);
+    });
+    document.getElementById('rev-confirmed').textContent     = `${confirmedTotal.toFixed(0)} €`;
+    document.getElementById('rev-pending-amount').textContent = `${pendingTotal.toFixed(0)} €`;
+
     if (!fins.length) {
       if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:2rem;font-size:.84rem">Aucun client ce mois.</td></tr>';
       if (mobileDiv) mobileDiv.innerHTML = '<div class="empty-state"><p>Aucun client ce mois.</p></div>';
@@ -4587,6 +4601,210 @@
       .subscribe();
   }
 
+  // ── DEMANDES DE MENU (URGENT) ───────────────────
+  async function loadMenuRequestsCount() {
+    const { count } = await db.from('menu_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('coach_id', profile.id)
+      .eq('status', 'pending');
+
+    const navItem = document.getElementById('nav-urgent');
+    const badge = document.getElementById('urgent-badge');
+    if (count > 0) {
+      navItem.style.display = 'flex';
+      badge.textContent = count;
+      badge.style.display = 'inline-block';
+    } else {
+      navItem.style.display = 'none';
+      // Si l'onglet était affiché et n'a plus de demandes, revenir à l'accueil
+      if (document.getElementById('section-urgent').classList.contains('active')) showSection('home');
+    }
+  }
+
+  async function loadMenuRequests() {
+    document.getElementById('urgent-loading').style.display = 'block';
+    document.getElementById('urgent-grid').innerHTML = '';
+
+    const today = new Date().toISOString().slice(0, 10);
+    const { count: usedToday } = await db.from('menu_generations')
+      .select('id', { count: 'exact', head: true })
+      .eq('coach_id', profile.id)
+      .eq('generated_at', today);
+    const remaining = Math.max(0, 3 - (usedToday || 0));
+    document.getElementById('urgent-quota-label').textContent =
+      `${remaining} génération${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''} aujourd'hui (sur 3)`;
+
+    const { data, error } = await db.from('menu_requests')
+      .select('*, client:profiles!menu_requests_client_id_fkey(full_name)')
+      .eq('coach_id', profile.id)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true });
+
+    document.getElementById('urgent-loading').style.display = 'none';
+
+    const reqs = data || [];
+    if (!reqs.length) {
+      document.getElementById('urgent-grid').innerHTML = `
+        <div class="empty-state">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text3)"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <h3>Aucune demande de menu</h3>
+          <p>Toutes les demandes ont été traitées.</p>
+        </div>`;
+      return;
+    }
+
+    const formatLabels = { '3_repas': '3 repas classiques', 'plusieurs_repas': 'Plusieurs petits repas' };
+    window._menuReqNotes = {};
+    reqs.forEach(r => { window._menuReqNotes[r.id] = r.note || ''; });
+
+    document.getElementById('urgent-grid').innerHTML = reqs.map(r => `
+      <div class="pending-card" id="menureq-${r.id}" style="flex-direction:column;align-items:stretch;gap:.75rem">
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <div class="pending-avatar">${(r.client?.full_name || '?').charAt(0).toUpperCase()}</div>
+          <div class="pending-info">
+            <div class="pending-name">${esc(r.client?.full_name || 'Client')}</div>
+            <div class="pending-email">${esc(formatLabels[r.meal_format] || r.meal_format)}</div>
+            <div class="pending-date">Demandé le ${fmtDate(r.created_at)}</div>
+          </div>
+        </div>
+        ${r.note ? `<div style="font-size:.8rem;color:var(--text2);background:var(--card2);border-radius:8px;padding:.6rem .75rem">📝 ${esc(r.note)}</div>` : ''}
+        <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+          <label style="font-size:.75rem;color:var(--text3)">Jours sport
+            <input type="number" min="0" max="7" id="sport-${r.id}" value="5" style="width:52px;margin-left:.4rem;padding:.3rem;border-radius:6px;border:1px solid var(--border);background:var(--card2);color:var(--text)">
+          </label>
+          <label style="font-size:.75rem;color:var(--text3)">Jours repos
+            <input type="number" min="0" max="7" id="repos-${r.id}" value="2" style="width:52px;margin-left:.4rem;padding:.3rem;border-radius:6px;border:1px solid var(--border);background:var(--card2);color:var(--text)">
+          </label>
+          <button class="btn-approve" onclick="generateWeeklyMenu('${r.id}', '${r.client_id}', '${r.meal_format}')" ${remaining <= 0 ? 'disabled title="Quota du jour atteint"' : ''}>
+            Générer le menu
+          </button>
+        </div>
+      </div>`).join('');
+  }
+
+  async function generateWeeklyMenu(requestId, clientId, mealFormat) {
+    const sportInput = document.getElementById(`sport-${requestId}`);
+    const reposInput = document.getElementById(`repos-${requestId}`);
+    const jSport = parseInt(sportInput.value, 10);
+    const jRepos = parseInt(reposInput.value, 10);
+
+    if (isNaN(jSport) || isNaN(jRepos) || jSport < 0 || jRepos < 0 || jSport + jRepos !== 7) {
+      toast('Les jours sport + repos doivent faire 7 au total.', 'error');
+      return;
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const { count: usedToday } = await db.from('menu_generations')
+      .select('id', { count: 'exact', head: true })
+      .eq('coach_id', profile.id)
+      .eq('generated_at', today);
+
+    if ((usedToday || 0) >= 3) {
+      toast('Quota de 3 générations atteint pour aujourd\'hui.', 'error');
+      return;
+    }
+
+    const { data: clientProfile } = await db.from('profiles')
+      .select('full_name, ai_nutrition_objectives').eq('id', clientId).maybeSingle();
+
+    const raw = clientProfile?.ai_nutrition_objectives;
+    if (!raw) {
+      toast('Ce client n\'a pas d\'objectifs nutritionnels définis.', 'error');
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    const nutModes = (parsed.sport || parsed.repos)
+      ? { sport: parsed.sport || {}, repos: parsed.repos || {} }
+      : { sport: parsed, repos: parsed };
+
+    function objText(obj) {
+      return (obj.calories  ? `calories ${obj.calories} kcal, ` : '') +
+             (obj.proteines ? `protéines ${obj.proteines} g, ` : '') +
+             (obj.glucides  ? `glucides ${obj.glucides} g, ` : '') +
+             (obj.lipides   ? `lipides ${obj.lipides} g` : '');
+    }
+
+    const formatInstructions = mealFormat === 'plusieurs_repas'
+      ? 'Le client préfère PLUSIEURS PETITS REPAS dans la journée (5 repas). Utilise les clés "repas_1","repas_2","repas_3","repas_4","repas_5" pour chaque jour.'
+      : 'Le client préfère 3 REPAS CLASSIQUES par jour. Utilise les clés "petit_dejeuner","dejeuner","diner" pour chaque jour.';
+
+    const note = (window._menuReqNotes && window._menuReqNotes[requestId]) || '';
+
+    const prompt = 'Tu es un nutritionniste expert. Génère un menu complet pour une semaine de 7 jours pour un(e) client(e).\n' +
+      `Sur les 7 jours : ${jSport} jour(s) doivent respecter les objectifs "jour de sport" (${objText(nutModes.sport)}), et ${jRepos} jour(s) doivent respecter les objectifs "jour de repos" (${objText(nutModes.repos)}).\n` +
+      'Ne précise PAS de jour de la semaine réel (pas de lundi/mardi/etc), nomme génériquement chaque jour "Jour 1" à "Jour 7" — c\'est le client qui décidera plus tard quel jour réel correspond à quoi.\n' +
+      formatInstructions + '\n' +
+      (note ? `Précisions du client à prendre en compte : ${note}\n` : '') +
+      '\nRéponds en JSON uniquement, sans markdown, dans ce format exact :\n' +
+      '{"jours":[{"jour":1,"type":"sport|repos","repas":{...clés selon le format demandé, chacune une liste de {"aliment":"nom","quantite":"Xg","calories":X,"proteines":X,"glucides":X,"lipides":X}},"totaux":{"calories":X,"proteines":X,"glucides":X,"lipides":X}}, ... 7 objets au total]}';
+
+    const btn = document.querySelector(`#menureq-${requestId} .btn-approve`);
+    if (btn) { btn.disabled = true; btn.textContent = 'Génération...'; }
+
+    try {
+      const response = await fetch('https://dxrkutyaamvhtshzanwu.supabase.co/functions/v1/generate-menu', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4cmt1dHlhYW12aHRzaHphbnd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNjExNzgsImV4cCI6MjA5MzgzNzE3OH0.RE2A9EBCLhNXqn2aBUcPTYmmlvOUhN-2HMn6xFuv9Y8'
+        },
+        body: JSON.stringify({ prompt: prompt })
+      });
+      const data = await response.json();
+      const text = data.result || '';
+      const clean = text.replace(/```json|```/g, '').trim();
+      const menu = JSON.parse(clean);
+
+      const { data: planRow, error: planError } = await db.from('nutrition_plans')
+        .insert({
+          client_id: clientId,
+          coach_id: profile.id,
+          title: `Menu semaine du ${fmtDate(new Date().toISOString())}`,
+          plan_data: menu
+        })
+        .select('id').single();
+
+      if (planError) throw planError;
+
+      await db.from('menu_requests').update({
+        status: 'fulfilled',
+        fulfilled_at: new Date().toISOString(),
+        nutrition_plan_id: planRow.id
+      }).eq('id', requestId);
+
+      await db.from('menu_generations').insert({
+        coach_id: profile.id,
+        client_id: clientId,
+        generated_at: today
+      });
+
+      toast('Menu de la semaine généré et envoyé au client.', 'success');
+      loadMenuRequestsCount();
+      loadMenuRequests();
+    } catch (e) {
+      toast('Erreur lors de la génération. Réessayez.', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = 'Générer le menu'; }
+    }
+  }
+
+  // Notification temps réel quand un client envoie une demande de menu
+  function subscribeToMenuRequests() {
+    db.channel('menu-requests')
+      .on('postgres_changes', {
+        event:  'INSERT',
+        schema: 'public',
+        table:  'menu_requests',
+        filter: `coach_id=eq.${profile.id}`
+      }, payload => {
+        toast('Nouvelle demande de menu reçue !', 'success');
+        loadMenuRequestsCount();
+        if (document.getElementById('section-urgent').classList.contains('active')) {
+          loadMenuRequests();
+        }
+      })
+      .subscribe();
+  }
+
   function subscribeToCoachMessages() {
     db.channel('coach-inbox')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages',
@@ -4723,11 +4941,10 @@
     el._t = setTimeout(() => el.className = 'toast', 3000);
   }
 
-  // Set default finance & revenus months
+  // Set default finance month
   const now = new Date();
   const nowMonthVal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   document.getElementById('fin-month').value = nowMonthVal;
-  document.getElementById('rev-month').value = nowMonthVal;
 
   // Close modals on overlay click
   document.querySelectorAll('.modal-overlay').forEach(o =>
@@ -4913,111 +5130,6 @@
   }
 
   // ── REVENUS TAB ──────────────────────────────────
-  async function loadRevenues() {
-    const monthEl = document.getElementById('rev-month');
-    const val = monthEl.value || nowMonthVal;
-    const [y, m] = val.split('-');
-    const start  = `${y}-${m}-01`;
-    const end    = new Date(parseInt(y), parseInt(m), 0).toISOString().slice(0, 10);
-
-    document.getElementById('revenues-list').innerHTML =
-      '<div class="loading"><div class="spinner"></div><br>Chargement...</div>';
-
-    // Toutes les lignes de facturation du mois (payées + en attente)
-    const { data: billings } = await db.from('finances')
-      .select('id,client_id,amount,sessions_count,price_per_session_used,paid_at,billing_month')
-      .eq('coach_id', profile.id).eq('category', 'session_payment')
-      .eq('billing_month', val)
-      .order('paid_at', { ascending: false, nullsFirst: false });
-
-    // Noms des clients
-    const { data: cls } = await db.from('profiles')
-      .select('id,full_name').eq('coach_id', profile.id).eq('status', 'approved');
-    const clientNameMap = {};
-    (cls || []).forEach(c => { clientNameMap[c.id] = c.full_name; });
-
-    const rows = billings || [];
-    let confirmed = 0, pendingAmt = 0;
-    rows.forEach(b => {
-      if (b.paid_at) confirmed  += Number(b.amount);
-      else           pendingAmt += Number(b.amount);
-    });
-
-    document.getElementById('rev-confirmed').textContent      = `${confirmed.toFixed(0)} €`;
-    document.getElementById('rev-pending-amount').textContent  = `${pendingAmt.toFixed(0)} €`;
-
-    if (!rows.length) {
-      document.getElementById('revenues-list').innerHTML =
-        '<div class="empty-state"><p>Aucune facturation ce mois.</p></div>';
-      return;
-    }
-
-    const rowsHtml = rows.map(b => {
-      const clientName = esc(clientNameMap[b.client_id] || '—');
-      const sessions   = b.sessions_count != null ? b.sessions_count : '—';
-      const price      = b.price_per_session_used != null
-        ? `${Number(b.price_per_session_used).toFixed(0)} €` : '—';
-      const amount     = `${Number(b.amount).toFixed(0)} €`;
-      const status     = b.paid_at
-        ? `<span class="status-badge paid">✓ Payé</span>`
-        : `<span class="status-badge pending">En attente</span>`;
-      const paidDate   = b.paid_at ? fmtDate(b.paid_at) : '—';
-
-      return `<tr>
-        <td style="font-weight:500">${clientName}</td>
-        <td style="text-align:center">${sessions}</td>
-        <td style="color:var(--text2)">${price}</td>
-        <td style="font-weight:600;color:var(--em-lt)">${amount}</td>
-        <td>${status}</td>
-        <td style="font-size:.76rem;color:var(--text2)">${paidDate}</td>
-      </tr>`;
-    }).join('');
-
-    const cardsHtml = rows.map(b => {
-      const clientName = esc(clientNameMap[b.client_id] || '—');
-      const sessions   = b.sessions_count != null ? b.sessions_count : null;
-      const price      = b.price_per_session_used != null
-        ? `${Number(b.price_per_session_used).toFixed(0)} €` : null;
-      const amount     = `${Number(b.amount).toFixed(0)} €`;
-      const isPaid     = !!b.paid_at;
-      const paidDate   = b.paid_at ? fmtDate(b.paid_at) : null;
-      const detail = [
-        sessions != null ? `${sessions} séance${sessions > 1 ? 's' : ''}` : null,
-        price ? `${price}/séance` : null,
-        isPaid && paidDate ? paidDate : null
-      ].filter(Boolean).join(' &middot; ');
-
-      return `<div class="rev-card">
-        <div class="rev-card-top">
-          <div class="rev-card-name">${clientName}</div>
-          <div class="rev-card-amount">${amount}</div>
-        </div>
-        <div class="rev-card-mid">${isPaid
-          ? '<span class="status-badge paid">✓ Payé</span>'
-          : '<span class="status-badge pending">En attente</span>'}</div>
-        ${detail ? `<div class="rev-card-detail">${detail}</div>` : ''}
-      </div>`;
-    }).join('');
-
-    document.getElementById('revenues-list').innerHTML = `
-      <div class="rev-table-wrap">
-        <table class="rev-table">
-          <thead>
-            <tr>
-              <th>Client</th>
-              <th style="text-align:center">Séances</th>
-              <th>Prix / séance</th>
-              <th>Montant</th>
-              <th>Statut</th>
-              <th>Date paiement</th>
-            </tr>
-          </thead>
-          <tbody>${rowsHtml}</tbody>
-        </table>
-      </div>
-      <div class="rev-cards">${cardsHtml}</div>`;
-  }
-
   // ── MENU MOBILE ──────────────────────────────────
   function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('open');
