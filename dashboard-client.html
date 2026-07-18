@@ -786,7 +786,7 @@
     <!-- PLAN ALIMENTAIRE -->
     <section id="section-nutrition" class="content-section">
   <div class="section-top-bar">
-    <h2>Mon Menu de la Semaine</h2>
+    <h2>Mon Menu</h2>
   </div>
 
   <div id="nutrition-loading" class="loading"><div class="spinner"></div><br>Chargement...</div>
@@ -806,7 +806,7 @@
     </div>
 
     <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem">
-      <div style="font-size:.85rem;font-weight:700;margin-bottom:1rem">Demander un nouveau menu à mon coach</div>
+      <div style="font-size:.85rem;font-weight:700;margin-bottom:1rem">Générer mon menu du jour</div>
 
       <div style="text-align:center;margin-bottom:1rem">
         <div style="display:flex;gap:.5rem;justify-content:center;margin-bottom:.5rem">
@@ -821,22 +821,22 @@
       </div>
 
       <div style="text-align:center;margin-top:1rem">
-        <button onclick="sendMenuRequest()" id="btn-send-menu-request" style="background:linear-gradient(135deg,#10b981,#059669);color:#000;border:none;border-radius:12px;padding:.85rem 2rem;font-size:.95rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:.6rem;transition:opacity .2s">
-          ✉️ Envoyer ma demande
+        <button onclick="generateMyMenu()" id="btn-send-menu-request" style="background:linear-gradient(135deg,#10b981,#059669);color:#000;border:none;border-radius:12px;padding:.85rem 2rem;font-size:.95rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:.6rem;transition:opacity .2s">
+          ✨ Générer mon menu
         </button>
         <div id="menu-request-status" style="font-size:.78rem;color:var(--text3);margin-top:.6rem"></div>
       </div>
     </div>
 
-    <div style="font-size:.85rem;font-weight:700;margin-bottom:.75rem">Mon dernier menu reçu</div>
+    <div style="font-size:.85rem;font-weight:700;margin-bottom:.75rem">Mon dernier menu</div>
     <div id="menu-loading" style="display:none;text-align:center;padding:2rem">
       <div class="spinner" style="margin:0 auto .75rem"></div>
     </div>
     <div id="menu-no-plan" style="display:none">
       <div class="empty-state">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text3)"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
-        <h3>Aucun menu reçu pour l'instant</h3>
-        <p>Envoyez une demande à votre coach pour recevoir votre premier menu de la semaine.</p>
+        <h3>Aucun menu généré pour l'instant</h3>
+        <p>Cliquez sur "Générer mon menu" pour recevoir votre premier menu.</p>
       </div>
     </div>
     <div id="menu-result" style="display:none"></div>
@@ -1473,7 +1473,7 @@
     renderNutModeDisplay();
     document.getElementById('nutrition-content').style.display = 'block';
 
-    checkPendingMenuRequest();
+    checkMenuQuota();
     loadLatestMenuPlan();
   }
 
@@ -1509,11 +1509,12 @@
     }
   }
 
-  async function checkPendingMenuRequest() {
-    const { data } = await db.from('menu_requests')
+  async function checkMenuQuota() {
+    const today = new Date().toISOString().slice(0, 10);
+    const { data } = await db.from('nutrition_plans')
       .select('id, created_at')
       .eq('client_id', profile.id)
-      .eq('status', 'pending')
+      .gte('created_at', today + 'T00:00:00')
       .order('created_at', { ascending: false })
       .limit(1);
 
@@ -1521,33 +1522,73 @@
     const statusEl = document.getElementById('menu-request-status');
     if (data && data.length) {
       btn.disabled = true;
-      statusEl.textContent = 'Demande envoyée le ' + fmtDate(data[0].created_at) + ', en attente de réponse de votre coach.';
+      statusEl.textContent = 'Vous avez déjà généré votre menu aujourd\'hui. Revenez demain !';
     } else {
       btn.disabled = false;
       statusEl.textContent = '';
     }
   }
 
-  async function sendMenuRequest() {
+  async function generateMyMenu() {
     const note = document.getElementById('menu-request-note').value.trim();
     const btn = document.getElementById('btn-send-menu-request');
+    const statusEl = document.getElementById('menu-request-status');
     btn.disabled = true;
+    statusEl.textContent = 'Génération en cours...';
 
-    const { error } = await db.from('menu_requests').insert({
-      client_id: profile.id,
-      coach_id: profile.coach_id,
-      meal_format: window._selectedMealFormat,
-      note: note || null
-    });
+    const nutModes = window._nutModes || { sport: {}, repos: {} };
 
-    if (error) {
-      document.getElementById('menu-request-status').textContent = 'Erreur lors de l\'envoi de la demande.';
-      btn.disabled = false;
-      return;
+    function objText(obj) {
+      return (obj.calories  ? `calories ${obj.calories} kcal, ` : '') +
+             (obj.proteines ? `protéines ${obj.proteines} g, ` : '') +
+             (obj.glucides  ? `glucides ${obj.glucides} g, ` : '') +
+             (obj.lipides   ? `lipides ${obj.lipides} g` : '');
     }
 
-    document.getElementById('menu-request-note').value = '';
-    checkPendingMenuRequest();
+    const mealFormat = window._selectedMealFormat || '3_repas';
+    const formatInstructions = mealFormat === 'plusieurs_repas'
+      ? 'Le client préfère PLUSIEURS PETITS REPAS dans la journée (5 repas). Utilise les clés "repas_1","repas_2","repas_3","repas_4","repas_5" pour chaque jour.'
+      : 'Le client préfère 3 REPAS CLASSIQUES par jour. Utilise les clés "petit_dejeuner","dejeuner","diner" pour chaque jour.';
+
+    const prompt = 'Tu es un nutritionniste expert. Génère un menu pour un(e) client(e), pour DEUX types de journée : un jour de sport et un jour de repos.\n' +
+      `Jour de sport : respecte ces objectifs (${objText(nutModes.sport)}).\n` +
+      `Jour de repos : respecte ces objectifs (${objText(nutModes.repos)}).\n` +
+      formatInstructions + '\n' +
+      (note ? `Précisions du client à prendre en compte : ${note}\n` : '') +
+      '\nRéponds en JSON uniquement, sans markdown, dans ce format exact :\n' +
+      '{"jours":[{"jour":1,"type":"sport","repas":{...clés selon le format demandé, chacune une liste de {"aliment":"nom","quantite":"Xg","calories":X,"proteines":X,"glucides":X,"lipides":X}},"totaux":{"calories":X,"proteines":X,"glucides":X,"lipides":X}},{"jour":2,"type":"repos","repas":{...},"totaux":{...}}]}';
+
+    try {
+      const response = await fetch('https://dxrkutyaamvhtshzanwu.supabase.co/functions/v1/generate-menu', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + SUPABASE_KEY
+        },
+        body: JSON.stringify({ prompt: prompt })
+      });
+      const data = await response.json();
+      const text = data.result || '';
+      const clean = text.replace(/```json|```/g, '').trim();
+      const menu = JSON.parse(clean);
+
+      const { error: insertError } = await db.from('nutrition_plans').insert({
+        client_id: profile.id,
+        coach_id: profile.coach_id,
+        title: `Menu du ${fmtDate(new Date().toISOString())}`,
+        plan_data: menu
+      });
+
+      if (insertError) throw insertError;
+
+      document.getElementById('menu-request-note').value = '';
+      statusEl.textContent = '';
+      checkMenuQuota();
+      loadLatestMenuPlan();
+    } catch (e) {
+      statusEl.textContent = 'Erreur lors de la génération. Réessayez.';
+      btn.disabled = false;
+    }
   }
 
   async function loadLatestMenuPlan() {
