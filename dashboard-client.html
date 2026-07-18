@@ -192,6 +192,17 @@
     }
     .ex-acc.open .ex-acc-body { display: block; }
 
+    .perf-ex-notes-toggle { display:flex; align-items:center; gap:.3rem; cursor:pointer; user-select:none; }
+    .perf-ex-notes-chevron { color: var(--text3); transition: transform .2s; }
+    .perf-ex-notes-chevron.open { transform: rotate(90deg); }
+    .perf-ex-notes-body {
+      display: none; font-size: .78rem; color: var(--text2);
+      background: var(--card2); border-radius: 8px;
+      padding: .55rem .7rem; margin: .4rem 0 .7rem; line-height: 1.6;
+      white-space: pre-wrap;
+    }
+    .perf-ex-notes-body.open { display: block; }
+
     @media (max-width: 767px) {
       .ex-table { display: none !important; }
       .ex-cards { display: block !important; }
@@ -1946,8 +1957,18 @@
           '</div>';
         }
 
+        var notesId = 'perf-notes-' + s.id + '-' + ei;
+        var hasNotes = !!ex.notes;
+        var notesToggle = hasNotes ?
+          '<div class="perf-ex-notes-toggle" onclick="togglePerfExNotes(\'' + notesId + '\')">' +
+            '<svg class="perf-ex-notes-chevron" id="' + notesId + '-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>' +
+            '<span style="font-size:.72rem;color:var(--em);font-weight:600">Explication de l\'exercice</span>' +
+          '</div>' : '';
+        var notesBody = hasNotes ? '<div class="perf-ex-notes-body" id="' + notesId + '">' + esc(ex.notes) + '</div>' : '';
+
         return '<div class="perf-ex-block">' +
           '<div class="perf-ex-name">' + esc(ex.name || 'Exercice ' + (ei+1)) + ' <span style="font-weight:400;color:var(--text3);font-size:.72rem">· ' + sets + ' séries</span></div>' +
+          notesToggle + notesBody +
           '<div class="perf-series-row">' + seriesHtml + '</div>' +
         '</div>';
       }).join('');
@@ -1980,6 +2001,13 @@
         '</div>' +
       '</div>';
     }).join('');
+  }
+
+  function togglePerfExNotes(id) {
+    var body = document.getElementById(id);
+    var chevron = document.getElementById(id + '-chevron');
+    body.classList.toggle('open');
+    chevron.classList.toggle('open');
   }
 
   function togglePerfCard(id) {
