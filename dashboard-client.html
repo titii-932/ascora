@@ -686,6 +686,8 @@
   .perf-serie-label { font-size:.62rem; color:var(--text3); }
   .perf-serie-inputs { display:flex; gap:3px; }
   .perf-serie-input { width:48px; border:1px solid var(--border); border-radius:7px; padding:4px 5px; font-size:.75rem; text-align:center; background:var(--card2); color:var(--text3); font-family:'Inter',sans-serif; }
+  .perf-serie-input.perf-serie-better { border-color:#10b981; color:#10b981; font-weight:700; }
+  .perf-serie-input.perf-serie-worse { border-color:#ef4444; color:#ef4444; font-weight:700; }
   .perf-serie-input:focus { outline:none; border-color:var(--em); color:var(--text); background:var(--card); }
   .perf-serie-unit { font-size:.58rem; color:var(--text3); text-align:center; }
   .perf-actions { display:flex; justify-content:flex-end; gap:.5rem; margin-top:1rem; padding-top:.75rem; border-top:1px solid var(--border); }
@@ -1995,21 +1997,34 @@
         var seriesHtml = '';
         for (var si = 0; si < sets; si++) {
           var lastS = lastSeries[si] || {};
-          var placeholderReps = lastS.reps || '—';
-          var placeholderKg   = lastS.kg   || '—';
+          var lastRepsNum = (lastS.reps !== undefined && lastS.reps !== null && lastS.reps !== '') ? lastS.reps : '';
+          var lastKgNum   = (lastS.kg   !== undefined && lastS.kg   !== null && lastS.kg   !== '') ? lastS.kg   : '';
+          var placeholderReps = lastRepsNum !== '' ? lastRepsNum : '—';
+          var placeholderKg   = lastKgNum   !== '' ? lastKgNum   : '—';
           seriesHtml += '<div class="perf-serie-box">' +
             '<span class="perf-serie-label">S' + (si+1) + '</span>' +
             '<div class="perf-serie-inputs">' +
               '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
-                '<input class="perf-serie-input" placeholder="' + placeholderReps + '" data-sess="' + s.id + '" data-ex="' + ei + '" data-serie="' + si + '" data-type="reps">' +
+                '<input class="perf-serie-input" placeholder="' + placeholderReps + '" data-last="' + lastRepsNum + '" oninput="comparePerfInput(this)" data-sess="' + s.id + '" data-ex="' + ei + '" data-serie="' + si + '" data-type="reps">' +
                 '<span class="perf-serie-unit">reps</span>' +
               '</div>' +
               '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
-                '<input class="perf-serie-input" placeholder="' + placeholderKg + '" data-sess="' + s.id + '" data-ex="' + ei + '" data-serie="' + si + '" data-type="kg">' +
+                '<input class="perf-serie-input" placeholder="' + placeholderKg + '" data-last="' + lastKgNum + '" oninput="comparePerfInput(this)" data-sess="' + s.id + '" data-ex="' + ei + '" data-serie="' + si + '" data-type="kg">' +
                 '<span class="perf-serie-unit">kg</span>' +
               '</div>' +
             '</div>' +
           '</div>';
+        }
+
+        var setsLabel = '';
+        if (ex.sets) {
+          var setsRaw = String(ex.sets).trim();
+          if (/^\d+$/.test(setsRaw)) {
+            var setsNum = parseInt(setsRaw, 10);
+            setsLabel = setsNum + (setsNum > 1 ? ' séries' : ' série');
+          } else {
+            setsLabel = setsRaw;
+          }
         }
 
         var notesId = 'perf-notes-' + s.id + '-' + ei;
@@ -2022,7 +2037,7 @@
         var notesBody = hasNotes ? '<div class="perf-ex-notes-body" id="' + notesId + '">' + esc(ex.notes) + '</div>' : '';
 
         return '<div class="perf-ex-block">' +
-          '<div class="perf-ex-name">' + esc(ex.name || 'Exercice ' + (ei+1)) + ' <span style="font-weight:400;color:var(--text3);font-size:.72rem">· ' + sets + ' séries</span></div>' +
+          '<div class="perf-ex-name">' + esc(ex.name || 'Exercice ' + (ei+1)) + (setsLabel ? ' <span style="font-weight:600;color:var(--em);font-size:.72rem">· ' + esc(setsLabel) + '</span>' : '') + '</div>' +
           notesToggle + notesBody +
           '<div class="perf-series-row">' + seriesHtml + '</div>' +
         '</div>';
@@ -2056,6 +2071,15 @@
         '</div>' +
       '</div>';
     }).join('');
+  }
+
+  function comparePerfInput(input) {
+    input.classList.remove('perf-serie-better', 'perf-serie-worse');
+    var val = parseFloat(input.value);
+    var last = parseFloat(input.dataset.last);
+    if (isNaN(val) || isNaN(last)) return;
+    if (val > last) input.classList.add('perf-serie-better');
+    else if (val < last) input.classList.add('perf-serie-worse');
   }
 
   function togglePerfExNotes(id) {
