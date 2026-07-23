@@ -1538,11 +1538,24 @@
 
     const nutModes = window._nutModes || { sport: {}, repos: {} };
 
+    const besoinsLabels = {
+      fer: 'Fer', vitc: 'Vitamine C', vita: 'Vitamine A', fibres: 'Fibres',
+      omega3: 'Oméga-3', calcium: 'Calcium', magnesium: 'Magnésium', vitd: 'Vitamine D'
+    };
+
     function objText(obj) {
-      return (obj.calories  ? `calories ${obj.calories} kcal, ` : '') +
-             (obj.proteines ? `protéines ${obj.proteines} g, ` : '') +
-             (obj.glucides  ? `glucides ${obj.glucides} g, ` : '') +
-             (obj.lipides   ? `lipides ${obj.lipides} g` : '');
+      var parts = [];
+      if (obj.calories)  parts.push(`calories ${obj.calories} kcal`);
+      if (obj.proteines) parts.push(`protéines ${obj.proteines} g`);
+      if (obj.glucides)  parts.push(`glucides ${obj.glucides} g`);
+      if (obj.lipides)   parts.push(`lipides ${obj.lipides} g`);
+      var txt = parts.join(', ');
+      if (obj.besoins && obj.besoins.length) {
+        txt += ' ; besoins particuliers à privilégier : ' + obj.besoins.map(function(k) { return besoinsLabels[k] || k; }).join(', ');
+      }
+      if (obj.allergies) txt += ' ; allergies/intolérances à éviter impérativement : ' + obj.allergies;
+      if (obj.note) txt += ' ; note du coach pour ce type de jour : ' + obj.note;
+      return txt;
     }
 
     const mealFormat = window._selectedMealFormat || '3_repas';
@@ -1555,6 +1568,7 @@
       `Jour de repos : respecte ces objectifs (${objText(nutModes.repos)}).\n` +
       formatInstructions + '\n' +
       (note ? `Précisions du client à prendre en compte : ${note}\n` : '') +
+      '\nCONTRAINTE OBLIGATOIRE : pour chaque jour, les totaux (calories, protéines, glucides, lipides) doivent être compris dans une tolérance de ±5% MAXIMUM par rapport aux objectifs donnés ci-dessus pour ce type de jour. C\'est une règle stricte, non négociable. Si aucune combinaison naturelle d\'aliments ne rentre exactement dans cette tolérance, AJUSTE LES QUANTITÉS/PORTIONS des aliments choisis (grammes) jusqu\'à ce que les totaux réels correspondent, plutôt que d\'abandonner la contrainte ou de t\'en écarter. Avant de répondre, recalcule toi-même la somme des calories/protéines/glucides/lipides de tous les aliments de chaque jour et vérifie qu\'elle correspond bien au champ "totaux" et respecte la tolérance de ±5%.\n' +
       '\nRéponds en JSON uniquement, sans markdown, dans ce format exact :\n' +
       '{"jours":[{"jour":1,"type":"sport","repas":{...clés selon le format demandé, chacune une liste de {"aliment":"nom","quantite":"Xg","calories":X,"proteines":X,"glucides":X,"lipides":X}},"totaux":{"calories":X,"proteines":X,"glucides":X,"lipides":X}},{"jour":2,"type":"repos","repas":{...},"totaux":{...}}]}';
 
