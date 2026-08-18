@@ -377,7 +377,7 @@
     btn.textContent = 'Créer';
 
     if (profErr) {
-      showStatus('Compte Auth créé mais erreur profil : ' + profErr.message, 'error');
+      showStatus('Compte Auth créé (id: ' + auth.user.id + ') mais le profil n\'a pas pu être enregistré : ' + profErr.message + '. Ce compte est incomplet — contactez le support technique avec cet id plutôt que de recréer un compte avec le même email (l\'inscription échouera).', 'error');
       return;
     }
 
@@ -424,7 +424,7 @@
         '<td>' + esc(c.email || '—') + '</td>' +
         '<td>' + statusHtml + '</td>' +
         '<td>' + d + '</td>' +
-        '<td><button class="btn-del" onclick="deleteCoach(\'' + c.id + '\',\'' + esc(c.full_name || '') + '\')">Supprimer</button></td>' +
+        '<td><button class="btn-del" onclick="deleteCoach(\'' + c.id + '\',\'' + escJsAttr(c.full_name || '') + '\')">Supprimer</button></td>' +
       '</tr>';
     }).join('');
   }
@@ -468,7 +468,7 @@
         '<td>' + videoHtml + '</td>' +
         '<td style="white-space:nowrap">' +
           '<button class="btn-edit" onclick="editGlobalExercise(\'' + ex.id + '\')">Modifier</button>' +
-          '<button class="btn-del" onclick="deleteGlobalExercise(\'' + ex.id + '\',\'' + esc(ex.name) + '\')">Supprimer</button>' +
+          '<button class="btn-del" onclick="deleteGlobalExercise(\'' + ex.id + '\',\'' + escJsAttr(ex.name) + '\')">Supprimer</button>' +
         '</td>' +
       '</tr>';
     }).join('');
@@ -588,6 +588,14 @@
 
   function esc(str) {
     return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // Pour les valeurs inserees comme argument de chaine JS dans un attribut
+  // onclick="...('...')" : l'echappement HTML seul ne suffit pas (le navigateur
+  // decode les entites AVANT d'executer le JS de l'attribut), donc on echappe
+  // aussi les apostrophes/backslash au sens JS pour empecher une sortie de chaine.
+  function escJsAttr(str) {
+    return esc(String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
   }
 
   // Focus auto sur le champ mot de passe

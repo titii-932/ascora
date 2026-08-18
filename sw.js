@@ -1,19 +1,25 @@
-const CACHE = 'ascora-v40';
+const CACHE = 'ascora-v42';
 
 const STATIC = [
-  '/index.html',
-  '/dashboard-coach.html',
-  '/dashboard-client.html',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  '/ascora/index.html',
+  '/ascora/dashboard-coach.html',
+  '/ascora/dashboard-client.html',
+  '/ascora/manifest.json',
+  '/ascora/icons/icon-192.png',
+  '/ascora/icons/icon-512.png'
 ];
 
-// Install: pre-cache les fichiers statiques
+// Install: pre-cache les fichiers statiques.
+// On ajoute chaque fichier separement (pas cache.addAll) car un seul fichier
+// manquant (ex: icone pas encore uploadee) ferait echouer TOUT le preload
+// avec addAll, empechant la nouvelle version de s'installer et bloquant
+// les visiteurs sur une ancienne version indefiniment.
 self.addEventListener('install', function(e) {
   e.waitUntil(
     caches.open(CACHE).then(function(cache) {
-      return cache.addAll(STATIC);
+      return Promise.all(STATIC.map(function(url) {
+        return cache.add(url).catch(function() { /* fichier absent, on continue */ });
+      }));
     })
   );
   self.skipWaiting();
@@ -39,8 +45,8 @@ self.addEventListener('push', function(e) {
   var title = data.title || 'Ascora';
   var options = {
     body: data.body || '',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    icon: '/ascora/icons/icon-192.png',
+    badge: '/ascora/icons/icon-192.png',
     data: { url: data.url || '/' }
   };
   e.waitUntil(self.registration.showNotification(title, options));
