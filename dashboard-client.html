@@ -1531,6 +1531,60 @@
     }
   }
 
+  function scaleQuantite(q, factor) {
+    if (!q) return q;
+    var m = String(q).match(/^([\d]+(?:[.,]\d+)?)(.*)$/);
+    if (!m) return q;
+    var num = parseFloat(m[1].replace(',', '.'));
+    if (isNaN(num)) return q;
+    return Math.max(1, Math.round(num * factor)) + m[2];
+  }
+
+  // Recalcule les totaux réels du menu généré par l'IA et, si l'IA a dépassé
+  // les objectifs du coach, réduit automatiquement les quantités pour ne
+  // jamais dépasser — l'IA seule n'est pas fiable à 100% sur ces chiffres.
+  function enforceMacroLimits(menu, nutModes) {
+    if (!menu || !Array.isArray(menu.jours)) return menu;
+    var macros = ['calories', 'proteines', 'glucides', 'lipides'];
+    menu.jours.forEach(function(j) {
+      var target = (j.type === 'repos') ? nutModes.repos : nutModes.sport;
+      if (!target) return;
+
+      var items = [];
+      Object.keys(j.repas || {}).forEach(function(key) {
+        (j.repas[key] || []).forEach(function(item) { items.push(item); });
+      });
+      if (!items.length) return;
+
+      var actual = { calories: 0, proteines: 0, glucides: 0, lipides: 0 };
+      items.forEach(function(it) {
+        macros.forEach(function(m) { actual[m] += Number(it[m]) || 0; });
+      });
+
+      var factor = 1;
+      macros.forEach(function(m) {
+        var t = Number(target[m]);
+        if (t && actual[m] > t) factor = Math.min(factor, t / actual[m]);
+      });
+
+      if (factor < 1) {
+        items.forEach(function(it) {
+          macros.forEach(function(m) {
+            if (it[m] != null) it[m] = Math.round((Number(it[m]) || 0) * factor);
+          });
+          if (it.quantite) it.quantite = scaleQuantite(it.quantite, factor);
+        });
+      }
+
+      var totals = { calories: 0, proteines: 0, glucides: 0, lipides: 0 };
+      items.forEach(function(it) {
+        macros.forEach(function(m) { totals[m] += Number(it[m]) || 0; });
+      });
+      j.totaux = totals;
+    });
+    return menu;
+  }
+
   async function generateMyMenu() {
     const note = document.getElementById('menu-request-note').value.trim();
     const btn = document.getElementById('btn-send-menu-request');
@@ -1570,7 +1624,7 @@
       `Jour de repos : respecte ces objectifs (${objText(nutModes.repos)}).\n` +
       formatInstructions + '\n' +
       (note ? `Précisions du client à prendre en compte : ${note}\n` : '') +
-      '\nCONTRAINTE OBLIGATOIRE : pour chaque jour, les totaux (calories, protéines, glucides, lipides) doivent être compris dans une tolérance de ±5% MAXIMUM par rapport aux objectifs donnés ci-dessus pour ce type de jour. C\'est une règle stricte, non négociable. Si aucune combinaison naturelle d\'aliments ne rentre exactement dans cette tolérance, AJUSTE LES QUANTITÉS/PORTIONS des aliments choisis (grammes) jusqu\'à ce que les totaux réels correspondent, plutôt que d\'abandonner la contrainte ou de t\'en écarter. Avant de répondre, recalcule toi-même la somme des calories/protéines/glucides/lipides de tous les aliments de chaque jour et vérifie qu\'elle correspond bien au champ "totaux" et respecte la tolérance de ±5%.\n' +
+      '\nRÈGLE ABSOLUE ET NON NÉGOCIABLE : pour chaque jour, les totaux (calories, protéines, glucides, lipides) ne doivent JAMAIS DÉPASSER les objectifs donnés ci-dessus pour ce type de jour, pas même de 1g ou 1 kcal. Il vaut mieux être légèrement en dessous des objectifs que de les dépasser, même très légèrement. AJUSTE LES QUANTITÉS/PORTIONS des aliments (en grammes) pour rester sous ces limites, plutôt que d\'abandonner la contrainte. Avant de répondre, recalcule toi-même la somme des calories/protéines/glucides/lipides de tous les aliments de chaque jour, vérifie qu\'elle correspond bien au champ "totaux", et vérifie qu\'AUCUNE valeur ne dépasse l\'objectif. Si une valeur dépasse, réduis les quantités jusqu\'à ce que ce ne soit plus le cas.\n' +
       '\nRéponds en JSON uniquement, sans markdown, dans ce format exact :\n' +
       '{"jours":[{"jour":1,"type":"sport","repas":{...clés selon le format demandé, chacune une liste de {"aliment":"nom","quantite":"Xg","calories":X,"proteines":X,"glucides":X,"lipides":X}},"totaux":{"calories":X,"proteines":X,"glucides":X,"lipides":X}},{"jour":2,"type":"repos","repas":{...},"totaux":{...}}]}';
 
@@ -1587,6 +1641,7 @@
       const text = data.result || '';
       const clean = text.replace(/```json|```/g, '').trim();
       const menu = JSON.parse(clean);
+      enforceMacroLimits(menu, nutModes);
 
       const { error: insertError } = await db.from('nutrition_plans').insert({
         client_id: profile.id,
