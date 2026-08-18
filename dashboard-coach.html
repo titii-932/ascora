@@ -2110,17 +2110,38 @@
 
     <!-- ── EXERCICES ── -->
     <section id="section-exercises" class="content-section">
-      <div class="section-header">
-        <h2>Ma bibliothèque d'exercices</h2>
-        <button class="btn-sm primary" onclick="openExerciseModal()">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Ajouter un exercice
-        </button>
+      <div style="display:flex;gap:.5rem;margin-bottom:1.25rem;background:var(--card);padding:.35rem;border-radius:12px;border:1px solid var(--border);width:fit-content">
+        <button type="button" id="exlib-tab-exercises" class="detail-tab active" onclick="switchExLibTab('exercises')">Exercices</button>
+        <button type="button" id="exlib-tab-sessions" class="detail-tab" onclick="switchExLibTab('sessions')">Séances</button>
       </div>
-      <div class="loading" id="exercises-loading" style="display:none">
-        <div class="spinner"></div><br>Chargement...
+
+      <div id="exlib-content-exercises">
+        <div class="section-header">
+          <h2>Ma bibliothèque d'exercices</h2>
+          <button class="btn-sm primary" onclick="openExerciseModal()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter un exercice
+          </button>
+        </div>
+        <div class="loading" id="exercises-loading" style="display:none">
+          <div class="spinner"></div><br>Chargement...
+        </div>
+        <div class="ex-lib-grid" id="exercises-grid"></div>
       </div>
-      <div class="ex-lib-grid" id="exercises-grid"></div>
+
+      <div id="exlib-content-sessions" style="display:none">
+        <div class="section-header">
+          <h2>Mes modèles de séances</h2>
+          <button class="btn-sm primary" onclick="addTemplateSession()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Créer un modèle de séance
+          </button>
+        </div>
+        <p style="font-size:.82rem;color:var(--text3);margin-bottom:1.25rem">Créez des séances types (perte de poids, prise de masse...) et appliquez-les en un clic au programme d'un client.</p>
+        <div id="tsessions-list">
+          <div class="loading"><div class="spinner"></div><br>Chargement...</div>
+        </div>
+      </div>
     </section>
 
   </div><!-- .content-area -->
@@ -2155,6 +2176,27 @@
     <div class="modal-actions" style="margin-top:1.25rem">
       <button class="btn-modal cancel" onclick="closeModal('invite-modal')">Fermer</button>
       <button class="btn-modal confirm" onclick="generateInviteLink()">Générer le lien</button>
+    </div>
+  </div>
+</div>
+
+<!-- Apply template to client modal -->
+<div class="modal-overlay" id="apply-template-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Appliquer ce modèle à un client</div>
+      <button class="modal-close" onclick="closeModal('apply-template-modal')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p style="font-size:.85rem;color:var(--text2);margin-bottom:1rem">La séance sera copiée dans le programme sportif du client choisi.</p>
+    <div class="form-group">
+      <label>Client</label>
+      <select class="form-input" id="apply-template-client"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal cancel" onclick="closeModal('apply-template-modal')">Annuler</button>
+      <button class="btn-modal confirm" onclick="confirmApplyTemplate()">Appliquer</button>
     </div>
   </div>
 </div>
@@ -3272,6 +3314,277 @@
     s.exercises[exIdx].video_url   = coachEx._video_url || '';
     hideExAutocomplete();
     renderWorkoutSessions(sessId);
+  }
+
+  // ── MODÈLES DE SÉANCES (bibliothèque, réutilisables sur plusieurs clients) ──
+  var sessionTemplates = [];
+
+  function switchExLibTab(tab) {
+    document.getElementById('exlib-tab-exercises').classList.toggle('active', tab === 'exercises');
+    document.getElementById('exlib-tab-sessions').classList.toggle('active', tab === 'sessions');
+    document.getElementById('exlib-content-exercises').style.display = tab === 'exercises' ? 'block' : 'none';
+    document.getElementById('exlib-content-sessions').style.display = tab === 'sessions' ? 'block' : 'none';
+    if (tab === 'sessions') loadTemplateSessions();
+  }
+
+  async function loadTemplateSessions() {
+    document.getElementById('tsessions-list').innerHTML = '<div class="loading"><div class="spinner"></div><br>Chargement...</div>';
+    const { data } = await db.from('session_templates')
+      .select('*').eq('coach_id', profile.id).order('created_at');
+    sessionTemplates = data || [];
+    renderTemplateSessions();
+  }
+
+  function renderTemplateSessions(openId) {
+    var container = document.getElementById('tsessions-list');
+    if (!sessionTemplates.length) {
+      container.innerHTML = '<div class="empty-state" style="padding:2rem"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><h3>Aucun modèle</h3><p>Cliquez sur "Créer un modèle de séance" pour commencer.</p></div>';
+      return;
+    }
+    container.innerHTML = sessionTemplates.map(function(s) {
+      var exercises = Array.isArray(s.exercises) ? s.exercises : [];
+      var count = exercises.length;
+      var rows = exercises.map(function(ex, ei) {
+        var dotColor = ex.badge_color || 'var(--border)';
+        return '<tr data-ei="' + ei + '">' +
+          '<td><div class="ex-name-cell">' +
+            '<span class="ex-badge-dot" style="background:' + esc(dotColor) + '"></span>' +
+            '<input class="ex-inp" data-tpl="' + s.id + '" data-ei="' + ei + '" value="' + esc(ex.name||'') + '" placeholder="Squat..." oninput="growInp(this);onTplExNameInput(this)" onfocus="onTplExNameInput(this)" onblur="setTimeout(hideExAutocomplete,180)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'name\',this.value)">' +
+          '</div></td>' +
+          '<td><input class="ex-inp ex-inp-sm" type="number" min="1" value="' + (ex.sets||'') + '" oninput="growInp(this)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'sets\',this.value)"></td>' +
+          '<td><input class="ex-inp ex-inp-sm" value="' + esc(String(ex.reps||'')) + '" placeholder="10" oninput="growInp(this)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'reps\',this.value)"></td>' +
+          '<td><input class="ex-inp ex-inp-rest" value="' + esc(String(ex.rest||'')) + '" placeholder="90s" oninput="growInp(this)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'rest\',this.value)"></td>' +
+          '<td class="ex-td-notes"><textarea class="ex-ta-notes" rows="1" placeholder="Notes..." oninput="growTaNotes(this)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'notes\',this.value)">' + esc(ex.notes||'') + '</textarea></td>' +
+          '<td><button class="btn-del-row" onclick="removeTemplateExercise(\'' + s.id + '\',' + ei + ')" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button></td>' +
+          '</tr>';
+      }).join('');
+
+      var cards = exercises.map(function(ex, ei) {
+        var dotColor = ex.badge_color || 'var(--border)';
+        return '<div class="ex-card-item" data-ei="' + ei + '">' +
+          '<button class="ex-card-del" onclick="removeTemplateExercise(\'' + s.id + '\',' + ei + ')" title="Supprimer">' +
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>' +
+          '</button>' +
+          '<div class="ex-name-cell" style="margin-bottom:.55rem">' +
+            '<span class="ex-badge-dot" style="background:' + esc(dotColor) + '"></span>' +
+            '<input class="ex-card-name-inp" style="margin:0;flex:1;min-width:0;width:0" data-tpl="' + s.id + '" data-ei="' + ei + '" value="' + esc(ex.name||'') + '" placeholder="Squat..." oninput="onTplExNameInput(this)" onfocus="onTplExNameInput(this)" onblur="setTimeout(hideExAutocomplete,180)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'name\',this.value)">' +
+          '</div>' +
+          '<div class="ex-card-meta-row">' +
+            '<div class="ex-card-meta-field">' +
+              '<span class="ex-card-meta-label">Séries</span>' +
+              '<input class="ex-card-meta-inp" type="number" min="1" value="' + (ex.sets||'') + '" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'sets\',this.value)">' +
+            '</div>' +
+            '<div class="ex-card-meta-field">' +
+              '<span class="ex-card-meta-label">Reps</span>' +
+              '<input class="ex-card-meta-inp" value="' + esc(String(ex.reps||'')) + '" placeholder="10" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'reps\',this.value)">' +
+            '</div>' +
+            '<div class="ex-card-meta-field">' +
+              '<span class="ex-card-meta-label">Repos</span>' +
+              '<input class="ex-card-meta-inp" value="' + esc(String(ex.rest||'')) + '" placeholder="90s" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'rest\',this.value)">' +
+            '</div>' +
+          '</div>' +
+          '<textarea class="ex-ta-notes" rows="1" placeholder="Notes..." oninput="growTaNotes(this)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'notes\',this.value)">' + esc(ex.notes||'') + '</textarea>' +
+        '</div>';
+      }).join('');
+
+      return '<div class="ws-card" id="tsc-' + s.id + '">' +
+        '<div class="ws-card-summary" onclick="toggleTSession(\'' + s.id + '\')">' +
+          '<div class="wsc-left">' +
+            '<svg class="ws-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>' +
+            '<span class="ws-card-title">' + esc(s.name) + '</span>' +
+            '<span class="session-meta-badge">' + count + ' exercice' + (count !== 1 ? 's' : '') + '</span>' +
+          '</div>' +
+          '<div style="display:flex;gap:.4rem">' +
+            '<button class="btn-sm" style="padding:.4rem .7rem" onclick="event.stopPropagation();openApplyTemplateModal(\'' + s.id + '\')">👤 Appliquer à un client</button>' +
+            '<button class="btn-sm ghost" onclick="event.stopPropagation();deleteTemplateSession(\'' + s.id + '\')" title="Supprimer le modèle"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="ws-card-body">' +
+          '<div class="ws-card-header">' +
+            '<input class="ws-name-input" id="tname-' + s.id + '" value="' + esc(s.name) + '" placeholder="Nom du modèle (ex: Perte de poids - Débutant)">' +
+            '<button class="btn-sm primary" onclick="saveTemplateSession(\'' + s.id + '\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg> Sauvegarder</button>' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label>Échauffement</label>' +
+            '<textarea class="form-input" id="twarmup-' + s.id + '" rows="2" placeholder="Ex: 10 min vélo léger, mobilité...">' + esc(s.warmup||'') + '</textarea>' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label>Notes / Instructions</label>' +
+            '<textarea class="form-input" id="tnotes-' + s.id + '" rows="3" placeholder="Ex: méthode top set / back off, consignes d\'exécution, tempo, points d\'attention...">' + esc(s.instructions||'') + '</textarea>' +
+          '</div>' +
+          '<div class="ex-table-wrap">' +
+          '<table class="ex-table"><thead><tr><th>Exercice</th><th>Séries</th><th>Reps</th><th>Repos</th><th>Notes</th><th></th></tr></thead>' +
+          '<tbody id="tex-' + s.id + '">' + rows + '</tbody></table>' +
+          '</div>' +
+          '<div class="ex-card-list" id="tex-cards-' + s.id + '">' + cards + '</div>' +
+          '<button class="btn-add-ex" onclick="addTemplateExercise(\'' + s.id + '\')">' +
+            '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ajouter exercice' +
+          '</button>' +
+          '<div class="form-group" style="margin-top:.85rem">' +
+            '<label>Notes de fin de séance</label>' +
+            '<textarea class="form-input" id="tendnotes-' + s.id + '" rows="2" placeholder="Ex: 5 min récupération active, étirements...">' + esc(s.end_notes||'') + '</textarea>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    if (openId) {
+      var openCard = document.getElementById('tsc-' + openId);
+      if (openCard) {
+        openCard.classList.add('open');
+        openCard.querySelectorAll('.ex-inp').forEach(growInp);
+        openCard.querySelectorAll('.ex-ta-notes').forEach(growTaNotes);
+      }
+    }
+  }
+
+  function toggleTSession(id) {
+    var target = document.getElementById('tsc-' + id);
+    var wasOpen = target.classList.contains('open');
+    document.querySelectorAll('#tsessions-list .ws-card.open').forEach(function(c) { c.classList.remove('open'); });
+    if (!wasOpen) {
+      target.classList.add('open');
+      target.querySelectorAll('.ex-inp').forEach(growInp);
+      target.querySelectorAll('.ex-ta-notes').forEach(growTaNotes);
+    }
+  }
+
+  function updateTemplateExercise(tplId, exIdx, field, value) {
+    var s = sessionTemplates.find(function(s) { return s.id === tplId; });
+    if (!s) return;
+    if (!Array.isArray(s.exercises)) s.exercises = [];
+    if (!s.exercises[exIdx]) s.exercises[exIdx] = {};
+    s.exercises[exIdx][field] = (field === 'sets') ? (parseInt(value) || 0) : value;
+  }
+
+  function addTemplateExercise(tplId) {
+    var s = sessionTemplates.find(function(s) { return s.id === tplId; });
+    if (!s) return;
+    if (!Array.isArray(s.exercises)) s.exercises = [];
+    s.exercises.push({ name: '', sets: 3, reps: '10', rest: '', notes: '' });
+    renderTemplateSessions(tplId);
+    setTimeout(function() {
+      var tbody = document.getElementById('tex-' + tplId);
+      if (tbody) {
+        var lastRow = tbody.lastElementChild;
+        if (lastRow) { var inp = lastRow.querySelector('input'); if (inp) inp.focus(); }
+      }
+    }, 50);
+  }
+
+  function removeTemplateExercise(tplId, exIdx) {
+    var s = sessionTemplates.find(function(s) { return s.id === tplId; });
+    if (!s || !Array.isArray(s.exercises)) return;
+    s.exercises.splice(exIdx, 1);
+    renderTemplateSessions(tplId);
+  }
+
+  async function saveTemplateSession(tplId) {
+    var s = sessionTemplates.find(function(s) { return s.id === tplId; });
+    if (!s) return;
+    var name         = (document.getElementById('tname-' + tplId).value.trim()) || 'Séance';
+    var warmup       = document.getElementById('twarmup-' + tplId).value.trim();
+    var instructions = document.getElementById('tnotes-' + tplId).value.trim();
+    var end_notes    = document.getElementById('tendnotes-' + tplId).value.trim();
+    var { error } = await db.from('session_templates').update({
+      name: name, warmup: warmup, instructions: instructions, end_notes: end_notes, exercises: s.exercises
+    }).eq('id', tplId);
+    if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+    s.name = name; s.warmup = warmup; s.instructions = instructions; s.end_notes = end_notes;
+    toast('Modèle sauvegardé !', 'success');
+    var card = document.getElementById('tsc-' + tplId);
+    if (card) {
+      var titleEl = card.querySelector('.ws-card-title');
+      if (titleEl) titleEl.textContent = name;
+    }
+  }
+
+  async function addTemplateSession() {
+    var { data, error } = await db.from('session_templates').insert({
+      coach_id: profile.id, name: 'Nouveau modèle', warmup: '', instructions: '', end_notes: '', exercises: []
+    }).select().single();
+    if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+    sessionTemplates.push(data);
+    renderTemplateSessions(data.id);
+    toast('Modèle créé !', 'success');
+  }
+
+  async function deleteTemplateSession(tplId) {
+    if (!confirm('Supprimer ce modèle de séance ?')) return;
+    var { error } = await db.from('session_templates').delete().eq('id', tplId);
+    if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+    sessionTemplates = sessionTemplates.filter(function(s) { return s.id !== tplId; });
+    renderTemplateSessions();
+    toast('Modèle supprimé.', 'success');
+  }
+
+  function onTplExNameInput(input) {
+    if (!coachExercises.length) return;
+    var val = input.value.toLowerCase().trim();
+    var matches = val
+      ? coachExercises.filter(function(ex) { return ex.name.toLowerCase().includes(val); })
+      : coachExercises.slice(0, 8);
+    if (!matches.length) { hideExAutocomplete(); return; }
+    activeExInput = input;
+    var rect = input.getBoundingClientRect();
+    exAutoDropEl.style.display = 'block';
+    exAutoDropEl.style.left  = rect.left + 'px';
+    exAutoDropEl.style.top   = (rect.bottom + 3) + 'px';
+    exAutoDropEl.style.width = Math.max(230, rect.width) + 'px';
+    var tplId = input.dataset.tpl;
+    var exIdx = parseInt(input.dataset.ei);
+    exAutoDropEl.innerHTML = matches.map(function(ex) {
+      return '<div class="ex-auto-item" onmousedown="event.preventDefault();selectExFromLibraryTemplate(\'' + esc(tplId) + '\',' + exIdx + ',\'' + ex.id + '\')">' +
+        '<span class="ex-badge-dot" style="background:' + esc(ex.badge_color || '#10b981') + '"></span>' +
+        '<span>' + esc(ex.name) + '</span>' +
+        (ex.muscles ? '<span class="ex-auto-muscles">' + esc(ex.muscles) + '</span>' : '') +
+      '</div>';
+    }).join('');
+  }
+
+  function selectExFromLibraryTemplate(tplId, exIdx, coachExId) {
+    var coachEx = coachExercises.find(function(e) { return e.id === coachExId; });
+    if (!coachEx) return;
+    var s = sessionTemplates.find(function(s) { return s.id === tplId; });
+    if (!s) return;
+    if (!Array.isArray(s.exercises)) s.exercises = [];
+    if (!s.exercises[exIdx]) s.exercises[exIdx] = {};
+    s.exercises[exIdx].name        = coachEx.name;
+    s.exercises[exIdx].notes       = coachEx.notes || '';
+    s.exercises[exIdx].badge_color = coachEx.badge_color || '#10b981';
+    s.exercises[exIdx].video_url   = coachEx._video_url || '';
+    hideExAutocomplete();
+    renderTemplateSessions(tplId);
+  }
+
+  var _applyTemplateId = null;
+  function openApplyTemplateModal(tplId) {
+    _applyTemplateId = tplId;
+    var sel = document.getElementById('apply-template-client');
+    sel.innerHTML = clients.slice().sort(function(a, b) {
+      return (a.full_name||'').localeCompare(b.full_name||'', 'fr', { sensitivity: 'base' });
+    }).map(function(c) { return '<option value="' + c.id + '">' + esc(c.full_name || '—') + '</option>'; }).join('');
+    document.getElementById('apply-template-modal').classList.add('show');
+  }
+
+  async function confirmApplyTemplate() {
+    var clientId = document.getElementById('apply-template-client').value;
+    var tpl = sessionTemplates.find(function(s) { return s.id === _applyTemplateId; });
+    if (!clientId || !tpl) return;
+
+    const { count } = await db.from('workout_sessions')
+      .select('id', { count: 'exact', head: true }).eq('client_id', clientId);
+
+    const { error } = await db.from('workout_sessions').insert({
+      client_id: clientId, coach_id: profile.id,
+      name: tpl.name, warmup: tpl.warmup || '', instructions: tpl.instructions || '',
+      end_notes: tpl.end_notes || '', exercises: tpl.exercises || [],
+      position: count || 0
+    });
+    if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+    closeModal('apply-template-modal');
+    toast('Séance appliquée au programme du client !', 'success');
+    sendAutoNotif(clientId, '📋 Une nouvelle séance a été ajoutée à votre programme sportif.');
   }
 
   // ── WORKOUT BUILDER ─────────────────────────────
