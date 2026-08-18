@@ -2041,6 +2041,12 @@
             setsLabel = setsRaw;
           }
         }
+        var restVal = ex.rest || (ex.rest_seconds ? ex.rest_seconds + 's' : '');
+        var exMetaParts = [];
+        if (setsLabel) exMetaParts.push(setsLabel);
+        if (ex.reps) exMetaParts.push(String(ex.reps));
+        if (restVal) exMetaParts.push(restVal);
+        var exMetaLabel = exMetaParts.join(' · ');
 
         var notesId = 'perf-notes-' + s.id + '-' + ei;
         var hasNotes = !!ex.notes;
@@ -2052,7 +2058,7 @@
         var notesBody = hasNotes ? '<div class="perf-ex-notes-body" id="' + notesId + '">' + esc(ex.notes) + '</div>' : '';
 
         return '<div class="perf-ex-block">' +
-          '<div class="perf-ex-name">' + esc(ex.name || 'Exercice ' + (ei+1)) + (setsLabel ? ' <span style="font-weight:600;color:var(--em);font-size:.72rem">· ' + esc(setsLabel) + '</span>' : '') + '</div>' +
+          '<div class="perf-ex-name">' + esc(ex.name || 'Exercice ' + (ei+1)) + (exMetaLabel ? ' <span style="font-weight:600;color:var(--em);font-size:.72rem">· ' + esc(exMetaLabel) + '</span>' : '') + '</div>' +
           notesToggle + notesBody +
           '<div class="perf-series-row">' + seriesHtml + '</div>' +
         '</div>';
