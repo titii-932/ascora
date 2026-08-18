@@ -1628,19 +1628,69 @@
       '\nRéponds en JSON uniquement, sans markdown, dans ce format exact :\n' +
       '{"jours":[{"jour":1,"type":"sport","repas":{...clés selon le format demandé, chacune une liste de {"aliment":"nom","quantite":"Xg","calories":X,"proteines":X,"glucides":X,"lipides":X}},"totaux":{"calories":X,"proteines":X,"glucides":X,"lipides":X}},{"jour":2,"type":"repos","repas":{...},"totaux":{...}}]}';
 
-    try {
+    async function callAI(p) {
       const response = await fetch('https://dxrkutyaamvhtshzanwu.supabase.co/functions/v1/generate-menu', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + SUPABASE_KEY
         },
-        body: JSON.stringify({ prompt: prompt })
+        body: JSON.stringify({ prompt: p })
       });
       const data = await response.json();
       const text = data.result || '';
       const clean = text.replace(/```json|```/g, '').trim();
-      const menu = JSON.parse(clean);
+      return JSON.parse(clean);
+    }
+
+    const macroLabels = { calories: 'calories (kcal)', proteines: 'protéines (g)', glucides: 'glucides (g)', lipides: 'lipides (g)' };
+
+    function getDayExcess(j, target) {
+      var items = [];
+      Object.keys(j.repas || {}).forEach(function(key) { (j.repas[key] || []).forEach(function(it) { items.push(it); }); });
+      var actual = { calories: 0, proteines: 0, glucides: 0, lipides: 0 };
+      items.forEach(function(it) {
+        Object.keys(actual).forEach(function(m) { actual[m] += Number(it[m]) || 0; });
+      });
+      var excess = [];
+      Object.keys(actual).forEach(function(m) {
+        var t = Number(target[m]);
+        if (t && actual[m] > t) excess.push({ key: m, label: macroLabels[m], actual: actual[m], target: t });
+      });
+      return excess;
+    }
+
+    async function regenerateDay(j, target, excess) {
+      var typeLabel = j.type === 'repos' ? 'jour de repos' : 'jour de sport';
+      var regenPrompt = 'Tu es un nutritionniste expert. Voici un menu que tu as toi-même proposé pour un ' + typeLabel + ', mais il DÉPASSE les objectifs du client sur : ' +
+        excess.map(function(e) { return e.label + ' (actuellement ' + e.actual + ', maximum autorisé ' + e.target + ')'; }).join(', ') + '.\n' +
+        'Menu actuel : ' + JSON.stringify(j.repas) + '\n' +
+        formatInstructions + '\n' +
+        'RÈGLE ABSOLUE : régénère ce menu (mêmes repas/clés) en réduisant les portions des aliments responsables du dépassement (par exemple les féculents/fruits/sucres si ce sont les glucides, les viandes/légumineuses si ce sont les protéines, etc.), tout en gardant un repas COMPLET et ÉQUILIBRÉ (ne supprime pas de repas). Les totaux finaux ne doivent JAMAIS dépasser : calories ' + target.calories + ' kcal, protéines ' + target.proteines + ' g, glucides ' + target.glucides + ' g, lipides ' + target.lipides + ' g. Recalcule toi-même les totaux avant de répondre et vérifie qu\'aucune valeur ne dépasse.\n' +
+        'Réponds en JSON uniquement, sans markdown, format exact : {"repas":{...mêmes clés qu\'avant...},"totaux":{"calories":X,"proteines":X,"glucides":X,"lipides":X}}';
+      try {
+        var corrected = await callAI(regenPrompt);
+        if (corrected && corrected.repas) {
+          j.repas = corrected.repas;
+        }
+      } catch (e) { /* on garde le menu précédent, le filet de sécurité s'en chargera */ }
+    }
+
+    try {
+      const menu = await callAI(prompt);
+
+      for (var di = 0; di < (menu.jours || []).length; di++) {
+        var j = menu.jours[di];
+        var target = (j.type === 'repos') ? nutModes.repos : nutModes.sport;
+        if (!target) continue;
+        for (var attempt = 0; attempt < 2; attempt++) {
+          var excess = getDayExcess(j, target);
+          if (!excess.length) break;
+          statusEl.textContent = 'Ajustement du menu en cours...';
+          await regenerateDay(j, target, excess);
+        }
+      }
+
       enforceMacroLimits(menu, nutModes);
 
       const { error: insertError } = await db.from('nutrition_plans').insert({
