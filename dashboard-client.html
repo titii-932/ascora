@@ -883,6 +883,20 @@
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
             Nutrition
           </div>
+
+          <div id="tracker-menu-panel" style="display:none;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:.75rem;margin-bottom:1rem">
+            <div style="font-size:.78rem;font-weight:700;margin-bottom:.5rem">Repas de mon menu mangés aujourd'hui</div>
+            <div style="display:flex;gap:.4rem;margin-bottom:.6rem">
+              <button type="button" id="tmn-btn-sport" onclick="selectTrackerMenuDayType('sport')" style="padding:.4rem .8rem;border:1px solid var(--border);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;background:transparent;color:var(--text3)">🏋️ Jour sport</button>
+              <button type="button" id="tmn-btn-repos" onclick="selectTrackerMenuDayType('repos')" style="padding:.4rem .8rem;border:1px solid var(--border);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;background:transparent;color:var(--text3)">😴 Jour repos</button>
+            </div>
+            <div id="tracker-menu-meals" style="display:flex;flex-direction:column;gap:.35rem;margin-bottom:.6rem"></div>
+            <div class="form-group" style="margin-bottom:0">
+              <label style="font-size:.72rem">Autre chose mangé, hors menu (kcal)</label>
+              <input class="form-input" type="number" id="t-menu-extra-kcal" placeholder="Ex : 250 pour un croissant" step="1" min="0" oninput="recalcTrackerFromMenu()">
+            </div>
+          </div>
+
           <div class="form-group">
             <label>Calories (kcal)</label>
             <input class="form-input" type="number" id="t-calories" placeholder="2000" step="1" min="0">
@@ -1295,6 +1309,7 @@
     document.querySelectorAll('.nav-item').forEach(i => i.classList.toggle('active', i.dataset.section === name));
     document.getElementById('topbar-title').textContent = sectionTitles[name] || '';
     if (name === 'nutrition') loadNutritionSection();
+    if (name === 'tracker') loadTrackerMenuPlan();
     if (name === 'solo') { loadProgramSessions(); loadSoloSessions(); }
     if (name === 'messages') loadMessages();
     closeSidebar();
@@ -1872,7 +1887,91 @@
     }
   }
 
+  const trackerRepasLabels = {
+    petit_dejeuner: '🌅 Petit-déjeuner', dejeuner: '☀️ Déjeuner', collation: '🍎 Collation', diner: '🌙 Dîner',
+    repas_1: '🍽️ Repas 1', repas_2: '🍽️ Repas 2', repas_3: '🍽️ Repas 3', repas_4: '🍽️ Repas 4', repas_5: '🍽️ Repas 5'
+  };
+
+  async function loadTrackerMenuPlan() {
+    const { data } = await db.from('nutrition_plans')
+      .select('*')
+      .eq('client_id', profile.id)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    const panel = document.getElementById('tracker-menu-panel');
+    const plan = (data && data[0]) || null;
+    const jours = (plan && !plan.pdf_url && plan.plan_data && plan.plan_data.jours) || [];
+
+    if (!jours.length) {
+      panel.style.display = 'none';
+      window._trackerMenuJours = null;
+      return;
+    }
+
+    window._trackerMenuJours = jours;
+    panel.style.display = 'block';
+    const hasSport = jours.some(function(j) { return j.type === 'sport'; });
+    selectTrackerMenuDayType(hasSport ? 'sport' : 'repos');
+  }
+
+  function selectTrackerMenuDayType(type) {
+    window._trackerMenuSelectedType = type;
+    document.getElementById('tmn-btn-sport').style.background = (type === 'sport') ? 'var(--em)' : 'transparent';
+    document.getElementById('tmn-btn-sport').style.color = (type === 'sport') ? '#000' : 'var(--text3)';
+    document.getElementById('tmn-btn-repos').style.background = (type === 'repos') ? 'var(--em)' : 'transparent';
+    document.getElementById('tmn-btn-repos').style.color = (type === 'repos') ? '#000' : 'var(--text3)';
+
+    const jours = window._trackerMenuJours || [];
+    const j = jours.find(function(x) { return x.type === type; }) || jours[0];
+    const container = document.getElementById('tracker-menu-meals');
+    if (!j) { container.innerHTML = ''; return; }
+
+    container.innerHTML = Object.keys(j.repas || {}).map(function(key) {
+      const items = j.repas[key] || [];
+      const totals = { calories: 0, proteines: 0, glucides: 0, lipides: 0 };
+      items.forEach(function(it) {
+        totals.calories  += Number(it.calories)  || 0;
+        totals.proteines += Number(it.proteines) || 0;
+        totals.glucides  += Number(it.glucides)  || 0;
+        totals.lipides   += Number(it.lipides)   || 0;
+      });
+      const label = trackerRepasLabels[key] || key;
+      return '<label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;cursor:pointer">' +
+        '<input type="checkbox" class="tmn-meal-check" data-cal="' + totals.calories + '" data-prot="' + totals.proteines + '" data-carb="' + totals.glucides + '" data-fat="' + totals.lipides + '" onchange="recalcTrackerFromMenu()">' +
+        '<span>' + label + ' <span style="color:var(--text3);font-size:.72rem">(' + Math.round(totals.calories) + ' kcal)</span></span>' +
+      '</label>';
+    }).join('');
+
+    recalcTrackerFromMenu();
+  }
+
+  function recalcTrackerFromMenu() {
+    if (!window._trackerMenuJours) return;
+    var totals = { calories: 0, proteines: 0, glucides: 0, lipides: 0 };
+    document.querySelectorAll('.tmn-meal-check:checked').forEach(function(cb) {
+      totals.calories  += Number(cb.dataset.cal)  || 0;
+      totals.proteines += Number(cb.dataset.prot) || 0;
+      totals.glucides  += Number(cb.dataset.carb) || 0;
+      totals.lipides   += Number(cb.dataset.fat)  || 0;
+    });
+    var extra = Number(document.getElementById('t-menu-extra-kcal').value) || 0;
+    totals.calories += extra;
+
+    document.getElementById('t-calories').value = totals.calories || '';
+    document.getElementById('t-proteins').value = totals.proteines || '';
+    document.getElementById('t-fats').value = totals.lipides || '';
+    document.getElementById('t-carbs').value = totals.glucides || '';
+  }
+
+  function resetTrackerMenuChecklist() {
+    document.querySelectorAll('.tmn-meal-check').forEach(function(cb) { cb.checked = false; });
+    var extraEl = document.getElementById('t-menu-extra-kcal');
+    if (extraEl) extraEl.value = '';
+  }
+
   function clearTrackerForm() {
+    resetTrackerMenuChecklist();
     var ids = ['t-weight','t-waist','t-thigh','t-arm','t-calories','t-proteins','t-fats','t-carbs','t-sugars','t-water','t-steps','t-sleep'];
     ids.forEach(function(id) { document.getElementById(id).value = ''; });
     document.getElementById('t-stress').value = 5;
@@ -1890,6 +1989,7 @@
   }
 
   function populateTrackerForm(d) {
+    resetTrackerMenuChecklist();
     function set(id, val) { if (val != null) document.getElementById(id).value = val; }
     set('t-weight', d.weight_kg);
     set('t-waist', d.waist_cm);
