@@ -1868,6 +1868,26 @@
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
     Sauvegarder les objectifs
   </button>
+
+  <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border)">
+    <div style="font-size:.9rem;font-weight:600;display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Envoyer un menu en PDF
+    </div>
+    <p style="font-size:.82rem;color:var(--text3);margin-bottom:.9rem">Vous pouvez aussi envoyer directement un menu au format PDF au client, sans passer par l'IA.</p>
+    <input type="file" id="nutrition-pdf-file" accept="application/pdf" style="display:none" onchange="onNutritionPdfSelected(this)">
+    <button class="btn-sm" onclick="document.getElementById('nutrition-pdf-file').click()" style="padding:.55rem 1.1rem">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Choisir un PDF
+    </button>
+    <span id="nutrition-pdf-filename" style="font-size:.8rem;color:var(--text3);margin-left:.6rem"></span>
+    <div style="margin-top:.75rem">
+      <button class="btn-sm primary" id="nutrition-pdf-send-btn" style="display:none;padding:.6rem 1.25rem" onclick="uploadNutritionPdf()">
+        Envoyer au client
+      </button>
+      <span id="nutrition-pdf-status" style="font-size:.8rem;margin-left:.6rem"></span>
+    </div>
+  </div>
 </div>
 
         <!-- Tab: Séances -->
@@ -3696,6 +3716,65 @@
     const idx = clients.findIndex(function(c) { return c.id === selectedClient.id; });
     if (idx !== -1) clients[idx].ai_nutrition_objectives = JSON.stringify(obj);
     toast('Objectifs Sport et Repos sauvegardés !', 'success');
+  }
+
+  function onNutritionPdfSelected(input) {
+    var file = input.files[0];
+    var statusEl = document.getElementById('nutrition-pdf-status');
+    statusEl.textContent = '';
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024) {
+      statusEl.textContent = 'Fichier trop lourd (max 20 MB).';
+      statusEl.style.color = '#f87171';
+      input.value = '';
+      document.getElementById('nutrition-pdf-send-btn').style.display = 'none';
+      document.getElementById('nutrition-pdf-filename').textContent = '';
+      return;
+    }
+    document.getElementById('nutrition-pdf-filename').textContent = file.name;
+    document.getElementById('nutrition-pdf-send-btn').style.display = 'inline-flex';
+  }
+
+  async function uploadNutritionPdf() {
+    var file = document.getElementById('nutrition-pdf-file').files[0];
+    if (!file || !selectedClient) return;
+    var btn = document.getElementById('nutrition-pdf-send-btn');
+    var statusEl = document.getElementById('nutrition-pdf-status');
+    btn.disabled = true;
+    statusEl.textContent = 'Envoi en cours...';
+    statusEl.style.color = 'var(--text2)';
+
+    var path = selectedClient.id + '/' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    var { error: uploadError } = await db.storage.from('nutrition-pdfs').upload(path, file, { upsert: true });
+    if (uploadError) {
+      statusEl.textContent = 'Erreur : ' + uploadError.message;
+      statusEl.style.color = '#f87171';
+      btn.disabled = false;
+      return;
+    }
+
+    var { data: urlData } = db.storage.from('nutrition-pdfs').getPublicUrl(path);
+
+    const { error: insertError } = await db.from('nutrition_plans').insert({
+      client_id: selectedClient.id,
+      coach_id: profile.id,
+      title: `Menu (PDF) du ${fmtDate(new Date().toISOString())}`,
+      plan_data: {},
+      pdf_url: urlData.publicUrl
+    });
+
+    btn.disabled = false;
+    if (insertError) {
+      statusEl.textContent = 'Erreur : ' + insertError.message;
+      statusEl.style.color = '#f87171';
+      return;
+    }
+
+    statusEl.textContent = '✓ PDF envoyé au client';
+    statusEl.style.color = 'var(--em-lt)';
+    document.getElementById('nutrition-pdf-file').value = '';
+    document.getElementById('nutrition-pdf-filename').textContent = '';
+    btn.style.display = 'none';
   }
 
   async function loadClientSessions() {

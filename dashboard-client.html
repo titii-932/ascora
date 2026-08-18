@@ -1626,7 +1626,22 @@
     }
 
     window._latestMenuPlan = data[0];
+    if (data[0].pdf_url) {
+      renderPdfMenu(data[0]);
+      return;
+    }
     renderWeeklyMenu(data[0].plan_data);
+  }
+
+  function renderPdfMenu(plan) {
+    document.getElementById('menu-result').innerHTML =
+      '<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.5rem;text-align:center">' +
+        '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--em);margin-bottom:.75rem"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+        '<div style="font-size:.9rem;font-weight:700;margin-bottom:.25rem">' + esc(plan.title || 'Menu de votre coach') + '</div>' +
+        '<p style="font-size:.8rem;color:var(--text3);margin-bottom:1rem">Votre coach vous a envoyé ce menu directement en PDF.</p>' +
+        '<a href="' + plan.pdf_url + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:.5rem;background:linear-gradient(135deg,#10b981,#059669);color:#000;border-radius:12px;padding:.7rem 1.5rem;font-size:.85rem;font-weight:700;text-decoration:none">📄 Ouvrir / Télécharger le PDF</a>' +
+      '</div>';
+    document.getElementById('menu-result').style.display = 'block';
   }
 
   function renderWeeklyMenu(planData) {
