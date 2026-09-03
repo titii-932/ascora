@@ -3584,7 +3584,6 @@
     if (error) { toast('Erreur : ' + error.message, 'error'); return; }
     closeModal('apply-template-modal');
     toast('Séance appliquée au programme du client !', 'success');
-    sendAutoNotif(clientId, '📋 Une nouvelle séance a été ajoutée à votre programme sportif.');
   }
 
   // ── WORKOUT BUILDER ─────────────────────────────
@@ -3805,7 +3804,6 @@
     if (error) { toast('Erreur : ' + error.message, 'error'); return; }
     s.name = name; s.warmup = warmup; s.instructions = instructions; s.end_notes = end_notes;
     toast('Séance sauvegardée !', 'success');
-    sendAutoNotif(selectedClient.id, '📋 Votre programme sportif a été mis à jour par votre coach.');
     if (selectedClient.duo_partner_id && duoPartner) {
       _pendingDuoSessionId = sessionId;
       _duoModalMode = 'session';
@@ -3865,7 +3863,6 @@
         if (error) hasError = true;
       }
       if (hasError) { toast('Certaines séances n\'ont pas pu être copiées.', 'error'); return; }
-      if (duoPartner) sendAutoNotif(duoPartner.id, '📋 Votre programme sportif a été mis à jour par votre coach.');
       toast(`Toutes les séances de ${selectedClient.full_name} ont été copiées vers ${duoPartner?.full_name || 'le partenaire'} !`, 'success');
 
     } else if (_duoModalMode === 'initial') {
@@ -3888,7 +3885,6 @@
         if (error) { hasError = true; }
       }
       if (hasError) { toast('Certaines séances n\'ont pas pu être copiées.', 'error'); return; }
-      if (duoPartner) sendAutoNotif(duoPartner.id, '📋 Votre programme sportif a été mis à jour par votre coach.');
       const n = sessions.length;
       toast(`${n} séance${n > 1 ? 's' : ''} copiée${n > 1 ? 's' : ''} chez ${duoPartner?.full_name || 'le partenaire'} !`, 'success');
 
@@ -3904,7 +3900,6 @@
         nutErr = rn2.error;
       }
       if (nutErr) { toast('Erreur sync nutrition : ' + nutErr.message, 'error'); return; }
-      if (duoPartner) sendAutoNotif(duoPartner.id, '🥗 Votre plan alimentaire a été mis à jour par votre coach.');
       toast(`Plan alimentaire copié chez ${duoPartner?.full_name || 'le partenaire'} !`, 'success');
 
     } else {
@@ -3924,7 +3919,6 @@
         position: 9999
       });
       if (error) { toast('Erreur sync duo : ' + error.message, 'error'); return; }
-      if (duoPartner) sendAutoNotif(duoPartner.id, '📋 Votre programme sportif a été mis à jour par votre coach.');
       toast('Séance copiée chez ' + (duoPartner ? duoPartner.full_name : 'le partenaire') + ' !', 'success');
     }
   }
@@ -4822,10 +4816,6 @@
     input.value = '';
     pushMessageNotif(selectedClient.id, content);
     loadConvMessages();
-  }
-
-  async function sendAutoNotif(clientId, text) {
-    await db.from('messages').insert({ sender_id: profile.id, receiver_id: clientId, content: text });
   }
 
   async function pushMessageNotif(receiverId, preview) {
