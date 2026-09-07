@@ -4523,7 +4523,7 @@
         <td>${statusHtml}</td>
         <td>${method}</td>
         <td>${note}</td>
-        <td><button class="fin-edit-btn" onclick="openFinEditModal('${f.id}','${isEncaisse}','${escJsAttr(f.payment_method||'')}','${escJsAttr(f.fin_note||'')}')">✏️</button></td>
+        <td><button class="fin-edit-btn" onclick="openFinEditModal('${f.id}','${isEncaisse}','${escJsAttr(f.payment_method||'')}','${escJsAttr(f.fin_note||'')}','${f.amount||0}')">✏️</button></td>
       </tr>`;
     }).join('');
     if (tbody) tbody.innerHTML = rowsHtml;
@@ -4545,7 +4545,7 @@
         </div>
         <div class="fin-mob-meta">
           ${statusHtml}${method}${note}
-          <button class="fin-edit-btn" onclick="openFinEditModal('${f.id}','${isEncaisse}','${escJsAttr(f.payment_method||'')}','${escJsAttr(f.fin_note||'')}')">✏️ Modifier</button>
+          <button class="fin-edit-btn" onclick="openFinEditModal('${f.id}','${isEncaisse}','${escJsAttr(f.payment_method||'')}','${escJsAttr(f.fin_note||'')}','${f.amount||0}')">✏️ Modifier</button>
         </div>
       </div>`;
     }).join('');
@@ -4748,12 +4748,13 @@
     setTimeout(function() { win.print(); }, 500);
   }
 
-  function openFinEditModal(id, isPaid, method, note) {
+  function openFinEditModal(id, isPaid, method, note, amount) {
     const decoded_note = note.replace(/&#39;/g, "'").replace(/&amp;/g, '&');
     document.getElementById('fin-edit-id').value = id;
     document.getElementById('fin-edit-status').value = isPaid === 'true' ? 'encaisse' : 'avenir';
     document.getElementById('fin-edit-method').value = method || '';
     document.getElementById('fin-edit-note').value = decoded_note || '';
+    document.getElementById('fin-edit-amount').value = amount || '';
     document.getElementById('fin-edit-modal').classList.add('show');
   }
 
@@ -4762,12 +4763,25 @@
     const status = document.getElementById('fin-edit-status').value;
     const method = document.getElementById('fin-edit-method').value;
     const note = document.getElementById('fin-edit-note').value.trim();
+    const amount = parseFloat(document.getElementById('fin-edit-amount').value);
+    if (isNaN(amount) || amount < 0) { toast('Montant invalide.', 'error'); return; }
     const isPaid = status === 'encaisse';
     const paidAt = isPaid ? (new Date().toISOString().slice(0, 10)) : null;
-    const { error } = await db.from('finances').update({ paid_at: paidAt, payment_method: method || null, fin_note: note || null }).eq('id', id);
+    const { error } = await db.from('finances').update({ paid_at: paidAt, payment_method: method || null, fin_note: note || null, amount: amount }).eq('id', id);
     if (error) { toast('Erreur : ' + error.message, 'error'); return; }
     closeModal('fin-edit-modal');
     toast('Mis à jour !', 'success');
+    loadFinances();
+  }
+
+  async function deleteFinEditEntry() {
+    const id = document.getElementById('fin-edit-id').value;
+    if (!id) return;
+    if (!confirm('Supprimer définitivement cette transaction ?')) return;
+    const { error } = await db.from('finances').delete().eq('id', id).eq('coach_id', profile.id);
+    if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+    closeModal('fin-edit-modal');
+    toast('Transaction supprimée.', 'success');
     loadFinances();
   }
 
@@ -5575,6 +5589,10 @@
     </div>
     <input type="hidden" id="fin-edit-id">
     <div class="form-group" style="margin-bottom:.9rem">
+      <label class="form-label">Montant (€)</label>
+      <input class="form-input" type="number" min="0" step="0.01" id="fin-edit-amount" placeholder="0.00">
+    </div>
+    <div class="form-group" style="margin-bottom:.9rem">
       <label class="form-label">Statut</label>
       <select class="form-input" id="fin-edit-status">
         <option value="avenir">⏳ À venir</option>
@@ -5594,9 +5612,12 @@
       <label class="form-label">Note</label>
       <input class="form-input" type="text" id="fin-edit-note" placeholder="Ex : paie fin de mois…">
     </div>
-    <div class="modal-actions">
-      <button class="btn-modal cancel" onclick="closeModal('fin-edit-modal')">Annuler</button>
-      <button class="btn-modal confirm" onclick="saveFinEdit()">Enregistrer</button>
+    <div class="modal-actions" style="justify-content:space-between">
+      <button class="btn-modal danger" onclick="deleteFinEditEntry()" style="background:rgba(248,113,113,.12);color:#f87171;border:1px solid rgba(248,113,113,.3)">Supprimer</button>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn-modal cancel" onclick="closeModal('fin-edit-modal')">Annuler</button>
+        <button class="btn-modal confirm" onclick="saveFinEdit()">Enregistrer</button>
+      </div>
     </div>
   </div>
 </div>
