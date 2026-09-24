@@ -2051,16 +2051,31 @@
       cycle_pain_level: (profile.gender === 'femme') ? ints('t-cycle-pain') : null,
     };
 
+    var photoFailed = false;
     const fileInput = document.getElementById('t-photo-input');
     if (fileInput.files && fileInput.files[0]) {
-      const photoPath = await uploadProgressPhoto(fileInput.files[0], dateStr);
-      if (photoPath) row.photo_url = photoPath;
+      try {
+        const photoPath = await uploadProgressPhoto(fileInput.files[0], dateStr);
+        if (photoPath) row.photo_url = photoPath;
+        else photoFailed = true;
+      } catch (e) {
+        console.error('Upload photo tracker:', e);
+        photoFailed = true;
+      }
     }
 
     const { error } = await db.from('daily_tracker').upsert(row, { onConflict: 'client_id,date' });
     btn.disabled = false;
     if (error) { toast('Erreur : ' + error.message, 'error'); return; }
-    toast('Donnees sauvegardees !', 'success');
+    if (photoFailed) {
+      // Alerte bloquante volontaire : un toast qui s'affiche juste avant le
+      // toast de succès serait immediatement ecrase et jamais vu par le
+      // client, qui croirait alors sa photo enregistree alors qu'elle ne
+      // l'est pas (c'est ce qui empechait le coach de recevoir les photos).
+      alert("Vos données ont été enregistrées, mais la photo n'a pas pu être envoyée. Réessayez de l'ajouter (connexion instable ou fichier trop volumineux).");
+    } else {
+      toast('Donnees sauvegardees !', 'success');
+    }
     loadTrackerCharts();
   }
 
