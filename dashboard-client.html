@@ -677,6 +677,51 @@
   .perf-card-name { font-size:.9rem; font-weight:600; color:var(--text); }
   .perf-card-body { padding:1rem 1.1rem; border-top:1px solid var(--border); display:none; }
   .perf-card-body.open { display:block; }
+
+  /* Seances HIIT / Hyrox : carte + lecteur plein ecran */
+  .ip-card-ex { display:flex; gap:.65rem; align-items:flex-start; padding:.5rem 0; border-bottom:1px solid var(--border); }
+  .ip-card-ex:last-of-type { border-bottom:none; }
+  .ip-card-ex-num { flex-shrink:0; width:22px; height:22px; border-radius:50%; background:var(--em-sub); border:1px solid var(--em-bdr); color:var(--em-lt); font-size:.72rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .ip-card-ex-name { font-size:.85rem; font-weight:600; color:var(--text); }
+  .ip-card-ex-meta { font-size:.74rem; color:var(--em-lt); margin-top:.1rem; }
+  /* Bouton vert (servait deja au "Terminer" de la musculation, qui n'avait pas de style) */
+  .btn-sm.primary { background:var(--em); color:#000; border:none; border-radius:10px; font-weight:700; font-family:'Inter', sans-serif; cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; transition:background .15s; }
+  .btn-sm.primary:hover:not(:disabled) { background:var(--em-lt); }
+  .ip-launch { width:100%; margin-top:.85rem; padding:.7rem; font-size:.9rem; justify-content:center; }
+  .ip-overlay { position:fixed; inset:0; z-index:9000; background:var(--bg); display:none; flex-direction:column; }
+  .ip-overlay.open { display:flex; }
+  .ip-top { display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:1rem 1.1rem; border-bottom:1px solid var(--border); }
+  .ip-title { font-weight:700; font-size:1rem; color:var(--text); text-align:center; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ip-icon-btn { width:40px; height:40px; border-radius:50%; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:1.05rem; cursor:pointer; flex-shrink:0; }
+  .ip-main { flex:1; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:1.25rem; gap:.6rem; }
+  .ip-phase { font-size:.8rem; font-weight:800; letter-spacing:.12em; color:var(--em-lt); text-transform:uppercase; }
+  .ip-phase-rest { color:var(--warn); }
+  .ip-ex-name { font-size:1.7rem; font-weight:800; color:var(--text); line-height:1.15; }
+  .ip-sub { font-size:.9rem; color:var(--text2); max-width:520px; }
+  .ip-clock { font-size:clamp(4.5rem, 22vw, 9rem); font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); line-height:1; margin:.5rem 0; }
+  .ip-clock-rest { color:var(--warn); }
+  .ip-clock-better { color:var(--em-lt); }
+  .ip-clock-worse { color:var(--danger); }
+  .ip-last { font-size:.85rem; color:var(--text2); }
+  .ip-paused { font-size:.8rem; font-weight:700; color:var(--warn); text-transform:uppercase; letter-spacing:.1em; }
+  .ip-notes { max-width:520px; font-size:.82rem; color:var(--text2); text-align:left; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:.6rem .8rem; }
+  .ip-notes summary { cursor:pointer; color:var(--em-lt); font-weight:600; }
+  .ip-controls { display:flex; gap:.6rem; padding:1rem 1.1rem 1.4rem; border-top:1px solid var(--border); }
+  .ip-ctrl-btn { flex:1; padding:1rem .5rem; border-radius:14px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:1.1rem; font-weight:700; cursor:pointer; }
+  .ip-ctrl-btn:disabled { opacity:.3; cursor:default; }
+  .ip-ctrl-btn.ip-pause { flex:1.4; background:var(--em-sub); border-color:var(--em-bdr); color:var(--em-lt); font-size:.95rem; }
+  .ip-list { position:absolute; inset:0; background:var(--bg); display:none; flex-direction:column; padding:1rem 1.1rem; overflow-y:auto; }
+  .ip-list.open { display:flex; }
+  .ip-list-head { display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:1rem; margin-bottom:.75rem; }
+  .ip-list-item { display:flex; gap:.65rem; align-items:flex-start; padding:.75rem .5rem; border-bottom:1px solid var(--border); cursor:pointer; border-radius:8px; }
+  .ip-list-item.current { background:var(--em-sub); }
+  .ip-round-form { width:100%; max-width:440px; display:flex; flex-direction:column; gap:.6rem; margin:.5rem 0; }
+  .ip-round-row { display:flex; flex-direction:column; gap:.3rem; text-align:left; font-size:.85rem; font-weight:600; color:var(--text); }
+  .ip-big-btn { width:100%; max-width:440px; padding:.9rem; font-size:.95rem; justify-content:center; }
+  .ip-big-btn:disabled { opacity:.45; }
+  .ip-feel { display:flex; flex-wrap:wrap; gap:.45rem; justify-content:center; max-width:360px; margin:.5rem 0 1rem; }
+  .ip-feel-btn { width:44px; height:44px; border-radius:50%; border:1px solid var(--border); background:var(--card); color:var(--text2); font-weight:700; cursor:pointer; }
+  .ip-feel-btn.active { background:var(--em); border-color:var(--em); color:#000; }
   .perf-ex-block { margin-bottom:1.1rem; }
   .perf-ex-block:last-child { margin-bottom:0; }
   .perf-timer { font-size:1.1rem; font-weight:700; color:var(--em); text-align:center; margin-bottom:1rem; letter-spacing:.5px; }
@@ -1349,10 +1394,54 @@
   }
 
   // ── PROGRAMME SPORTIF ─────────────────────────────────────────────────
+  // ── TYPES DE SÉANCE (musculation / HIIT / Hyrox) ─────────────
+  var SESSION_TYPE_LABELS = { muscu: 'Musculation', hiit: 'HIIT', hyrox: 'Hyrox' };
+
+  function restLabel(ex) { return ex.rest || (ex.rest_seconds ? ex.rest_seconds + 's' : ''); }
+
+  // Colonnes affichees pour un exercice selon le type de seance.
+  function clientExColumns(type) {
+    if (type === 'hiit') return [
+      { label: 'Effort', get: function(ex) { return ex.duration || ''; } },
+      { label: 'Repos',  get: restLabel, badge: true }
+    ];
+    if (type === 'hyrox') return [
+      { label: 'Objectif', get: function(ex) { return ex.target || ''; } }
+    ];
+    return [
+      { label: 'Series', get: function(ex) { return ex.sets || ''; } },
+      { label: 'Reps',   get: function(ex) { return ex.reps || ''; } },
+      { label: 'Repos',  get: restLabel, badge: true }
+    ];
+  }
+
+  function clientExMetaParts(ex, type) {
+    var parts = [];
+    if (type === 'hiit') {
+      if (ex.duration) parts.push(ex.duration + ' d\'effort');
+      if (restLabel(ex)) parts.push(restLabel(ex) + ' de repos');
+    } else if (type === 'hyrox') {
+      if (ex.target) parts.push(ex.target);
+    } else {
+      if (ex.sets) parts.push(ex.sets + (parseInt(ex.sets) > 1 ? ' séries' : ' série'));
+      if (ex.reps) parts.push(String(ex.reps));
+      if (restLabel(ex)) parts.push(restLabel(ex));
+    }
+    return parts.map(function(p) { return esc(String(p)); });
+  }
+
+  function clientSessionTypeBadge(s) {
+    var t = s.session_type || 'muscu';
+    if (t === 'muscu') return '';
+    var r = s.rounds || 1;
+    return '<span class="session-meta-badge" style="color:var(--em-lt)">' + SESSION_TYPE_LABELS[t] +
+      (t === 'hiit' ? ' · ' + r + ' tour' + (r > 1 ? 's' : '') : '') + '</span>';
+  }
+
   async function loadProgram() {
     document.getElementById('program-loading').style.display = 'block';
     const { data } = await db.from('workout_sessions')
-      .select('id,name,warmup,instructions,end_notes,exercises,position')
+      .select('id,name,warmup,instructions,end_notes,exercises,position,session_type,rounds')
       .eq('client_id', profile.id)
       .order('position');
     document.getElementById('program-loading').style.display = 'none';
@@ -1370,18 +1459,20 @@
       var exercises = [];
       try { exercises = Array.isArray(s.exercises) ? s.exercises : JSON.parse(s.exercises || '[]'); } catch(e) {}
       var count = exercises.length;
+      var type = s.session_type || 'muscu';
+      var cols = clientExColumns(type);
       var rows = exercises.map(function(ex) {
-        var restVal = ex.rest || (ex.rest_seconds ? ex.rest_seconds + 's' : '');
         var dotStyle = ex.badge_color ? 'display:inline-block;width:8px;height:8px;border-radius:50%;background:' + esc(ex.badge_color) + ';margin-right:5px;vertical-align:middle;flex-shrink:0' : '';
         var nameTd = (dotStyle ? '<span style="' + dotStyle + '"></span>' : '') + esc(ex.name || '');
-        return '<tr><td>' + nameTd + '</td><td>' + esc(String(ex.sets || '')) + '</td><td>' + esc(String(ex.reps || '')) + '</td><td>' + (restVal ? '<span class="rest-badge">' + esc(restVal) + '</span>' : '') + '</td><td style="color:var(--text2)">' + esc(ex.notes || '') + '</td></tr>';
+        var colTds = cols.map(function(c) {
+          var v = String(c.get(ex) || '');
+          return '<td>' + (c.badge ? (v ? '<span class="rest-badge">' + esc(v) + '</span>' : '') : esc(v)) + '</td>';
+        }).join('');
+        return '<tr><td>' + nameTd + '</td>' + colTds + '<td style="color:var(--text2)">' + esc(ex.notes || '') + '</td></tr>';
       }).join('');
+      var theadCols = cols.map(function(c) { return '<th>' + c.label + '</th>'; }).join('');
       var cards = exercises.map(function(ex, ei) {
-        var restVal = ex.rest || (ex.rest_seconds ? ex.rest_seconds + 's' : '');
-        var metaParts = [];
-        if (ex.sets) metaParts.push(ex.sets + (parseInt(ex.sets) > 1 ? ' séries' : ' série'));
-        if (ex.reps) metaParts.push(esc(String(ex.reps)));
-        if (restVal) metaParts.push(esc(restVal));
+        var metaParts = clientExMetaParts(ex, type);
         var hasNotes = !!ex.notes;
         var hasVideo = !!ex.video_url;
         var accId = 'exacc-' + idx + '-' + ei;
@@ -1413,7 +1504,7 @@
         '</div>';
       }).join('');
 
-      return '<div class="session-card" id="sc-' + idx + '"><div class="session-card-header" onclick="toggleSession(\'sc-' + idx + '\')"><div class="session-card-header-left"><span class="session-card-name">' + esc(s.name) + '</span><span class="session-meta-badge">' + count + ' exercice' + (count !== 1 ? 's' : '') + '</span></div><svg class="session-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div><div class="session-card-body">' + (s.warmup ? '<div class="warmup-text"><strong style="color:var(--text3);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em">Echauffement</strong><br>' + esc(s.warmup) + '</div>' : '') + (s.instructions ? '<div class="instructions-text"><div class="instructions-label">Notes / Instructions</div>' + esc(s.instructions) + '</div>' : '') + (count > 0 ? '<table class="ex-table"><thead><tr><th>Exercice</th><th>Series</th><th>Reps</th><th>Repos</th><th>Notes</th></tr></thead><tbody>' + rows + '</tbody></table><div class="ex-cards">' + cards + '</div>' : '<div style="color:var(--text3);font-size:.82rem;padding:.5rem 0">Aucun exercice defini.</div>') + (s.end_notes ? '<div class="end-notes-text"><div class="end-notes-label">Notes de fin de seance</div>' + esc(s.end_notes) + '</div>' : '') + '</div></div>';
+      return '<div class="session-card" id="sc-' + idx + '"><div class="session-card-header" onclick="toggleSession(\'sc-' + idx + '\')"><div class="session-card-header-left"><span class="session-card-name">' + esc(s.name) + '</span><span class="session-meta-badge">' + count + ' exercice' + (count !== 1 ? 's' : '') + '</span>' + clientSessionTypeBadge(s) + '</div><svg class="session-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div><div class="session-card-body">' + (s.warmup ? '<div class="warmup-text"><strong style="color:var(--text3);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em">Echauffement</strong><br>' + esc(s.warmup) + '</div>' : '') + (s.instructions ? '<div class="instructions-text"><div class="instructions-label">Notes / Instructions</div>' + esc(s.instructions) + '</div>' : '') + (count > 0 ? '<table class="ex-table"><thead><tr><th>Exercice</th>' + theadCols + '<th>Notes</th></tr></thead><tbody>' + rows + '</tbody></table><div class="ex-cards">' + cards + '</div>' : '<div style="color:var(--text3);font-size:.82rem;padding:.5rem 0">Aucun exercice defini.</div>') + (s.end_notes ? '<div class="end-notes-text"><div class="end-notes-label">Notes de fin de seance</div>' + esc(s.end_notes) + '</div>' : '') + '</div></div>';
     }).join('');
   }
 
@@ -2232,6 +2323,10 @@
       var exercises = [];
       try { exercises = Array.isArray(s.exercises) ? s.exercises : JSON.parse(s.exercises || '[]'); } catch(e) {}
       var lastPerf = lastPerfMap[s.id];
+      if ((s.session_type || 'muscu') !== 'muscu') {
+        _ipSessions[s.id] = { session: s, exercises: exercises, lastPerf: lastPerf || null };
+        return renderIntervalSessionCard(s, exercises, lastPerf);
+      }
       var lastExData = lastPerf ? (lastPerf.exercises_data || []) : [];
 
       var exBlocks = exercises.map(function(ex, ei) {
@@ -2311,8 +2406,8 @@
           '<div class="perf-actions">' +
             '<div style="display:flex;align-items:center;gap:.5rem">' +
               '<label style="font-size:.75rem;color:var(--text3)">Note de la séance</label>' +
-              '<div style="display:flex;gap:.3rem">' +
-                [1,2,3,4,5].map(function(v) {
+              '<div style="display:flex;gap:.3rem;flex-wrap:wrap">' +
+                [1,2,3,4,5,6,7,8,9,10].map(function(v) {
                   return '<button onclick="setPerfFeeling(\'' + s.id + '\',' + v + ')" id="pf-' + s.id + '-' + v + '" style="width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--card2);color:var(--text3);font-size:.72rem;cursor:pointer">' + v + '</button>';
                 }).join('') +
               '</div>' +
@@ -2373,7 +2468,7 @@
   var _perfFeelings = {};
   function setPerfFeeling(sessId, val) {
     _perfFeelings[sessId] = val;
-    [1,2,3,4,5].forEach(function(v) {
+    [1,2,3,4,5,6,7,8,9,10].forEach(function(v) {
       var btn = document.getElementById('pf-' + sessId + '-' + v);
       if (btn) {
         btn.style.background = v === val ? 'var(--em)' : 'var(--card2)';
@@ -2406,6 +2501,7 @@
       performed_at: today,
       exercises_data: exercisesData,
       feeling: feeling,
+      feeling_max: 10,
       duration_minutes: durationMinutes
     });
 
@@ -2413,6 +2509,379 @@
     toast('Séance enregistrée !', 'success');
     togglePerfCard(sessId);
     loadProgramSessions();
+  }
+
+  // ── LECTEUR HIIT / HYROX ──────────────────────────────────────────────
+  // HIIT  : compte a rebours effort -> repos -> exercice suivant, N tours,
+  //         saisie libre a la fin de chaque tour.
+  // Hyrox : chrono qui monte par exercice, fleche = exercice termine.
+  // Les temps sont calcules a partir de l'heure (Date.now) et non d'un
+  // compteur, pour rester justes meme si l'onglet passe en arriere-plan.
+  var _ipSessions = {};
+  var _ip = null;
+
+  // "30s", "1min30", "1:30", "90" -> secondes. Vide -> valeur par defaut.
+  function parseDurationSec(raw, dflt) {
+    if (raw == null || String(raw).trim() === '') return dflt;
+    var s = String(raw).toLowerCase().replace(',', '.').trim();
+    var m = s.match(/^(\d+)\s*:\s*(\d+)$/);
+    if (m) return parseInt(m[1]) * 60 + parseInt(m[2]);
+    m = s.match(/(\d+)\s*min(?:ute)?s?\s*(\d+)?/);
+    if (m) return parseInt(m[1]) * 60 + (m[2] ? parseInt(m[2]) : 0);
+    m = s.match(/^(\d+)'(\d+)?$/);
+    if (m) return parseInt(m[1]) * 60 + (m[2] ? parseInt(m[2]) : 0);
+    m = s.match(/(\d+)/);
+    return m ? parseInt(m[1]) : dflt;
+  }
+
+  function fmtClock(sec) {
+    sec = Math.max(0, Math.round(sec));
+    return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+  }
+
+  function renderIntervalSessionCard(s, exercises, lastPerf) {
+    var type = s.session_type;
+    var list = exercises.map(function(ex, ei) {
+      var parts = clientExMetaParts(ex, type);
+      return '<div class="ip-card-ex"><span class="ip-card-ex-num">' + (ei + 1) + '</span>' +
+        '<div><div class="ip-card-ex-name">' + esc(ex.name || 'Exercice ' + (ei + 1)) + '</div>' +
+        (parts.length ? '<div class="ip-card-ex-meta">' + parts.join(' · ') + '</div>' : '') + '</div></div>';
+    }).join('');
+    var lastDate = lastPerf
+      ? '<span style="font-size:.72rem;color:var(--text3)">Dernière fois : ' + new Date(lastPerf.performed_at).toLocaleDateString('fr-FR') + (lastPerf.duration_minutes ? ' · ' + lastPerf.duration_minutes + ' min' : '') + '</span>'
+      : '<span style="font-size:.72rem;color:var(--text3)">Première fois</span>';
+    return '<div class="perf-card" id="perf-card-' + s.id + '">' +
+      '<div class="perf-card-header" onclick="togglePerfCardOnly(\'' + s.id + '\')">' +
+        '<div><div class="perf-card-name">' + esc(s.name || 'Séance') + ' ' + clientSessionTypeBadge(s) + '</div><div>' + lastDate + '</div></div>' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="chevron-' + s.id + '"><polyline points="6 9 12 15 18 9"/></svg>' +
+      '</div>' +
+      '<div class="perf-card-body" id="perf-body-' + s.id + '">' +
+        (exercises.length ? list : '<div style="color:var(--text3);font-size:.82rem">Aucun exercice défini.</div>') +
+        (exercises.length ? '<button class="btn-sm primary ip-launch" onclick="openIntervalPlayer(\'' + s.id + '\')">▶ Lancer la séance</button>' : '') +
+      '</div>' +
+    '</div>';
+  }
+
+  // Comme togglePerfCard, sans lancer le chrono de musculation.
+  function togglePerfCardOnly(id) {
+    var body = document.getElementById('perf-body-' + id);
+    var chevron = document.getElementById('chevron-' + id);
+    body.classList.toggle('open');
+    chevron.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+  }
+
+  // ── Son / vibration / ecran allume ──
+  var _ipAudioCtx = null;
+  function ipBeep(long) {
+    try {
+      if (!_ipAudioCtx) return;
+      var o = _ipAudioCtx.createOscillator(), g = _ipAudioCtx.createGain();
+      o.frequency.value = long ? 660 : 880;
+      o.connect(g); g.connect(_ipAudioCtx.destination);
+      var t = _ipAudioCtx.currentTime;
+      g.gain.setValueAtTime(0.3, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + (long ? 0.7 : 0.18));
+      o.start(t); o.stop(t + (long ? 0.7 : 0.18));
+    } catch (e) {}
+    if (long && navigator.vibrate) { try { navigator.vibrate([250, 100, 250]); } catch (e) {} }
+  }
+
+  async function ipKeepAwake(on) {
+    try {
+      if (on && 'wakeLock' in navigator) _ip.wakeLock = await navigator.wakeLock.request('screen');
+      else if (!on && _ip && _ip.wakeLock) { _ip.wakeLock.release(); _ip.wakeLock = null; }
+    } catch (e) {}
+  }
+
+  function openIntervalPlayer(sessId) {
+    var d = _ipSessions[sessId];
+    if (!d || !d.exercises.length) return;
+    // Le son doit etre "debloque" par un clic de l'utilisateur (regle des navigateurs).
+    try {
+      if (!_ipAudioCtx) _ipAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      _ipAudioCtx.resume();
+    } catch (e) {}
+    var type = d.session.session_type;
+    _ip = {
+      sessId: sessId, session: d.session, exercises: d.exercises, type: type,
+      lastExData: d.lastPerf ? (d.lastPerf.exercises_data || []) : [],
+      rounds: type === 'hiit' ? Math.max(1, d.session.rounds || 1) : 1,
+      round: 1, idx: 0, phase: null, phaseEnd: 0, paused: false, pausedLeft: 0, pausedAt: 0,
+      exStart: 0, lastBeepSec: null,
+      hiitResults: [], hyroxTimes: [], feeling: null, startedAt: Date.now(),
+      tickId: null, wakeLock: null
+    };
+    document.getElementById('ip-overlay').classList.add('open');
+    ipKeepAwake(true);
+    if (type === 'hiit') ipStartWork(Date.now()); else ipStartHyrox(Date.now());
+    _ip.tickId = setInterval(ipTick, 200);
+  }
+
+  function ipCloseOverlay() {
+    if (_ip) { clearInterval(_ip.tickId); ipKeepAwake(false); }
+    _ip = null;
+    document.getElementById('ip-overlay').classList.remove('open');
+  }
+
+  function ipQuit() {
+    if (!_ip) return;
+    if (_ip.phase !== 'finish' && !confirm('Quitter la séance ? Rien ne sera enregistré.')) return;
+    ipCloseOverlay();
+  }
+
+  // ── HIIT ──
+  function ipStartWork(at) {
+    var ex = _ip.exercises[_ip.idx];
+    _ip.phase = 'work';
+    _ip.phaseEnd = at + parseDurationSec(ex.duration, 30) * 1000;
+    _ip.lastBeepSec = null;
+    ipRender();
+  }
+
+  function ipAfterWork(at) {
+    var rest = parseDurationSec(_ip.exercises[_ip.idx].rest, 0);
+    if (rest > 0) {
+      _ip.phase = 'rest';
+      _ip.phaseEnd = at + rest * 1000;
+      _ip.lastBeepSec = null;
+      ipRender();
+    } else {
+      ipNextHiitExercise(at);
+    }
+  }
+
+  function ipNextHiitExercise(at) {
+    if (_ip.idx < _ip.exercises.length - 1) {
+      _ip.idx++;
+      ipStartWork(at);
+    } else {
+      _ip.phase = 'roundEntry';
+      ipRender();
+    }
+  }
+
+  function ipSubmitRound() {
+    var vals = _ip.exercises.map(function(_, ei) {
+      var el = document.getElementById('ip-round-in-' + ei);
+      return el ? el.value.trim() : '';
+    });
+    _ip.hiitResults[_ip.round - 1] = vals;
+    if (_ip.round < _ip.rounds) {
+      _ip.round++;
+      _ip.idx = 0;
+      ipStartWork(Date.now());
+    } else {
+      _ip.phase = 'finish';
+      ipRender();
+    }
+  }
+
+  // ── Hyrox ──
+  function ipStartHyrox(at) {
+    _ip.phase = 'run';
+    _ip.exStart = at;
+    ipRender();
+  }
+
+  function ipHyroxElapsed() {
+    var now = _ip.paused ? _ip.pausedAt : Date.now();
+    return (now - _ip.exStart) / 1000;
+  }
+
+  function ipHyroxDone() {
+    _ip.hyroxTimes[_ip.idx] = Math.round(ipHyroxElapsed());
+    ipBeep(true);
+    if (_ip.idx < _ip.exercises.length - 1) {
+      _ip.idx++;
+      _ip.paused = false;
+      ipStartHyrox(Date.now());
+    } else {
+      _ip.phase = 'finish';
+      ipRender();
+    }
+  }
+
+  // ── Commun ──
+  function ipTick() {
+    if (!_ip || _ip.paused) return;
+    var now = Date.now();
+    if (_ip.phase === 'work' || _ip.phase === 'rest') {
+      // Boucle : si l'onglet etait en arriere-plan, plusieurs etapes ont pu passer.
+      var guard = 0;
+      while ((_ip.phase === 'work' || _ip.phase === 'rest') && now >= _ip.phaseEnd && guard++ < 500) {
+        var end = _ip.phaseEnd;
+        ipBeep(true);
+        if (_ip.phase === 'work') ipAfterWork(end); else ipNextHiitExercise(end);
+      }
+      if (_ip.phase === 'work' || _ip.phase === 'rest') {
+        var left = Math.ceil((_ip.phaseEnd - now) / 1000);
+        if (left <= 3 && left >= 1 && _ip.lastBeepSec !== left) { _ip.lastBeepSec = left; ipBeep(false); }
+        ipSetClock(left);
+      }
+    } else if (_ip.phase === 'run') {
+      ipSetClock(ipHyroxElapsed());
+    }
+  }
+
+  function ipSetClock(sec) {
+    var el = document.getElementById('ip-clock');
+    if (!el) return;
+    el.textContent = fmtClock(sec);
+    if (_ip.phase === 'run') {
+      var last = _ip.lastExData[_ip.idx] && _ip.lastExData[_ip.idx].time_seconds;
+      el.classList.toggle('ip-clock-better', last != null && sec <= last);
+      el.classList.toggle('ip-clock-worse', last != null && sec > last);
+    }
+  }
+
+  function ipTogglePause() {
+    if (!_ip) return;
+    var now = Date.now();
+    if (!_ip.paused) {
+      _ip.paused = true;
+      _ip.pausedAt = now;
+      _ip.pausedLeft = _ip.phaseEnd - now;
+    } else {
+      _ip.paused = false;
+      if (_ip.phase === 'run') _ip.exStart += now - _ip.pausedAt;
+      else _ip.phaseEnd = now + _ip.pausedLeft;
+    }
+    ipRender();
+  }
+
+  function ipGoTo(i) {
+    if (!_ip || i < 0) return;
+    _ip.paused = false;
+    if (_ip.type === 'hiit') {
+      if (i >= _ip.exercises.length) { _ip.phase = 'roundEntry'; ipRender(); return; }
+      _ip.idx = i;
+      ipStartWork(Date.now());
+    } else {
+      if (i >= _ip.exercises.length) return;
+      _ip.idx = i;
+      ipStartHyrox(Date.now());
+    }
+  }
+
+  function ipNext() {
+    if (!_ip) return;
+    if (_ip.type === 'hyrox') ipHyroxDone(); else ipGoTo(_ip.idx + 1);
+  }
+
+  function ipToggleList() {
+    document.getElementById('ip-list').classList.toggle('open');
+  }
+
+  function ipSetFeeling(v) {
+    _ip.feeling = v;
+    document.querySelectorAll('.ip-feel-btn').forEach(function(b) {
+      b.classList.toggle('active', parseInt(b.dataset.v) === v);
+    });
+    document.getElementById('ip-save-btn').disabled = false;
+  }
+
+  async function ipSave() {
+    if (!_ip || !_ip.feeling) return;
+    var btn = document.getElementById('ip-save-btn');
+    btn.disabled = true;
+    var exercisesData = _ip.exercises.map(function(ex, ei) {
+      if (_ip.type === 'hiit') {
+        return { name: ex.name || '', rounds: _ip.hiitResults.map(function(r) { return (r && r[ei]) || ''; }) };
+      }
+      return { name: ex.name || '', target: ex.target || '', time_seconds: _ip.hyroxTimes[ei] != null ? _ip.hyroxTimes[ei] : null };
+    });
+    var { error } = await db.from('solo_performance').insert({
+      client_id: profile.id,
+      workout_session_id: _ip.sessId,
+      performed_at: new Date().toISOString().slice(0, 10),
+      exercises_data: exercisesData,
+      feeling: _ip.feeling,
+      feeling_max: 10,
+      duration_minutes: Math.max(1, Math.round((Date.now() - _ip.startedAt) / 60000))
+    });
+    if (error) { btn.disabled = false; toast('Erreur : ' + error.message, 'error'); return; }
+    ipCloseOverlay();
+    toast('Séance enregistrée !', 'success');
+    loadProgramSessions();
+  }
+
+  function ipRender() {
+    if (!_ip) return;
+    var ex = _ip.exercises[_ip.idx] || {};
+    var n = _ip.exercises.length;
+    document.getElementById('ip-title').textContent = _ip.session.name || 'Séance';
+
+    // Liste complete (menu)
+    document.getElementById('ip-list-items').innerHTML = _ip.exercises.map(function(e, i) {
+      var parts = clientExMetaParts(e, _ip.type);
+      return '<div class="ip-list-item' + (i === _ip.idx ? ' current' : '') + '" onclick="ipGoTo(' + i + ');ipToggleList()">' +
+        '<span class="ip-card-ex-num">' + (i + 1) + '</span><div><div class="ip-card-ex-name">' + esc(e.name || 'Exercice ' + (i + 1)) + '</div>' +
+        (parts.length ? '<div class="ip-card-ex-meta">' + parts.join(' · ') + '</div>' : '') + '</div></div>';
+    }).join('');
+
+    var main = document.getElementById('ip-main');
+    var controls = document.getElementById('ip-controls');
+
+    if (_ip.phase === 'roundEntry') {
+      controls.style.display = 'none';
+      main.innerHTML =
+        '<div class="ip-phase">Tour ' + _ip.round + ' / ' + _ip.rounds + ' terminé 💪</div>' +
+        '<div class="ip-sub">Notez ce que vous avez fait sur chaque exercice (reps, secondes… comme vous voulez).</div>' +
+        '<div class="ip-round-form">' + _ip.exercises.map(function(e, ei) {
+          var prev = (_ip.hiitResults[_ip.round - 2] || [])[ei];
+          var lastRounds = _ip.lastExData[ei] && _ip.lastExData[ei].rounds;
+          var lastVal = lastRounds ? lastRounds[_ip.round - 1] : '';
+          return '<label class="ip-round-row"><span>' + esc(e.name || 'Exercice ' + (ei + 1)) + '</span>' +
+            '<input id="ip-round-in-' + ei + '" class="form-input" placeholder="' + esc(lastVal ? 'Dernière fois : ' + lastVal : (prev ? 'Tour précédent : ' + prev : 'ex : 15')) + '"></label>';
+        }).join('') + '</div>' +
+        '<button class="btn-sm primary ip-big-btn" onclick="ipSubmitRound()">' +
+          (_ip.round < _ip.rounds ? 'Valider et lancer le tour ' + (_ip.round + 1) : 'Valider et terminer') + '</button>';
+      return;
+    }
+
+    if (_ip.phase === 'finish') {
+      controls.style.display = 'none';
+      main.innerHTML =
+        '<div class="ip-phase">Séance terminée 🎉</div>' +
+        '<div class="ip-sub">Comment s\'est passée votre séance ?</div>' +
+        '<div class="ip-feel">' + [1,2,3,4,5,6,7,8,9,10].map(function(v) {
+          return '<button class="ip-feel-btn" data-v="' + v + '" onclick="ipSetFeeling(' + v + ')">' + v + '</button>';
+        }).join('') + '</div>' +
+        '<button class="btn-sm primary ip-big-btn" id="ip-save-btn" disabled onclick="ipSave()">Enregistrer la séance</button>';
+      return;
+    }
+
+    controls.style.display = 'flex';
+    var phaseLabel, sub = '', extra = '';
+    if (_ip.type === 'hiit') {
+      phaseLabel = (_ip.phase === 'rest' ? 'REPOS' : 'EFFORT') + ' · Tour ' + _ip.round + ' / ' + _ip.rounds;
+      if (_ip.phase === 'rest') {
+        var nextEx = _ip.exercises[_ip.idx + 1];
+        sub = nextEx ? 'Ensuite : ' + esc(nextEx.name || '') : (_ip.round < _ip.rounds ? 'Ensuite : fin du tour' : 'Ensuite : fin de la séance');
+      }
+    } else {
+      phaseLabel = 'Exercice ' + (_ip.idx + 1) + ' / ' + n;
+      if (ex.target) sub = 'Objectif : ' + esc(ex.target);
+      var last = _ip.lastExData[_ip.idx] && _ip.lastExData[_ip.idx].time_seconds;
+      if (last != null) extra = '<div class="ip-last">Dernière fois : ' + fmtClock(last) + '</div>';
+    }
+    main.innerHTML =
+      '<div class="ip-phase' + (_ip.phase === 'rest' ? ' ip-phase-rest' : '') + '">' + phaseLabel + '</div>' +
+      '<div class="ip-ex-name">' + esc(_ip.phase === 'rest' ? 'Récupération' : (ex.name || 'Exercice')) + '</div>' +
+      (sub ? '<div class="ip-sub">' + sub + '</div>' : '') +
+      '<div class="ip-clock' + (_ip.phase === 'rest' ? ' ip-clock-rest' : '') + '" id="ip-clock">0:00</div>' +
+      extra +
+      (ex.notes && _ip.phase !== 'rest' ? '<details class="ip-notes"><summary>Explication de l\'exercice</summary>' + esc(ex.notes) + '</details>' : '') +
+      (_ip.paused ? '<div class="ip-paused">En pause</div>' : '');
+
+    document.getElementById('ip-pause-btn').textContent = _ip.paused ? '▶ Reprendre' : '❚❚ Pause';
+    document.getElementById('ip-prev-btn').disabled = _ip.idx === 0;
+    document.getElementById('ip-next-btn').textContent = _ip.type === 'hyrox'
+      ? (_ip.idx < n - 1 ? 'Fait ✓' : 'Terminer ✓')
+      : '→';
+    // Affiche tout de suite la bonne valeur (sans attendre le prochain tic).
+    if (_ip.phase === 'run') ipSetClock(ipHyroxElapsed());
+    else ipSetClock(Math.ceil(((_ip.paused ? _ip.pausedAt + _ip.pausedLeft : _ip.phaseEnd) - (_ip.paused ? _ip.pausedAt : Date.now())) / 1000));
   }
 
   // ── MESSAGERIE ────────────────────────────────────────────────────────
@@ -2619,6 +3088,25 @@
 </div>
 
 <!-- ── VIDEO POPUP ── -->
+<!-- Lecteur de seance HIIT / Hyrox (plein ecran) -->
+<div class="ip-overlay" id="ip-overlay">
+  <div class="ip-top">
+    <button class="ip-icon-btn" onclick="ipQuit()" title="Quitter">✕</button>
+    <div class="ip-title" id="ip-title">Séance</div>
+    <button class="ip-icon-btn" onclick="ipToggleList()" title="Voir toute la séance">☰</button>
+  </div>
+  <div class="ip-main" id="ip-main"></div>
+  <div class="ip-controls" id="ip-controls">
+    <button class="ip-ctrl-btn" id="ip-prev-btn" onclick="ipGoTo(_ip.idx - 1)">←</button>
+    <button class="ip-ctrl-btn ip-pause" id="ip-pause-btn" onclick="ipTogglePause()">❚❚ Pause</button>
+    <button class="ip-ctrl-btn" id="ip-next-btn" onclick="ipNext()">→</button>
+  </div>
+  <div class="ip-list" id="ip-list">
+    <div class="ip-list-head"><span>Toute la séance</span><button class="ip-icon-btn" onclick="ipToggleList()">✕</button></div>
+    <div id="ip-list-items"></div>
+  </div>
+</div>
+
 <div class="vid-overlay" id="vid-overlay" onclick="if(event.target===this)closeVideoPopup()">
   <div class="vid-box">
     <div class="vid-box-head">

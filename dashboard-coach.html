@@ -2857,7 +2857,7 @@
 
     // Proposer via modal de copier les séances existantes
     const { data: existingSessions } = await db.from('workout_sessions')
-      .select('name, warmup, instructions, end_notes, exercises, position')
+      .select('name, warmup, instructions, end_notes, exercises, position, session_type, rounds')
       .eq('client_id', selectedClient.id)
       .eq('coach_id', profile.id)
       .order('position');
@@ -3344,6 +3344,7 @@
     container.innerHTML = sessionTemplates.map(function(s) {
       var exercises = Array.isArray(s.exercises) ? s.exercises : [];
       var count = exercises.length;
+      var type = s.session_type || 'muscu';
       var rows = exercises.map(function(ex, ei) {
         var dotColor = ex.badge_color || 'var(--border)';
         return '<tr data-ei="' + ei + '">' +
@@ -3351,9 +3352,7 @@
             '<span class="ex-badge-dot" style="background:' + esc(dotColor) + '"></span>' +
             '<input class="ex-inp" data-tpl="' + s.id + '" data-ei="' + ei + '" value="' + esc(ex.name||'') + '" placeholder="Squat..." oninput="growInp(this);onTplExNameInput(this)" onfocus="onTplExNameInput(this)" onblur="setTimeout(hideExAutocomplete,180)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'name\',this.value)">' +
           '</div></td>' +
-          '<td><input class="ex-inp ex-inp-sm" type="number" min="1" value="' + (ex.sets||'') + '" oninput="growInp(this)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'sets\',this.value)"></td>' +
-          '<td><input class="ex-inp ex-inp-sm" value="' + esc(String(ex.reps||'')) + '" placeholder="10" oninput="growInp(this)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'reps\',this.value)"></td>' +
-          '<td><input class="ex-inp ex-inp-rest" value="' + esc(String(ex.rest||'')) + '" placeholder="90s" oninput="growInp(this)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'rest\',this.value)"></td>' +
+          exFieldTds('updateTemplateExercise', s.id, ei, ex, type) +
           '<td class="ex-td-notes"><textarea class="ex-ta-notes" rows="1" placeholder="Notes..." oninput="growTaNotes(this)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'notes\',this.value)">' + esc(ex.notes||'') + '</textarea></td>' +
           '<td><button class="btn-del-row" onclick="removeTemplateExercise(\'' + s.id + '\',' + ei + ')" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button></td>' +
           '</tr>';
@@ -3369,20 +3368,7 @@
             '<span class="ex-badge-dot" style="background:' + esc(dotColor) + '"></span>' +
             '<input class="ex-card-name-inp" style="margin:0;flex:1;min-width:0;width:0" data-tpl="' + s.id + '" data-ei="' + ei + '" value="' + esc(ex.name||'') + '" placeholder="Squat..." oninput="onTplExNameInput(this)" onfocus="onTplExNameInput(this)" onblur="setTimeout(hideExAutocomplete,180)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'name\',this.value)">' +
           '</div>' +
-          '<div class="ex-card-meta-row">' +
-            '<div class="ex-card-meta-field">' +
-              '<span class="ex-card-meta-label">Séries</span>' +
-              '<input class="ex-card-meta-inp" type="number" min="1" value="' + (ex.sets||'') + '" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'sets\',this.value)">' +
-            '</div>' +
-            '<div class="ex-card-meta-field">' +
-              '<span class="ex-card-meta-label">Reps</span>' +
-              '<input class="ex-card-meta-inp" value="' + esc(String(ex.reps||'')) + '" placeholder="10" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'reps\',this.value)">' +
-            '</div>' +
-            '<div class="ex-card-meta-field">' +
-              '<span class="ex-card-meta-label">Repos</span>' +
-              '<input class="ex-card-meta-inp" value="' + esc(String(ex.rest||'')) + '" placeholder="90s" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'rest\',this.value)">' +
-            '</div>' +
-          '</div>' +
+          exFieldCardRow('updateTemplateExercise', s.id, ei, ex, type) +
           '<textarea class="ex-ta-notes" rows="1" placeholder="Notes..." oninput="growTaNotes(this)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'notes\',this.value)">' + esc(ex.notes||'') + '</textarea>' +
         '</div>';
       }).join('');
@@ -3393,6 +3379,7 @@
             '<svg class="ws-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>' +
             '<span class="ws-card-title">' + esc(s.name) + '</span>' +
             '<span class="session-meta-badge">' + count + ' exercice' + (count !== 1 ? 's' : '') + '</span>' +
+            sessionTypeBadge(s) +
           '</div>' +
           '<div style="display:flex;gap:.4rem">' +
             '<button class="btn-sm" style="padding:.4rem .7rem" onclick="event.stopPropagation();openApplyTemplateModal(\'' + s.id + '\')">👤 Appliquer à un client</button>' +
@@ -3412,8 +3399,9 @@
             '<label>Notes / Instructions</label>' +
             '<textarea class="form-input" id="tnotes-' + s.id + '" rows="3" placeholder="Ex: méthode top set / back off, consignes d\'exécution, tempo, points d\'attention...">' + esc(s.instructions||'') + '</textarea>' +
           '</div>' +
+          sessionTypeControls('t', s) +
           '<div class="ex-table-wrap">' +
-          '<table class="ex-table"><thead><tr><th>Exercice</th><th>Séries</th><th>Reps</th><th>Repos</th><th>Notes</th><th></th></tr></thead>' +
+          '<table class="ex-table"><thead><tr><th>Exercice</th>' + exFieldThs(type) + '<th>Notes</th><th></th></tr></thead>' +
           '<tbody id="tex-' + s.id + '">' + rows + '</tbody></table>' +
           '</div>' +
           '<div class="ex-card-list" id="tex-cards-' + s.id + '">' + cards + '</div>' +
@@ -3461,7 +3449,8 @@
     var s = sessionTemplates.find(function(s) { return s.id === tplId; });
     if (!s) return;
     if (!Array.isArray(s.exercises)) s.exercises = [];
-    s.exercises.push({ name: '', sets: 3, reps: '10', rest: '', notes: '' });
+    captureSessionTextFields('t', s);
+    s.exercises.push(newExerciseForType(s.session_type));
     renderTemplateSessions(tplId);
     setTimeout(function() {
       var tbody = document.getElementById('tex-' + tplId);
@@ -3487,7 +3476,8 @@
     var instructions = document.getElementById('tnotes-' + tplId).value.trim();
     var end_notes    = document.getElementById('tendnotes-' + tplId).value.trim();
     var { error } = await db.from('session_templates').update({
-      name: name, warmup: warmup, instructions: instructions, end_notes: end_notes, exercises: s.exercises
+      name: name, warmup: warmup, instructions: instructions, end_notes: end_notes, exercises: s.exercises,
+      session_type: s.session_type || 'muscu', rounds: s.rounds || 1
     }).eq('id', tplId).eq('coach_id', profile.id);
     if (error) { toast('Erreur : ' + error.message, 'error'); return; }
     s.name = name; s.warmup = warmup; s.instructions = instructions; s.end_notes = end_notes;
@@ -3579,11 +3569,123 @@
       client_id: clientId, coach_id: profile.id,
       name: tpl.name, warmup: tpl.warmup || '', instructions: tpl.instructions || '',
       end_notes: tpl.end_notes || '', exercises: tpl.exercises || [],
+      session_type: tpl.session_type || 'muscu', rounds: tpl.rounds || 1,
       position: count || 0
     });
     if (error) { toast('Erreur : ' + error.message, 'error'); return; }
     closeModal('apply-template-modal');
     toast('Séance appliquée au programme du client !', 'success');
+  }
+
+  // ── TYPES DE SÉANCE (musculation / HIIT / Hyrox) ─────────────
+  // Partagé par les séances des clients ('w') et les modèles ('t').
+  var SESSION_TYPE_LABELS = { muscu: 'Musculation', hiit: 'HIIT', hyrox: 'Hyrox' };
+
+  function exTypeFields(type) {
+    if (type === 'hiit') return [
+      { key: 'duration', label: 'Effort', ph: '30s', cls: 'ex-inp-rest' },
+      { key: 'rest',     label: 'Repos',  ph: '15s', cls: 'ex-inp-rest' }
+    ];
+    if (type === 'hyrox') return [
+      { key: 'target', label: 'Objectif', ph: '1 km', cls: '' }
+    ];
+    return [
+      { key: 'sets', label: 'Séries', ph: '',    cls: 'ex-inp-sm', num: true },
+      { key: 'reps', label: 'Reps',   ph: '10',  cls: 'ex-inp-sm' },
+      { key: 'rest', label: 'Repos',  ph: '90s', cls: 'ex-inp-rest' }
+    ];
+  }
+
+  function newExerciseForType(type) {
+    if (type === 'hiit')  return { name: '', duration: '30s', rest: '', notes: '' };
+    if (type === 'hyrox') return { name: '', target: '', notes: '' };
+    return { name: '', sets: 3, reps: '10', rest: '', notes: '' };
+  }
+
+  function exFieldInput(fn, id, ei, ex, f, cssClass, grow) {
+    var val = f.num ? (ex[f.key] || '') : esc(String(ex[f.key] || ''));
+    return '<input class="' + cssClass + '"' + (f.num ? ' type="number" min="1"' : '') + ' value="' + val + '" placeholder="' + f.ph + '"' +
+      (grow ? ' oninput="growInp(this)"' : '') +
+      ' onchange="' + fn + '(\'' + id + '\',' + ei + ',\'' + f.key + '\',this.value)">';
+  }
+
+  function exFieldTds(fn, id, ei, ex, type) {
+    return exTypeFields(type).map(function(f) {
+      return '<td>' + exFieldInput(fn, id, ei, ex, f, 'ex-inp' + (f.cls ? ' ' + f.cls : ''), true) + '</td>';
+    }).join('');
+  }
+
+  function exFieldCardRow(fn, id, ei, ex, type) {
+    return '<div class="ex-card-meta-row">' + exTypeFields(type).map(function(f) {
+      return '<div class="ex-card-meta-field">' +
+        '<span class="ex-card-meta-label">' + f.label + '</span>' +
+        exFieldInput(fn, id, ei, ex, f, 'ex-card-meta-inp', false) +
+      '</div>';
+    }).join('') + '</div>';
+  }
+
+  function exFieldThs(type) {
+    return exTypeFields(type).map(function(f) { return '<th>' + f.label + '</th>'; }).join('');
+  }
+
+  function sessionTypeBadge(s) {
+    var t = s.session_type || 'muscu';
+    if (t === 'muscu') return '';
+    var r = s.rounds || 1;
+    return '<span class="session-meta-badge" style="color:var(--em-lt)">' + SESSION_TYPE_LABELS[t] +
+      (t === 'hiit' ? ' · ' + r + ' tour' + (r > 1 ? 's' : '') : '') + '</span>';
+  }
+
+  function sessionTypeControls(kind, s) {
+    var type = s.session_type || 'muscu';
+    var opts = ['muscu', 'hiit', 'hyrox'].map(function(t) {
+      return '<option value="' + t + '"' + (t === type ? ' selected' : '') + '>' + SESSION_TYPE_LABELS[t] + '</option>';
+    }).join('');
+    var help = type === 'hiit'
+      ? 'Chaque exercice : durée d\'effort + repos (laisser le repos vide pour enchaîner directement).'
+      : type === 'hyrox'
+      ? 'Chaque exercice : un objectif (distance, nombre de reps…). Le client est chronométré.'
+      : '';
+    return '<div class="form-group" style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end">' +
+      '<div style="flex:1;min-width:160px"><label>Type de séance</label>' +
+        '<select class="form-input" onchange="changeSessionType(\'' + kind + '\',\'' + s.id + '\',this.value)">' + opts + '</select></div>' +
+      (type === 'hiit'
+        ? '<div style="width:150px"><label>Nombre de tours</label>' +
+            '<input class="form-input" type="number" min="1" max="50" value="' + (s.rounds || 1) + '" onchange="setSessionRounds(\'' + kind + '\',\'' + s.id + '\',this.value)"></div>'
+        : '') +
+      (help ? '<div style="flex-basis:100%;font-size:.74rem;color:var(--text3)">' + help + '</div>' : '') +
+    '</div>';
+  }
+
+  function findSessionByKind(kind, id) {
+    var list = kind === 't' ? sessionTemplates : workoutSessions;
+    return list.find(function(x) { return x.id === id; });
+  }
+
+  // Le re-rendu reconstruit la carte : on garde d'abord les textes en cours de saisie.
+  function captureSessionTextFields(kind, s) {
+    function val(prefix) { var el = document.getElementById(kind + prefix + '-' + s.id); return el ? el.value : null; }
+    var name = val('name'), warmup = val('warmup'), notes = val('notes'), endNotes = val('endnotes');
+    if (name !== null) s.name = name;
+    if (warmup !== null) s.warmup = warmup;
+    if (notes !== null) s.instructions = notes;
+    if (endNotes !== null) s.end_notes = endNotes;
+  }
+
+  function changeSessionType(kind, id, type) {
+    var s = findSessionByKind(kind, id);
+    if (!s) return;
+    captureSessionTextFields(kind, s);
+    s.session_type = type;
+    if (type !== 'hiit') s.rounds = 1;
+    if (kind === 't') renderTemplateSessions(id); else renderWorkoutSessions(id);
+    toast('Type modifié — pensez à sauvegarder la séance.', 'success');
+  }
+
+  function setSessionRounds(kind, id, value) {
+    var s = findSessionByKind(kind, id);
+    if (!s) return;
+    s.rounds = Math.min(50, Math.max(1, parseInt(value) || 1));
   }
 
   // ── WORKOUT BUILDER ─────────────────────────────
@@ -3621,6 +3723,7 @@
       var exercises = [];
       try { exercises = Array.isArray(s.exercises) ? s.exercises : JSON.parse(s.exercises || '[]'); } catch(e) {}
       var count = exercises.length;
+      var type = s.session_type || 'muscu';
       var rows = exercises.map(function(ex, ei) {
         var dotColor = ex.badge_color || 'var(--border)';
         return '<tr data-ei="' + ei + '">' +
@@ -3629,9 +3732,7 @@
             '<span class="ex-badge-dot" style="background:' + esc(dotColor) + '"></span>' +
             '<input class="ex-inp" data-sess="' + s.id + '" data-ei="' + ei + '" value="' + esc(ex.name||'') + '" placeholder="Squat..." oninput="growInp(this);onExNameInput(this)" onfocus="onExNameInput(this)" onblur="setTimeout(hideExAutocomplete,180)" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'name\',this.value)">' +
           '</div></td>' +
-          '<td><input class="ex-inp ex-inp-sm" type="number" min="1" value="' + (ex.sets||'') + '" oninput="growInp(this)" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'sets\',this.value)"></td>' +
-          '<td><input class="ex-inp ex-inp-sm" value="' + esc(String(ex.reps||'')) + '" placeholder="10" oninput="growInp(this)" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'reps\',this.value)"></td>' +
-          '<td><input class="ex-inp ex-inp-rest" value="' + esc(String(ex.rest||'')) + '" placeholder="90s" oninput="growInp(this)" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'rest\',this.value)"></td>' +
+          exFieldTds('updateExercise', s.id, ei, ex, type) +
           '<td class="ex-td-notes"><textarea class="ex-ta-notes" rows="1" placeholder="Notes..." oninput="growTaNotes(this)" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'notes\',this.value)">' + esc(ex.notes||'') + '</textarea></td>' +
           '<td><button class="btn-del-row" onclick="removeExercise(\'' + s.id + '\',' + ei + ')" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button></td>' +
           '</tr>';
@@ -3648,20 +3749,7 @@
             '<span class="ex-badge-dot" style="background:' + esc(dotColor) + '"></span>' +
             '<input class="ex-card-name-inp" style="margin:0;flex:1;min-width:0;width:0" data-sess="' + s.id + '" data-ei="' + ei + '" value="' + esc(ex.name||'') + '" placeholder="Squat..." oninput="onExNameInput(this)" onfocus="onExNameInput(this)" onblur="setTimeout(hideExAutocomplete,180)" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'name\',this.value)">' +
           '</div>' +
-          '<div class="ex-card-meta-row">' +
-            '<div class="ex-card-meta-field">' +
-              '<span class="ex-card-meta-label">Séries</span>' +
-              '<input class="ex-card-meta-inp" type="number" min="1" value="' + (ex.sets||'') + '" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'sets\',this.value)">' +
-            '</div>' +
-            '<div class="ex-card-meta-field">' +
-              '<span class="ex-card-meta-label">Reps</span>' +
-              '<input class="ex-card-meta-inp" value="' + esc(String(ex.reps||'')) + '" placeholder="10" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'reps\',this.value)">' +
-            '</div>' +
-            '<div class="ex-card-meta-field">' +
-              '<span class="ex-card-meta-label">Repos</span>' +
-              '<input class="ex-card-meta-inp" value="' + esc(String(ex.rest||'')) + '" placeholder="90s" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'rest\',this.value)">' +
-            '</div>' +
-          '</div>' +
+          exFieldCardRow('updateExercise', s.id, ei, ex, type) +
           '<textarea class="ex-ta-notes" rows="1" placeholder="Notes..." oninput="growTaNotes(this)" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'notes\',this.value)">' + esc(ex.notes||'') + '</textarea>' +
         '</div>';
       }).join('');
@@ -3672,6 +3760,7 @@
             '<svg class="ws-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>' +
             '<span class="ws-card-title">' + esc(s.name) + '</span>' +
             '<span class="session-meta-badge">' + count + ' exercice' + (count !== 1 ? 's' : '') + '</span>' +
+            sessionTypeBadge(s) +
           '</div>' +
           '<button class="btn-sm ghost" onclick="event.stopPropagation();deleteWSession(\'' + s.id + '\')" title="Supprimer la séance"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>' +
         '</div>' +
@@ -3688,8 +3777,9 @@
             '<label>Notes / Instructions</label>' +
             '<textarea class="form-input" id="wnotes-' + s.id + '" rows="3" placeholder="Ex: méthode top set / back off, consignes d\'exécution, tempo, points d\'attention...">' + esc(s.instructions||'') + '</textarea>' +
           '</div>' +
+          sessionTypeControls('w', s) +
           '<div class="ex-table-wrap">' +
-          '<table class="ex-table"><thead><tr><th></th><th>Exercice</th><th>Séries</th><th>Reps</th><th>Repos</th><th>Notes</th><th></th></tr></thead>' +
+          '<table class="ex-table"><thead><tr><th></th><th>Exercice</th>' + exFieldThs(type) + '<th>Notes</th><th></th></tr></thead>' +
           '<tbody id="wex-' + s.id + '">' + rows + '</tbody></table>' +
           '</div>' +
           '<div class="ex-card-list" id="wex-cards-' + s.id + '">' + cards + '</div>' +
@@ -3768,7 +3858,8 @@
     var s = workoutSessions.find(function(s) { return s.id === sessionId; });
     if (!s) return;
     if (!Array.isArray(s.exercises)) s.exercises = [];
-    s.exercises.push({ name: '', sets: 3, reps: '10', rest: '', notes: '' });
+    captureSessionTextFields('w', s);
+    s.exercises.push(newExerciseForType(s.session_type));
     renderWorkoutSessions(sessionId);
     // Focus new row name
     setTimeout(function() {
@@ -3799,7 +3890,8 @@
     var instructions = notesEl     ? notesEl.value.trim() : (s.instructions || '');
     var end_notes    = endNotesEl  ? endNotesEl.value.trim() : (s.end_notes || '');
     var { error } = await db.from('workout_sessions').update({
-      name: name, warmup: warmup, instructions: instructions, end_notes: end_notes, exercises: s.exercises
+      name: name, warmup: warmup, instructions: instructions, end_notes: end_notes, exercises: s.exercises,
+      session_type: s.session_type || 'muscu', rounds: s.rounds || 1
     }).eq('id', sessionId).eq('coach_id', profile.id);
     if (error) { toast('Erreur : ' + error.message, 'error'); return; }
     s.name = name; s.warmup = warmup; s.instructions = instructions; s.end_notes = end_notes;
@@ -3858,6 +3950,7 @@
           name: s.name, warmup: s.warmup || '',
           instructions: s.instructions || '', end_notes: s.end_notes || '',
           exercises: Array.isArray(s.exercises) ? s.exercises : [],
+          session_type: s.session_type || 'muscu', rounds: s.rounds || 1,
           position: s.position
         });
         if (error) hasError = true;
@@ -3880,6 +3973,7 @@
           instructions: s.instructions || '',
           end_notes: s.end_notes || '',
           exercises: Array.isArray(s.exercises) ? s.exercises : [],
+          session_type: s.session_type || 'muscu', rounds: s.rounds || 1,
           position: s.position
         });
         if (error) { hasError = true; }
@@ -3916,6 +4010,7 @@
         instructions: s.instructions || '',
         end_notes: s.end_notes || '',
         exercises: Array.isArray(s.exercises) ? s.exercises : [],
+          session_type: s.session_type || 'muscu', rounds: s.rounds || 1,
         position: 9999
       });
       if (error) { toast('Erreur sync duo : ' + error.message, 'error'); return; }
@@ -4107,7 +4202,7 @@
 
     // Récupérer les noms des séances du programme
     const { data: sessions } = await db.from('workout_sessions')
-      .select('id,name,exercises').eq('client_id', selectedClient.id);
+      .select('id,name,exercises,session_type,rounds').eq('client_id', selectedClient.id);
     const sessionMap = {};
     (sessions || []).forEach(function(s) {
       var exercises = [];
@@ -4121,7 +4216,7 @@
       .order('performed_at', { ascending: false }).limit(30);
 
     if (!perfs || !perfs.length) {
-      container.innerHTML = '<div style="color:var(--text2);font-size:.85rem">Aucune séance de musculation réalisée pour le moment.</div>';
+      container.innerHTML = '<div style="color:var(--text2);font-size:.85rem">Aucune séance réalisée pour le moment.</div>';
       return;
     }
 
@@ -4131,12 +4226,35 @@
 
       var feelingHtml = '';
       if (p.feeling) {
+        // Les anciennes notes etaient sur 5, les nouvelles sur 10 (feeling_max).
+        var fMax = p.feeling_max || 5;
         var colors = ['#ef4444','#f97316','#eab308','#84cc16','#10b981'];
-        feelingHtml = '<span style="font-size:.72rem;padding:.15rem .5rem;border-radius:6px;background:' + colors[p.feeling-1] + '22;color:' + colors[p.feeling-1] + '">Ressenti ' + p.feeling + '/5</span>';
+        var fColor = colors[Math.min(4, Math.max(0, Math.ceil(p.feeling / fMax * 5) - 1))];
+        feelingHtml = '<span style="font-size:.72rem;padding:.15rem .5rem;border-radius:6px;background:' + fColor + '22;color:' + fColor + '">Ressenti ' + p.feeling + '/' + fMax + '</span>';
       }
 
+      var chipStyle = 'display:inline-flex;align-items:center;gap:.2rem;font-size:.74rem;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:.15rem .5rem;margin:.15rem';
       var exHtml = exData.map(function(ex, ei) {
-        var exName = (sess.exercises[ei] && sess.exercises[ei].name) ? sess.exercises[ei].name : 'Exercice ' + (ei+1);
+        var exName = ex.name || ((sess.exercises[ei] && sess.exercises[ei].name) ? sess.exercises[ei].name : 'Exercice ' + (ei+1));
+        var detailHtml = '';
+        if (Array.isArray(ex.rounds)) {
+          // HIIT : ce que le client a note a chaque tour (texte libre)
+          detailHtml = ex.rounds.map(function(r, ri) {
+            return '<span style="' + chipStyle + '"><span style="color:var(--text3)">T' + (ri+1) + '</span> <span style="color:var(--text)">' + esc(String(r || '—')) + '</span></span>';
+          }).join('');
+        } else if (ex.time_seconds != null) {
+          // Hyrox : temps realise sur l'objectif
+          var t = Math.round(ex.time_seconds);
+          detailHtml = '<span style="' + chipStyle + '">' +
+            (ex.target ? '<span style="color:var(--text3)">' + esc(String(ex.target)) + '</span> · ' : '') +
+            '<span style="color:var(--em-lt)">' + Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0') + '</span></span>';
+        }
+        if (detailHtml) {
+          return '<div style="margin-bottom:.65rem">' +
+            '<div style="font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:.25rem">' + esc(exName) + '</div>' +
+            '<div style="display:flex;flex-wrap:wrap">' + detailHtml + '</div>' +
+          '</div>';
+        }
         var series = ex.series || [];
         var seriesHtml = series.map(function(s, si) {
           var reps = s.reps || '—';
