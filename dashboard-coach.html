@@ -1331,6 +1331,7 @@
     .color-swatch.active { border-color: #fff; transform: scale(1.15); }
     /* Badge in workout builder rows */
     .ex-name-cell { display: flex; align-items: center; gap: .4rem; }
+    .ss-hint { font-size: .72rem; color: var(--em); margin: .25rem 0 .45rem; line-height: 1.35; }
     .msg-grid {
       display: grid;
       grid-template-columns: 300px 1fr;
@@ -3351,7 +3352,7 @@
           '<td><div class="ex-name-cell">' +
             '<span class="ex-badge-dot" style="background:' + esc(dotColor) + '"></span>' +
             '<input class="ex-inp" data-tpl="' + s.id + '" data-ei="' + ei + '" value="' + esc(ex.name||'') + '" placeholder="Squat..." oninput="growInp(this);onTplExNameInput(this)" onfocus="onTplExNameInput(this)" onblur="setTimeout(hideExAutocomplete,180)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'name\',this.value)">' +
-          '</div></td>' +
+          '</div>' + ssHintHtml(ex.name, type) + '</td>' +
           exFieldTds('updateTemplateExercise', s.id, ei, ex, type) +
           '<td class="ex-td-notes"><textarea class="ex-ta-notes" rows="1" placeholder="Notes..." oninput="growTaNotes(this)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'notes\',this.value)">' + esc(ex.notes||'') + '</textarea></td>' +
           '<td><button class="btn-del-row" onclick="removeTemplateExercise(\'' + s.id + '\',' + ei + ')" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button></td>' +
@@ -3367,7 +3368,7 @@
           '<div class="ex-name-cell" style="margin-bottom:.55rem">' +
             '<span class="ex-badge-dot" style="background:' + esc(dotColor) + '"></span>' +
             '<input class="ex-card-name-inp" style="margin:0;flex:1;min-width:0;width:0" data-tpl="' + s.id + '" data-ei="' + ei + '" value="' + esc(ex.name||'') + '" placeholder="Squat..." oninput="onTplExNameInput(this)" onfocus="onTplExNameInput(this)" onblur="setTimeout(hideExAutocomplete,180)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'name\',this.value)">' +
-          '</div>' +
+          '</div>' + ssHintHtml(ex.name, type) +
           exFieldCardRow('updateTemplateExercise', s.id, ei, ex, type) +
           '<textarea class="ex-ta-notes" rows="1" placeholder="Notes..." oninput="growTaNotes(this)" onchange="updateTemplateExercise(\'' + s.id + '\',' + ei + ',\'notes\',this.value)">' + esc(ex.notes||'') + '</textarea>' +
         '</div>';
@@ -3731,7 +3732,7 @@
           '<td><div class="ex-name-cell">' +
             '<span class="ex-badge-dot" style="background:' + esc(dotColor) + '"></span>' +
             '<input class="ex-inp" data-sess="' + s.id + '" data-ei="' + ei + '" value="' + esc(ex.name||'') + '" placeholder="Squat..." oninput="growInp(this);onExNameInput(this)" onfocus="onExNameInput(this)" onblur="setTimeout(hideExAutocomplete,180)" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'name\',this.value)">' +
-          '</div></td>' +
+          '</div>' + ssHintHtml(ex.name, type) + '</td>' +
           exFieldTds('updateExercise', s.id, ei, ex, type) +
           '<td class="ex-td-notes"><textarea class="ex-ta-notes" rows="1" placeholder="Notes..." oninput="growTaNotes(this)" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'notes\',this.value)">' + esc(ex.notes||'') + '</textarea></td>' +
           '<td><button class="btn-del-row" onclick="removeExercise(\'' + s.id + '\',' + ei + ')" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button></td>' +
@@ -3748,7 +3749,7 @@
           '<div class="ex-name-cell" style="margin-bottom:.55rem">' +
             '<span class="ex-badge-dot" style="background:' + esc(dotColor) + '"></span>' +
             '<input class="ex-card-name-inp" style="margin:0;flex:1;min-width:0;width:0" data-sess="' + s.id + '" data-ei="' + ei + '" value="' + esc(ex.name||'') + '" placeholder="Squat..." oninput="onExNameInput(this)" onfocus="onExNameInput(this)" onblur="setTimeout(hideExAutocomplete,180)" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'name\',this.value)">' +
-          '</div>' +
+          '</div>' + ssHintHtml(ex.name, type) +
           exFieldCardRow('updateExercise', s.id, ei, ex, type) +
           '<textarea class="ex-ta-notes" rows="1" placeholder="Notes..." oninput="growTaNotes(this)" onchange="updateExercise(\'' + s.id + '\',' + ei + ',\'notes\',this.value)">' + esc(ex.notes||'') + '</textarea>' +
         '</div>';
@@ -4259,6 +4260,19 @@
         var seriesHtml = series.map(function(s, si) {
           var reps = s.reps || '—';
           var kg = s.kg || '—';
+          if (Array.isArray(s.parts)) {
+            // Superset : une ligne par exercice enchaine.
+            return '<span style="display:inline-flex;align-items:flex-start;gap:.35rem;font-size:.74rem;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:.2rem .5rem;margin:.15rem">' +
+              '<span style="color:var(--text3)">S' + (si+1) + '</span>' +
+              '<span style="display:flex;flex-direction:column;gap:.1rem">' +
+                s.parts.map(function(p) {
+                  return '<span><span style="color:var(--text3)">' + esc(p.name || '') + '</span> ' +
+                    '<span style="color:var(--text)">' + esc(String(p.reps || '—')) + '</span> × ' +
+                    '<span style="color:var(--em-lt)">' + esc(String(p.kg || '—')) + ' kg</span></span>';
+                }).join('') +
+              '</span>' +
+            '</span>';
+          }
           return '<span style="display:inline-flex;align-items:center;gap:.2rem;font-size:.74rem;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:.15rem .5rem;margin:.15rem">' +
             '<span style="color:var(--text3)">S' + (si+1) + '</span> ' +
             '<span style="color:var(--text)">' + esc(String(reps)) + ' reps</span> · ' +
@@ -5359,6 +5373,41 @@
     await db.auth.signOut();
     window.location.href = 'index.html';
   }
+
+  // Superset : meme logique que l'appli (src/lib/superset.ts).
+  var SUPERSET_RE = /\bsuper[\s-]?set\b/i;
+  function parseSuperset(name, reps) {
+    if (!SUPERSET_RE.test(name || '')) return null;
+    var rest = String(name).replace(SUPERSET_RE, '').replace(/^[\s:\u2013-]+/, '').trim();
+    var names = rest.split('+').map(function(x) { return x.trim(); }).filter(Boolean);
+    if (names.length < 2) names = ['Exercice 1', 'Exercice 2'];
+    var repsStr = reps == null ? '' : String(reps).trim();
+    var repsParts = repsStr.split('+').map(function(x) { return x.trim(); });
+    return names.map(function(n, i) {
+      return { name: n, targetReps: repsParts.length === names.length ? repsParts[i] : repsStr };
+    });
+  }
+  function supersetHintText(name) {
+    var parts = parseSuperset(name);
+    if (!parts) return '';
+    return (parts.length >= 3 ? 'Triset reconnu : ' : 'Superset reconnu : ') +
+      parts.map(function(p) { return p.name; }).join(', puis ') + '. Séparez les exercices par « + ».';
+  }
+  function ssHintHtml(name, type) {
+    if ((type || 'muscu') !== 'muscu') return '';
+    var t = supersetHintText(name);
+    return '<div class="ss-hint"' + (t ? '' : ' style="display:none"') + '>' + esc(t) + '</div>';
+  }
+  document.addEventListener('input', function(e) {
+    var t = e.target;
+    if (!t || !t.matches || !t.matches('.ex-inp, .ex-card-name-inp')) return;
+    var cell = t.closest('.ex-name-cell');
+    var hint = cell && cell.parentElement ? cell.parentElement.querySelector('.ss-hint') : null;
+    if (!hint) return;
+    var txt = supersetHintText(t.value);
+    hint.textContent = txt;
+    hint.style.display = txt ? '' : 'none';
+  });
 
   function esc(str) {
     return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');

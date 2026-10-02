@@ -734,6 +734,10 @@
   .perf-serie-input.perf-serie-better { border-color:#10b981; color:#10b981; font-weight:700; }
   .perf-serie-input.perf-serie-worse { border-color:#ef4444; color:#ef4444; font-weight:700; }
   .perf-serie-input:focus { outline:none; border-color:var(--em); color:var(--text); background:var(--card); }
+  .perf-ss-box { align-items:stretch; border:1px solid var(--border); border-radius:8px; padding:4px 6px; }
+  .perf-ss-part { display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .perf-ss-part + .perf-ss-part { border-top:1px dashed var(--border); padding-top:3px; margin-top:2px; }
+  .perf-ss-name { font-size:.6rem; color:var(--text2); max-width:110px; text-align:center; line-height:1.2; }
   .perf-serie-unit { font-size:.58rem; color:var(--text3); text-align:center; }
   .perf-actions { display:flex; justify-content:flex-end; gap:.5rem; margin-top:1rem; padding-top:.75rem; border-top:1px solid var(--border); }
   </style>
@@ -2328,31 +2332,34 @@
         return renderIntervalSessionCard(s, exercises, lastPerf);
       }
       var lastExData = lastPerf ? (lastPerf.exercises_data || []) : [];
+      _perfExercises[s.id] = exercises;
 
       var exBlocks = exercises.map(function(ex, ei) {
         var sets = parseInt(ex.sets) || 3;
         var lastEx = lastExData[ei] || {};
         var lastSeries = lastEx.series || [];
 
+        var ssParts = parseSuperset(ex.name, ex.reps);
         var seriesHtml = '';
         for (var si = 0; si < sets; si++) {
           var lastS = lastSeries[si] || {};
-          var lastRepsNum = (lastS.reps !== undefined && lastS.reps !== null && lastS.reps !== '') ? lastS.reps : '';
-          var lastKgNum   = (lastS.kg   !== undefined && lastS.kg   !== null && lastS.kg   !== '') ? lastS.kg   : '';
-          var placeholderReps = lastRepsNum !== '' ? lastRepsNum : '—';
-          var placeholderKg   = lastKgNum   !== '' ? lastKgNum   : '—';
+          if (ssParts) {
+            // Superset : une ligne reps/kg par exercice enchaine.
+            var partsHtml = ssParts.map(function(part, pi) {
+              var lp = (lastS.parts && lastS.parts[pi]) || {};
+              return '<div class="perf-ss-part">' +
+                '<span class="perf-ss-name">' + esc(part.name) + (part.targetReps ? ' · ' + esc(part.targetReps) : '') + '</span>' +
+                perfInputsHtml(s.id, ei, si, pi, lp.reps, lp.kg) +
+              '</div>';
+            }).join('');
+            seriesHtml += '<div class="perf-serie-box perf-ss-box">' +
+              '<span class="perf-serie-label">S' + (si+1) + '</span>' + partsHtml +
+            '</div>';
+            continue;
+          }
           seriesHtml += '<div class="perf-serie-box">' +
             '<span class="perf-serie-label">S' + (si+1) + '</span>' +
-            '<div class="perf-serie-inputs">' +
-              '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
-                '<input class="perf-serie-input" placeholder="' + placeholderReps + '" data-last="' + lastRepsNum + '" oninput="comparePerfInput(this)" data-sess="' + s.id + '" data-ex="' + ei + '" data-serie="' + si + '" data-type="reps">' +
-                '<span class="perf-serie-unit">reps</span>' +
-              '</div>' +
-              '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
-                '<input class="perf-serie-input" placeholder="' + placeholderKg + '" data-last="' + lastKgNum + '" oninput="comparePerfInput(this)" data-sess="' + s.id + '" data-ex="' + ei + '" data-serie="' + si + '" data-type="kg">' +
-                '<span class="perf-serie-unit">kg</span>' +
-              '</div>' +
-            '</div>' +
+            perfInputsHtml(s.id, ei, si, null, lastS.reps, lastS.kg) +
           '</div>';
         }
 
@@ -2466,6 +2473,7 @@
   }
 
   var _perfFeelings = {};
+  var _perfExercises = {};
   function setPerfFeeling(sessId, val) {
     _perfFeelings[sessId] = val;
     [1,2,3,4,5,6,7,8,9,10].forEach(function(v) {
@@ -2481,16 +2489,44 @@
   async function savePerfSession(sessId) {
     var inputs = document.querySelectorAll('[data-sess="' + sessId + '"]');
     var exMap = {};
+    var sessExercises = (_perfExercises && _perfExercises[sessId]) || [];
     inputs.forEach(function(inp) {
       var ei = inp.dataset.ex;
       var si = inp.dataset.serie;
       var type = inp.dataset.type;
+      var val = inp.value || (inp.placeholder !== '—' ? inp.placeholder : '') || '';
       if (!exMap[ei]) exMap[ei] = { series: [] };
       if (!exMap[ei].series[si]) exMap[ei].series[si] = {};
-      exMap[ei].series[si][type] = inp.value || inp.placeholder || '';
+      var serie = exMap[ei].series[si];
+      if (inp.dataset.part !== undefined) {
+        var pi = parseInt(inp.dataset.part, 10);
+        if (!serie.parts) serie.parts = [];
+        if (!serie.parts[pi]) serie.parts[pi] = {};
+        serie.parts[pi][type] = val;
+      } else {
+        serie[type] = val;
+      }
     });
 
-    var exercisesData = Object.keys(exMap).sort().map(function(k) { return exMap[k]; });
+    var exercisesData = Object.keys(exMap).sort(function(x, y) { return x - y; }).map(function(k) {
+      var exDef = sessExercises[k] || {};
+      var entry = exMap[k];
+      if (exDef.name) entry.name = exDef.name;
+      var ssParts = parseSuperset(exDef.name, exDef.reps);
+      if (ssParts) {
+        entry.series = entry.series.map(function(serie) {
+          var parts = (serie.parts || []).map(function(p, pi) {
+            return { name: ssParts[pi] ? ssParts[pi].name : '', reps: p.reps || '', kg: p.kg || '' };
+          });
+          return {
+            reps: parts.map(function(p) { return p.reps || '—'; }).join(' + '),
+            kg: parts.map(function(p) { return p.kg || '—'; }).join(' + '),
+            parts: parts
+          };
+        });
+      }
+      return entry;
+    });
     var feeling = _perfFeelings[sessId] || null;
 
     var durationMinutes = stopPerfTimer(sessId);
@@ -3028,6 +3064,37 @@
     for (var i = 0; i < 12; i++) inner += row;
     inner += '</div>';
     overlay.innerHTML = inner;
+  }
+
+  // Superset : « Superset curl biceps + extension triceps », reps « 12 + 10 ».
+  var SUPERSET_RE = /\bsuper[\s-]?set\b/i;
+  function parseSuperset(name, reps) {
+    if (!SUPERSET_RE.test(name || '')) return null;
+    var rest = String(name).replace(SUPERSET_RE, '').replace(/^[\s:\u2013-]+/, '').trim();
+    var names = rest.split('+').map(function(x) { return x.trim(); }).filter(Boolean);
+    if (names.length < 2) names = ['Exercice 1', 'Exercice 2'];
+    var repsStr = reps == null ? '' : String(reps).trim();
+    var repsParts = repsStr.split('+').map(function(x) { return x.trim(); });
+    return names.map(function(n, i) {
+      return { name: n, targetReps: repsParts.length === names.length ? repsParts[i] : repsStr };
+    });
+  }
+
+  function perfInputsHtml(sessId, ei, si, pi, lastReps, lastKg) {
+    var lr = (lastReps !== undefined && lastReps !== null && lastReps !== '') ? lastReps : '';
+    var lk = (lastKg !== undefined && lastKg !== null && lastKg !== '') ? lastKg : '';
+    var common = ' oninput="comparePerfInput(this)" data-sess="' + sessId + '" data-ex="' + ei + '" data-serie="' + si + '"' +
+      (pi === null ? '' : ' data-part="' + pi + '"');
+    return '<div class="perf-serie-inputs">' +
+      '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
+        '<input class="perf-serie-input" placeholder="' + esc(String(lr !== '' ? lr : '—')) + '" data-last="' + esc(String(lr)) + '"' + common + ' data-type="reps">' +
+        '<span class="perf-serie-unit">reps</span>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
+        '<input class="perf-serie-input" placeholder="' + esc(String(lk !== '' ? lk : '—')) + '" data-last="' + esc(String(lk)) + '"' + common + ' data-type="kg">' +
+        '<span class="perf-serie-unit">kg</span>' +
+      '</div>' +
+    '</div>';
   }
 
   function esc(str) {
