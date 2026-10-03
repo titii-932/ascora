@@ -2352,6 +2352,10 @@
 
     const { data: p } = await db.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
     if (!p || p.role !== 'coach') { await db.auth.signOut(); window.location.href = 'index.html'; return; }
+    // Abonnement suspendu ou résilié : retour à la connexion (qui affiche le message).
+    if (!p.lifetime_free && !p.is_admin && !['active', 'trialing', 'past_due'].includes(p.subscription_status || '')) {
+      await db.auth.signOut(); window.location.href = 'index.html?abonnement=inactif'; return;
+    }
     if (p.first_login) { window.location.href = 'index.html'; return; }
 
     profile = p;
@@ -5083,7 +5087,15 @@
       .eq('id', clientId)
       .eq('coach_id', profile.id);
 
-    if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+    if (error) {
+      // Limite de la formule atteinte (20 / 50 / 100 clients) : message clair.
+      if (/LIMITE_FORMULE/.test(error.message)) {
+        toast('Limite de votre formule atteinte. Changez de formule sur ascora.be, rubrique « Mon abonnement ».', 'error');
+      } else {
+        toast('Erreur : ' + error.message, 'error');
+      }
+      return;
+    }
 
     toast(`${name} approuvé(e) — le client peut maintenant se connecter.`, 'success');
     loadPendingRequests();

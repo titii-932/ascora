@@ -513,7 +513,7 @@
 
     async function redirectUser(uid, btn = null) {
       const { data: profile } = await db.from('profiles')
-        .select('role,status,first_login').eq('id', uid).maybeSingle();
+        .select('role,status,first_login,lifetime_free,is_admin,subscription_status').eq('id', uid).maybeSingle();
 
       if (!profile) {
         await db.auth.signOut();
@@ -535,6 +535,15 @@
         await db.auth.signOut();
         if (btn) setLoading(btn, false, 'Se connecter');
         showStatusScreen('screen-rejected');
+        return;
+      }
+
+      // Coach sans abonnement actif (suspendu après 14 jours d'impayés, ou résilié)
+      if (profile.role === 'coach' && !profile.lifetime_free && !profile.is_admin
+          && !['active', 'trialing', 'past_due'].includes(profile.subscription_status || '')) {
+        await db.auth.signOut();
+        if (btn) setLoading(btn, false, 'Se connecter');
+        toast('Votre abonnement Ascora est suspendu ou résilié. Réactivez-le sur ascora.be, rubrique « Mon abonnement ». Vos clients gardent leur accès.', 'warn');
         return;
       }
 
@@ -648,6 +657,9 @@
     // ── LIEN D'INVITATION (pré-remplissage depuis coach) ────
     (function() {
       const p = new URLSearchParams(window.location.search);
+      if (p.get('abonnement') === 'inactif') {
+        toast('Votre abonnement Ascora est suspendu ou résilié. Réactivez-le sur ascora.be, rubrique « Mon abonnement ». Vos clients gardent leur accès.', 'warn');
+      }
       const coach = p.get('coach');
       if (coach) {
         document.getElementById('r-coach-email').value = decodeURIComponent(coach);
