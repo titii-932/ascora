@@ -1,4 +1,4 @@
-const CACHE = 'ascora-v49';
+const CACHE = 'ascora-v50';
 
 const STATIC = [
   '/ascora/index.html',
@@ -18,7 +18,8 @@ self.addEventListener('install', function(e) {
   e.waitUntil(
     caches.open(CACHE).then(function(cache) {
       return Promise.all(STATIC.map(function(url) {
-        return cache.add(url).catch(function() { /* fichier absent, on continue */ });
+        // cache: 'reload' : on telecharge la version du serveur, jamais une copie perimee du navigateur.
+        return cache.add(new Request(url, { cache: 'reload' })).catch(function() { /* fichier absent, on continue */ });
       }));
     })
   );
@@ -82,7 +83,23 @@ self.addEventListener('fetch', function(e) {
     return;
   }
 
-  // Cache-first : fichiers locaux (HTML, icons, manifest)
+  // Network-first : pages HTML (toujours la derniere version, la copie ne sert que hors connexion)
+  if (e.request.mode === 'navigate' || /\.html(\?|#|$)/.test(url)) {
+    e.respondWith(
+      fetch(e.request, { cache: 'no-cache' }).then(function(response) {
+        if (response && response.status === 200 && response.type === 'basic') {
+          var copy = response.clone();
+          caches.open(CACHE).then(function(cache) { cache.put(e.request, copy); });
+        }
+        return response;
+      }).catch(function() {
+        return caches.match(e.request, { ignoreSearch: true });
+      })
+    );
+    return;
+  }
+
+  // Cache-first : fichiers locaux (icons, manifest)
   e.respondWith(
     caches.match(e.request).then(function(cached) {
       if (cached) return cached;
