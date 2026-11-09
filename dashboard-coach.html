@@ -1919,7 +1919,7 @@
           <div class="prog-card">
             <h3>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              Évolution sur 30 jours
+              Évolution depuis le début du suivi
             </h3>
             <div id="evo-loading" style="color:var(--text2);font-size:.82rem;margin-bottom:1rem;display:none">Chargement...</div>
             <div class="evo-charts-grid" id="evo-charts-grid">
@@ -5441,20 +5441,18 @@
 
     document.getElementById('evo-loading').style.display = 'block';
 
-    const from = new Date();
-    from.setDate(from.getDate() - 29);
-    const fromStr = from.toISOString().slice(0, 10);
-
+    // Tout l'historique du client (plus de limite a 30 jours).
     const { data } = await db.from('daily_tracker')
       .select('date,weight_kg,waist_cm,calories_kcal,proteins_g,fats_g,carbs_g,steps,sleep_hours,stress_level')
       .eq('client_id', selectedClient.id)
-      .gte('date', fromStr)
       .order('date');
 
     document.getElementById('evo-loading').style.display = 'none';
 
     const rows = (data || []).filter(r => r.date);
-    const labels = rows.map(r => r.date.slice(5));
+    // Dates JJ/MM, avec l'annee si le suivi couvre plusieurs annees.
+    const multiYear = rows.length > 1 && rows[0].date.slice(0, 4) !== rows[rows.length - 1].date.slice(0, 4);
+    const labels = rows.map(r => r.date.slice(8, 10) + '/' + r.date.slice(5, 7) + (multiYear ? '/' + r.date.slice(2, 4) : ''));
 
     const defs = [
       { id: 'evo-weight',   field: 'weight_kg',     color: '#10b981' },
